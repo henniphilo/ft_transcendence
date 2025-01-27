@@ -25,18 +25,12 @@ class GameServer:
         
         try:
             while True:
-                message = await websocket.receive_text()
-                data = json.loads(message)
-                
-                if data.get('action') == 'debug':
-                    print(f"DEBUG from game {game_id}: {data.get('message')}")
-                elif data.get('action') == 'key_update':
-                    print(f"Key update from game {game_id}: {data.get('keys')}")  # Debug für Tasten
+                data = await websocket.receive_json()
+                if data["action"] == "key_update":
                     self.handle_input(game, data["keys"])
                     
         except Exception as e:
             print(f"Error in game {game_id}: {e}")
-            print(f"Last message received: {message if 'message' in locals() else 'No message'}")
         finally:
             if game_id in self.active_games:
                 del self.active_games[game_id]

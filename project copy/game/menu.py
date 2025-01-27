@@ -44,6 +44,9 @@ class Menu:
                 "settings": self.game_settings.get_settings()
             }
             
+        elif selection == "leaderboard":
+            return {"action": "show_leaderboard"}
+            
         elif selection in ["tournament", "single_game"]:
             self.current_menu_stack.append("game_mode")
             return {"action": "show_submenu", "menu_items": self.play_mode_items, "selected_mode": selection}
@@ -69,8 +72,8 @@ class Menu:
                     return {"action": "show_submenu", "menu_items": self.play_mode_items}
             return {"action": "show_main_menu", "menu_items": self.menu_items}
             
-        elif selection == "leaderboard":
-            return {"action": "show_leaderboard"}
+        elif selection == "help":
+            return {"action": "show_help"}
             
         elif selection == "exit":
             return {"action": "exit_game"}
