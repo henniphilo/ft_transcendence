@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: "postgres:16"
+    container_name: ft_transcendence_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: transcendence
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - transcendence_network
+
+  backend:
+    build:
+      context: ./src/ft_transcendence_backend
+      dockerfile: dockerfile
+    container_name: ft_transcendence_backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/transcendence
+    networks:
+      - transcendence_network
+    ports:
+      - "8000:8000"
+
+    # Automatisch Migrations durchführen und dann starten
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+  nginx:
+    build:
+      context: ./src/
+      dockerfile: nginx/dockerfile
+    container_name: ft_transcendence_nginx
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - transcendence_network
+    ports:
+      - "8080:80"
+
+
+volumes:
+  postgres_data:
+
+networks:
+  transcendence_network:
+    driver: bridge
