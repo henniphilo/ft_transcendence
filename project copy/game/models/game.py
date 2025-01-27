@@ -6,7 +6,7 @@ import math
 class PongGame:
     def __init__(self, settings: dict, player1: Player, player2: Player):
         self.ball_speed = settings.get("ball_speed", 5)
-        self.paddle_speed = settings.get("paddle_speed", 5)
+        self.paddle_speed = settings.get("paddle_speed", 5)  # Paddle Speed aus Settings
         self.winning_score = settings.get("winning_score", 5)
         
         # Paddle-Größen-Dictionary (jetzt als absolute Größen)
