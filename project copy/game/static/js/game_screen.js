@@ -29,18 +29,19 @@ class GameScreen {
     }
 
     setupControls() {
-        document.addEventListener('keydown', (e) => {
-            if (!this.keyState[e.key]) {  // Sende nur beim ersten Drücken
-                this.keyState[e.key] = true;
+        // Neues Update-Intervall für kontinuierliche Tastenabfrage
+        this.controlInterval = setInterval(() => {
+            if (Object.values(this.keyState).some(key => key)) {
                 this.sendKeyState();
             }
+        }, 16); // Ca. 60 mal pro Sekunde
+
+        document.addEventListener('keydown', (e) => {
+            this.keyState[e.key] = true;
         });
 
         document.addEventListener('keyup', (e) => {
-            if (this.keyState[e.key]) {  // Sende nur beim Loslassen
-                this.keyState[e.key] = false;
-                this.sendKeyState();
-            }
+            this.keyState[e.key] = false;
         });
     }
 
@@ -161,6 +162,10 @@ class GameScreen {
     cleanup() {
         if (this.ws) {
             this.ws.close();
+        }
+        // Wichtig: Interval stoppen wenn das Spiel beendet wird
+        if (this.controlInterval) {
+            clearInterval(this.controlInterval);
         }
         document.removeEventListener('keydown', this.handleInput);
         document.removeEventListener('keyup', this.handleInput);
