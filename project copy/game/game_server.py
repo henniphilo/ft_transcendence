@@ -19,8 +19,8 @@ class GameServer:
         print(f"Game ID: {game_id}")
         print(f"Received Settings: {settings}")
         
-        is_ai_mode = settings.get("mode") == "ai"
-        print(f"Game Mode: {'AI' if is_ai_mode else 'PvP'}")
+        is_ai_mode = settings.get("mode") == "ai"  # Prüfe explizit auf "ai"
+        print(f"Game Mode: {'AI' if is_ai_mode else 'Local Multiplayer'}")
         
         if is_ai_mode:
             print(f"AI Difficulty: {settings.get('difficulty')}")

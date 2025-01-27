@@ -56,7 +56,12 @@ class Menu:
             return {"action": "show_submenu", "menu_items": self.play_mode_items, "selected_mode": selection}
             
         elif selection == "local":
-            return {"action": "start_game", "mode": "local"}
+            game_settings = self.game_settings.get_settings()
+            game_settings.update({
+                "mode": "local"
+            })
+            self.current_game_settings = game_settings
+            return {"action": "start_game", "settings": game_settings}
             
         elif selection == "ai":
             self.current_menu_stack.append("play_mode")
