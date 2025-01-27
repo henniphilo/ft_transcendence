@@ -37,17 +37,20 @@ class GameServer:
             game_loop.cancel()
 
     def handle_input(self, game: PongGame, keys: dict):
+        # Bewegungsgeschwindigkeit anpassen
+        movement_multiplier = 1.0  # Kann angepasst werden für schnellere/langsamere Bewegung
+        
         # Player 1 (WASD)
         if keys.get('w'):
-            game.move_paddle(game.player1, -1)
+            game.move_paddle(game.player1, -1 * movement_multiplier)
         elif keys.get('s'):
-            game.move_paddle(game.player1, 1)
+            game.move_paddle(game.player1, 1 * movement_multiplier)
             
         # Player 2 (Arrows)
         if keys.get('ArrowUp'):
-            game.move_paddle(game.player2, -1)
+            game.move_paddle(game.player2, -1 * movement_multiplier)
         elif keys.get('ArrowDown'):
-            game.move_paddle(game.player2, 1)
+            game.move_paddle(game.player2, 1 * movement_multiplier)
 
     async def game_loop(self, websocket: WebSocket, game: PongGame, game_id: str):
         try:

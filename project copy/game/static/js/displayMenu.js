@@ -74,7 +74,7 @@ class MenuDisplay {
         `;
     }
 
-    async function saveSettings() {
+    async saveSettings() {
         try {
             const settings = {
                 ball_speed: parseInt(document.getElementById('ball-speed').value),
@@ -83,9 +83,9 @@ class MenuDisplay {
                 paddle_size: document.getElementById('paddle-size').value
             };
             
-            console.log('Sending settings:', settings);  // Debug-Log
+            console.log('Sending settings:', settings);
             
-            await socket.send(JSON.stringify({
+            await this.ws.send(JSON.stringify({
                 action: "update_settings",
                 settings: settings
             }));
