@@ -8,6 +8,7 @@ class GameScreen {
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
+        this.gameMode = new URLSearchParams(window.location.search).get('mode') || 'pvp';
         
         this.setupWebSocket();
         this.setupControls();
@@ -44,9 +45,14 @@ class GameScreen {
                     keys: this.keyState
                 }));
             }
-        }, 16);  // ~60fps
+        }, 16);
 
         document.addEventListener('keydown', (e) => {
+            // Nur WASD-Steuerung erlauben wenn gegen AI
+            if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                return; // Ignoriere Pfeiltasten im AI-Modus
+            }
+            
             if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.keyState[e.key] = true;
@@ -54,6 +60,10 @@ class GameScreen {
         });
 
         document.addEventListener('keyup', (e) => {
+            if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                return; // Ignoriere Pfeiltasten im AI-Modus
+            }
+            
             if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.keyState[e.key] = false;

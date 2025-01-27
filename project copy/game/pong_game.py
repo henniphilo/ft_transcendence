@@ -41,6 +41,12 @@ async def websocket_menu(websocket: WebSocket):
 
 @app.websocket("/ws/game/{game_id}")
 async def websocket_game(websocket: WebSocket, game_id: str):
-    current_settings = menu.get_current_settings()
-    await game_server.handle_game(websocket, game_id, current_settings) 
+    # Die Settings vom Menü direkt verwenden, nicht neu holen
+    settings = menu.get_current_settings()
+    
+    # Debug print
+    print("\n=== Websocket Game Settings ===")
+    print(f"Settings being passed to game: {settings}")
+    
+    await game_server.handle_game(websocket, game_id, settings) 
     

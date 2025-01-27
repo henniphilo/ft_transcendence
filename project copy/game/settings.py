@@ -5,6 +5,8 @@ class GameSettings:
         self._paddle_speed = 5
         self._winning_score = 5
         self._paddle_size = "middle"
+        self._mode = "pvp"  # Standard: PvP
+        self._difficulty = "medium"  # Standard: Medium
 
     @property
     def ball_speed(self):
@@ -58,13 +60,41 @@ class GameSettings:
         else:
             raise ValueError("Paddle size must be 'small', 'middle', or 'big'")
 
+    @property
+    def mode(self):
+        print(f"Getting mode: {self._mode}")
+        return self._mode
+
+    @mode.setter
+    def mode(self, value: str):
+        print(f"Setting mode to: {value}")
+        if value in ["pvp", "ai"]:
+            self._mode = value
+        else:
+            raise ValueError("Mode must be 'pvp' or 'ai'")
+
+    @property
+    def difficulty(self):
+        print(f"Getting difficulty: {self._difficulty}")
+        return self._difficulty
+
+    @difficulty.setter
+    def difficulty(self, value: str):
+        print(f"Setting difficulty to: {value}")
+        if value in ["easy", "medium", "impossible"]:
+            self._difficulty = value
+        else:
+            raise ValueError("Difficulty must be 'easy', 'medium', or 'impossible'")
+
     def get_settings(self):
         print("Getting all settings")
         return {
             "ball_speed": self._ball_speed,
             "paddle_speed": self._paddle_speed,
             "winning_score": self._winning_score,
-            "paddle_size": self._paddle_size
+            "paddle_size": self._paddle_size,
+            "mode": self._mode,
+            "difficulty": self._difficulty
         }
 
     async def update_settings(self, settings_data):
@@ -78,6 +108,10 @@ class GameSettings:
                 self.winning_score = int(settings_data["winning_score"])
             if "paddle_size" in settings_data:
                 self.paddle_size = settings_data["paddle_size"]
+            if "mode" in settings_data:
+                self.mode = settings_data["mode"]
+            if "difficulty" in settings_data:
+                self.difficulty = settings_data["difficulty"]
 
             updated_settings = self.get_settings()
             print(f"Settings successfully updated to: {updated_settings}")
