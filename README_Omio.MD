@@ -1,4 +1,4 @@
-
+this file will go into the docs folder to create a collection of Readme files to link them and make them browsable :)
 # Project Setup
 
 At the moment, there's not much to see, but you can easily interact with the project using the following commands.
