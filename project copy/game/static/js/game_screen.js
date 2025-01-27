@@ -39,11 +39,9 @@ class GameScreen {
         // Kontinuierliches Senden, wenn Tasten gedrückt sind
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
-                console.log('Sending key state:', this.keyState); // Debug
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
-                    keys: this.keyState,
-                    debug: true
+                    keys: this.keyState
                 }));
             }
         }, 16);  // ~60fps
@@ -52,7 +50,6 @@ class GameScreen {
             if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.keyState[e.key] = true;
-                console.log('Key down:', e.key); // Debug
             }
         });
 
@@ -60,7 +57,6 @@ class GameScreen {
             if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.keyState[e.key] = false;
-                console.log('Key up:', e.key); // Debug
             }
         });
     }
