@@ -29,29 +29,40 @@ class GameScreen {
     }
 
     setupControls() {
-        // Neues Update-Intervall für kontinuierliche Tastenabfrage
+        this.keyState = {
+            'w': false,
+            's': false,
+            'ArrowUp': false,
+            'ArrowDown': false
+        };
+
+        // Kontinuierliches Senden, wenn Tasten gedrückt sind
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
-                this.sendKeyState();
+                console.log('Sending key state:', this.keyState); // Debug
+                this.ws.send(JSON.stringify({
+                    action: 'key_update',
+                    keys: this.keyState,
+                    debug: true
+                }));
             }
-        }, 16); // Ca. 60 mal pro Sekunde
+        }, 16);  // ~60fps
 
         document.addEventListener('keydown', (e) => {
-            this.keyState[e.key] = true;
+            if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.keyState[e.key] = true;
+                console.log('Key down:', e.key); // Debug
+            }
         });
 
         document.addEventListener('keyup', (e) => {
-            this.keyState[e.key] = false;
+            if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.keyState[e.key] = false;
+                console.log('Key up:', e.key); // Debug
+            }
         });
-    }
-
-    sendKeyState() {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({
-                action: 'key_update',
-                keys: this.keyState
-            }));
-        }
     }
 
     display() {
@@ -167,7 +178,5 @@ class GameScreen {
         if (this.controlInterval) {
             clearInterval(this.controlInterval);
         }
-        document.removeEventListener('keydown', this.handleInput);
-        document.removeEventListener('keyup', this.handleInput);
     }
 } 
