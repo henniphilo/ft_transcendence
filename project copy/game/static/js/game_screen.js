@@ -173,8 +173,9 @@
 // }
 
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.172.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 
 class GameScreen {
@@ -253,12 +254,17 @@ class GameScreen {
             console.error("Element with id 'game-container' not found");
         }
 
-        this.camera.position.set(0, 0, 5);
+        this.camera.position.set(0, 0, 10);
+
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
         // Lighting
         const light = new THREE.PointLight(0xffffff, 1, 100);
         light.position.set(0, 5, 5);
         this.scene.add(light);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add(ambientLight);
+
 
         // Ball
         const ballGeometry = new THREE.SphereGeometry(0.1, 32, 32);
@@ -273,6 +279,13 @@ class GameScreen {
         });
 
         this.animate();
+        window.addEventListener('resize', () => this.onWindowResize());
+    }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     loadModel(path, callback) {
@@ -283,9 +296,13 @@ class GameScreen {
                 console.log('Model loaded:', gltf);
                 const model = gltf.scene;
 
-                // Scale the model (optional)
-                model.scale.set(0.5, 0.5, 0.5);
-                callback(model); // Call callback with the loaded model
+                // Scale the model
+                model.scale.set(0.1, 0.1, 0.1);
+
+                // Rotate the model to face the camera
+                model.rotation.y = Math.PI / 2;
+
+                callback(model);
             },
             (xhr) => {
                 console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
@@ -305,6 +322,7 @@ class GameScreen {
 
         this.paddles.player2 = this.models.uBahn.clone();
         this.paddles.player2.position.set(4.5, 0, 0);
+        this.paddles.player2.rotation.y = Math.PI; // Rotate the second paddle to face the other direction
         this.scene.add(this.paddles.player2);
     }
 
@@ -326,23 +344,44 @@ class GameScreen {
 
     animate() {
         requestAnimationFrame(() => this.animate());
-        this.renderer.render(this.scene, this.camera);
+        if (this.controls) this.controls.update();
+    this.renderer.render(this.scene, this.camera);
     }
+
+    // display() {
+    //     const container = document.getElementById('game-container');
+    //     if (this.gameState.winner) {
+    //         this.displayWinnerScreen();
+    //     } else {
+    //         const scoreBoard = document.getElementById('score-board') || document.createElement('div');
+    //         scoreBoard.id = 'score-board';
+    //         scoreBoard.className = 'score-board';
+    //         scoreBoard.innerHTML = `
+    //             <div id="player1-score">${this.gameState.player1.name}: ${this.gameState.player1.score}</div>
+    //             <div id="player2-score">${this.gameState.player2.name}: ${this.gameState.player2.score}</div>
+    //         `;
+    //         if (!document.getElementById('score-board')) {
+    //             container.appendChild(scoreBoard);
+    //         }
+    //     }
+    // }
 
     display() {
         const container = document.getElementById('game-container');
-        if (this.gameState.winner) {
-            this.displayWinnerScreen();
-        } else {
-            container.innerHTML = `
-                <div class="game-screen">
-                    <div id="score-board" class="score-board">
-                        <div id="player1-score">${this.gameState.player1.name}: ${this.gameState.player1.score}</div>
-                        <div id="player2-score">${this.gameState.player2.name}: ${this.gameState.player2.score}</div>
-                    </div>
-                </div>`;
+        const scoreBoard = document.getElementById('score-board') || document.createElement('div');
+        scoreBoard.id = 'score-board';
+        scoreBoard.className = 'score-board';
+        scoreBoard.innerHTML = `
+            <div id="player1-score">${this.gameState.player1.name}: ${this.gameState.player1.score}</div>
+            <div id="player2-score">${this.gameState.player2.name}: ${this.gameState.player2.score}</div>
+        `;
+        if (!document.getElementById('score-board')) {
+            container.appendChild(scoreBoard);
         }
     }
+
+
+
 
     displayWinnerScreen() {
         const container = document.getElementById('game-container');
