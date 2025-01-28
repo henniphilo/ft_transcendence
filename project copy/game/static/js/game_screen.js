@@ -173,9 +173,9 @@
 // }
 
 
-
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.172.0/examples/jsm/loaders/GLTFLoader.js';
+
 
 class GameScreen {
     constructor(gameState, onBackToMenu) {
@@ -246,7 +246,12 @@ class GameScreen {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('game-container').appendChild(this.renderer.domElement);
+        const container = document.getElementById('game-container');
+        if (container) {
+            container.appendChild(this.renderer.domElement);
+        } else {
+            console.error("Element with id 'game-container' not found");
+        }
 
         this.camera.position.set(0, 0, 5);
 
