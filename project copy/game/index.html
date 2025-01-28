@@ -76,14 +76,14 @@
             border: 2px solid #fff;
             background-color: #000;
         }
-        
+
         .game-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-        
+
         #game-container {
             display: none;  /* Initially hidden */
             width: 100%;
@@ -93,7 +93,7 @@
             left: 0;
             background-color: #000;
         }
-        
+
         .setting-item select {
             padding: 5px;
             font-size: 16px;
@@ -104,7 +104,7 @@
             width: 100%;
             margin-top: 5px;
         }
-        
+
         .setting-item select:focus {
             outline: none;
             border-color: #4CAF50;
@@ -114,7 +114,7 @@
 <body>
     <div id="menu-container"></div>
     <div id="game-container"></div>
-    <script src="static/js/displayMenu.js"></script>
-    <script src="static/js/game_screen.js"></script>
+    <script type="module" src="static/js/displayMenu.js"></script>
+    <script type="module" src="static/js/game_screen.js"></script>
 </body>
-</html> 
+</html>
