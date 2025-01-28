@@ -267,10 +267,20 @@ class GameScreen {
 
 
         // Ball
-        const ballGeometry = new THREE.SphereGeometry(0.1, 32, 32);
-        const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        // const ballGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+        // const ballMaterial = new THREE.MeshBasicMaterial({ color: 'lightgreen' });
+        // this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        // this.scene.add(this.ball);
+
+        //human
+        // Load Ball Model (GLTF)
+        this.loadModel('u-bahn/woman_walking.glb', (model) => {
+        this.ball = model;
+        this.ball.position.set(0, 6, 0); // Set initial position of the ball
+        this.ball.scale.set(0.0009, 0.0009, 0.0009); // Adjust scale if needed
         this.scene.add(this.ball);
+        });
+
 
         // Load Paddle Models
         this.loadModel('u-bahn/lowpoly_berlin_u-bahn.glb', (model) => {
@@ -318,11 +328,12 @@ class GameScreen {
 
         this.paddles.player1 = this.models.uBahn.clone();
         this.paddles.player1.position.set(-4.5, 0, 0);
+        this.paddles.player1.rotation.y = Math.PI; // Rotate  paddle
         this.scene.add(this.paddles.player1);
 
         this.paddles.player2 = this.models.uBahn.clone();
         this.paddles.player2.position.set(4.5, 0, 0);
-        this.paddles.player2.rotation.y = Math.PI; // Rotate the second paddle to face the other direction
+        this.paddles.player2.rotation.y = Math.PI; // Rotate  paddle
         this.scene.add(this.paddles.player2);
     }
 
@@ -335,11 +346,13 @@ class GameScreen {
         this.paddles.player1.position.y = this.gameState.player1.paddle.center * scaleY;
         this.paddles.player2.position.y = this.gameState.player2.paddle.center * scaleY;
 
+        if(this.ball) {
         this.ball.position.set(
             this.gameState.ball[0] * scaleX,
             this.gameState.ball[1] * scaleY,
             0
-        );
+        ); }
+        else console.log("error with ball human")
     }
 
     animate() {
@@ -365,7 +378,7 @@ class GameScreen {
     //         }
     //     }
     // }
-
+//change the display function back to have a menue displayed
     display() {
         const container = document.getElementById('game-container');
         const scoreBoard = document.getElementById('score-board') || document.createElement('div');
@@ -379,9 +392,6 @@ class GameScreen {
             container.appendChild(scoreBoard);
         }
     }
-
-
-
 
     displayWinnerScreen() {
         const container = document.getElementById('game-container');
