@@ -8,6 +8,7 @@ class PongGame:
         self.ball_speed = settings.get("ball_speed", 5)
         self.paddle_speed = settings.get("paddle_speed", 5)
         self.winning_score = settings.get("winning_score", 5)
+        self.owner = settings.get("online_type") == "host"  # Neues Feld für Host/Join
         
         # Paddle-Größen-Dictionary (jetzt als absolute Größen)
         self.PADDLE_SIZES = {

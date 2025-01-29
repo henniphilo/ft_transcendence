@@ -102,16 +102,20 @@ class MenuDisplay {
     }
 
     handleMenuAction(data) {
+        if (data.is_tournament) {
+            this.currentSettings = { ...this.currentSettings, tournament: true };
+        }
+        
         switch (data.action) {
             case 'show_submenu':
                 this.displayMenuItems(data.menu_items);
-                if (data.selected_mode) {
-                    this.gameMode = data.selected_mode;
-                }
                 break;
+            
+            case 'show_player_names':
+                this.displayPlayerNamesInput(data.num_players, this.currentSettings?.tournament);
+                break;
+            
             case 'show_main_menu':
-                this.gameMode = null;
-                this.playMode = null;
                 this.displayMenuItems(data.menu_items);
                 break;
             case 'start_game':
@@ -136,6 +140,50 @@ class MenuDisplay {
                 console.log('Exiting game...');
                 break;
         }
+    }
+
+    displayPlayerNamesInput(numPlayers, isTournament) {
+        this.menuContainer.innerHTML = `
+            <div class="settings-container">
+                <h2>${isTournament ? 'Tournament' : 'Game'} Players</h2>
+                <form id="player-names-form">
+                    ${Array.from({length: numPlayers}, (_, i) => `
+                        <div class="setting-item">
+                            <label for="player-${i+1}">Player ${i+1} Name:</label>
+                            <input type="text" id="player-${i+1}" 
+                                   value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
+                                   ${this.isAIPlayer(i) ? 'readonly' : ''}>
+                        </div>
+                    `).join('')}
+                    <button type="submit" class="menu-item">Start ${isTournament ? 'Tournament' : 'Game'}</button>
+                    <button type="button" class="menu-item" onclick="menuDisplay.handleMenuClick('back')">Back</button>
+                </form>
+            </div>
+        `;
+
+        document.getElementById('player-names-form').onsubmit = (e) => {
+            e.preventDefault();
+            const playerNames = Array.from({length: numPlayers}, (_, i) => 
+                document.getElementById(`player-${i+1}`).value
+            );
+            this.startGameWithPlayers(playerNames, isTournament);
+        };
+    }
+
+    isAIPlayer(index) {
+        // Prüft ob der aktuelle Spieler ein Bot sein soll
+        return this.currentSettings?.mode === 'ai' && index > 0;
+    }
+
+    startGameWithPlayers(playerNames, isTournament) {
+        const gameSettings = this.currentSettings || {};
+        gameSettings.playerNames = playerNames;
+        gameSettings.isTournament = isTournament;
+        
+        this.ws.send(JSON.stringify({
+            action: 'start_game',
+            settings: gameSettings
+        }));
     }
 
     startGame(data) {
