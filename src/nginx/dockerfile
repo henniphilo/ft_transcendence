@@ -5,7 +5,7 @@ FROM nginx:alpine
 #COPY ./src/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-
+COPY ft_transcendence_backend/game /usr/share/nginx/html/game
 
 # Statisches Frontend kopieren:
 COPY ft_transcendence_frontend/index.html /usr/share/nginx/html/

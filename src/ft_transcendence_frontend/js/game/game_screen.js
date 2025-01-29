@@ -16,7 +16,7 @@ class GameScreen {
 
     setupWebSocket() {
         this.gameId = crypto.randomUUID();
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/game/${this.gameId}`);
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
         
         this.ws.onmessage = (event) => {
             this.gameState = JSON.parse(event.data);

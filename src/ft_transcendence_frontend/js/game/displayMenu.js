@@ -1,7 +1,7 @@
 class MenuDisplay {
     constructor() {
         this.menuContainer = document.getElementById('menu-container');
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/menu`);
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
