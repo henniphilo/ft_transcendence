@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     # django rest framework
     'corsheaders',
     'rest_framework',
+    'django_extensions',
 ]
 
 INSTALLED_APPS += ['api']
@@ -172,9 +173,26 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Nur für Entwicklung
-EMAIL_HOST = 'smtp.example.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'deine_email@example.com'
-EMAIL_HOST_PASSWORD = 'dein_passwort'
+# these settings are for the make tests. We need to find a way to distinguish which environment should load what.
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Nur für Entwicklung
+#EMAIL_HOST = 'smtp.example.com'
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'deine_email@example.com'
+#EMAIL_HOST_PASSWORD = 'dein_passwort'
+
+#better way
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = '24e67ab734e89a'
+EMAIL_HOST_PASSWORD = 'eae206d24f0b6c'
+EMAIL_PORT = '2525'
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'live.smtp.mailtrap.io'
+#EMAIL_HOST_USER = 'api'
+#EMAIL_HOST_PASSWORD = 'e87fa22620962c71ff13ccea8f2c3165'
+#EMAIL_PORT = '587'
+
+
