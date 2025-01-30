@@ -266,26 +266,27 @@ class GameScreen {
         this.scene.add(ambientLight);
 
 
-        // // Ball
-        const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
-        const ballMaterial = new THREE.MeshStandardMaterial({
-            color: 'lightgreen',
-            metalness: 0.8, // Higher value makes it more metallic
-            roughness: 0.2  // Lower value makes it shinier
-        });
-        this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
-        this.ball.scale.set(1, 1, 1);
-        this.scene.add(this.ball);
+        // // // Ball
+        // const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+        // const ballMaterial = new THREE.MeshStandardMaterial({
+        //     color: 'lightgreen',
+        //     metalness: 0.8, // Higher value makes it more metallic
+        //     roughness: 0.2  // Lower value makes it shinier
+        // });
+        // this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        // this.ball.scale.set(1, 1, 1);
+        // this.scene.add(this.ball);
 
         //human
-      //  Load Ball Model (GLTF)
-        // this.loadModel('u-bahn/woman_walking.glb', (model) => {
-        // this.ball = model;
-        // this.ball.position.set(5, 6, 0); // Set initial position of the ball
-        // this.ball.scale.set(0.005, 0.005, 0.005); // Adjust scale if needed
-        // this.ball.rotation.y = Math.PI / 2;
-        // this.scene.add(this.ball);
-        // });
+       //Load Ball Model (GLTF)
+        this.loadModel('u-bahn/woman_walking.glb', (model) => {
+        this.ball = model;
+        this.ball.position.set(5, 6, 0); // Set initial position of the ball
+        this.ball.scale.set(0.005, 0.005, 0.005); // Adjust scale if needed
+        this.ball.rotation.y = Math.PI / 2;
+        this.ball.rotation.x = Math.PI / 2;
+        this.scene.add(this.ball);
+        });
 
         // Ensure proper lighting for shiny effects
         const pointLight = new THREE.PointLight(0xffffff, 0.5);
