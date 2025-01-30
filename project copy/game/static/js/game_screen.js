@@ -254,7 +254,7 @@ class GameScreen {
             console.error("Element with id 'game-container' not found");
         }
 
-        this.camera.position.set(0, 0, 50);
+        this.camera.position.set(0, 0, 100);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -267,25 +267,25 @@ class GameScreen {
 
 
         // // Ball
-        // const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
-        // const ballMaterial = new THREE.MeshStandardMaterial({
-        //     color: 'lightgreen',
-        //     metalness: 0.8, // Higher value makes it more metallic
-        //     roughness: 0.2  // Lower value makes it shinier
-        // });
-        // this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
-        // this.ball.scale.set(1, 1, 1);
-        // this.scene.add(this.ball);
+        const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+        const ballMaterial = new THREE.MeshStandardMaterial({
+            color: 'lightgreen',
+            metalness: 0.8, // Higher value makes it more metallic
+            roughness: 0.2  // Lower value makes it shinier
+        });
+        this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        this.ball.scale.set(1, 1, 1);
+        this.scene.add(this.ball);
 
         //human
       //  Load Ball Model (GLTF)
-        this.loadModel('u-bahn/woman_walking.glb', (model) => {
-        this.ball = model;
-        this.ball.position.set(5, 6, 0); // Set initial position of the ball
-        this.ball.scale.set(0.005, 0.005, 0.005); // Adjust scale if needed
-        this.ball.rotation.y = Math.PI / 2;
-        this.scene.add(this.ball);
-        });
+        // this.loadModel('u-bahn/woman_walking.glb', (model) => {
+        // this.ball = model;
+        // this.ball.position.set(5, 6, 0); // Set initial position of the ball
+        // this.ball.scale.set(0.005, 0.005, 0.005); // Adjust scale if needed
+        // this.ball.rotation.y = Math.PI / 2;
+        // this.scene.add(this.ball);
+        // });
 
         // Ensure proper lighting for shiny effects
         const pointLight = new THREE.PointLight(0xffffff, 0.5);
@@ -338,7 +338,7 @@ class GameScreen {
 
           const axesHelper = new THREE.AxesHelper(5);
           console.log(axesHelper);
-     //     model.add(axesHelper);
+          model.add(axesHelper);
 
           callback(model);
       },
@@ -360,6 +360,8 @@ addPaddles() {
     this.paddles.player1.scale.set(2, 2, 2);
     this.paddles.player1.position.set(-30, 0, 0); // Match PADDLE_X = -0.9 (scaled by scaleX)
     this.paddles.player1.rotation.y = Math.PI; // Rotate paddle
+    this.paddles.player1.rotation.x = Math.PI / 2; // Rotate paddle
+
     this.scene.add(this.paddles.player1);
 
     // Player 2 Paddle (Right)
@@ -367,6 +369,7 @@ addPaddles() {
     this.paddles.player2.scale.set(2, 2, 2);
     this.paddles.player2.position.set(30, 0, 0); // Match PADDLE_X = 0.9 (scaled by scaleX)
     this.paddles.player2.rotation.y = Math.PI; // Rotate paddle
+    this.paddles.player2.rotation.x = Math.PI / 2; // Rotate paddle
     this.scene.add(this.paddles.player2);
 }
 
