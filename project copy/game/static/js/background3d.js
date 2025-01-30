@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 let scene, camera, renderer;
 
 function init() {
+	console.log("in init");
     const canvas = document.getElementById('background-canvas');
 
     // Initialize scene, camera, and renderer
@@ -17,20 +18,33 @@ function init() {
     camera.position.z = 5;
 
     // Add lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xfff0e0, 0.7);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(5, 5, 5);
+	// Main directional light (simulating sunlight)
+	const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+	directionalLight.position.set(5, 10, 7);
+	scene.add(directionalLight);
+
+    const pointLight = new THREE.PointLight(0xe0f0ff, 0.5);
+    pointLight.position.set(-5, 5, 5);
     scene.add(pointLight);
+
 
     // Load GLB model
     const loader = new GLTFLoader();
+	// loader.register((parser) => {
+	// 	return {
+	// 		name: 'KHR_materials_pbrSpecularGlossiness',
+	// 		// Ignore the extension
+	// 		parse: () => null,
+	// 	};
+	// });
     loader.load(
-        'ubahn/lowpoly_berlin_u-bahn_station.glb',
+        'ubahn/transform_u-station.glb',
         (gltf) => {
             scene.add(gltf.scene);
-            gltf.scene.position.set(0, -1, -5); // Adjust position
+            gltf.scene.position.set(0, -1, 0); // Adjust position
             gltf.scene.scale.set(1, 1, 1);     // Adjust scale if needed
         },
         undefined,
