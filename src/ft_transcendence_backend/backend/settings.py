@@ -183,11 +183,11 @@ SIMPLE_JWT = {
 #EMAIL_HOST_PASSWORD = 'dein_passwort'
 
 #better way
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = '24e67ab734e89a'
-EMAIL_HOST_PASSWORD = 'eae206d24f0b6c'
-EMAIL_PORT = '2525'
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+#EMAIL_HOST_USER = '24e67ab734e89a'
+#EMAIL_HOST_PASSWORD = 'eae206d24f0b6c'
+#EMAIL_PORT = '2525'
 
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #EMAIL_HOST = 'live.smtp.mailtrap.io'
@@ -196,3 +196,17 @@ EMAIL_PORT = '2525'
 #EMAIL_PORT = '587'
 
 
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'smtp.mandrillapp.com'
+#EMAIL_HOST_USER = 'ohoro@student.42berlin.de'
+#EMAIL_HOST_PASSWORD = 'md-2Nhzq490JIKqYkdsFfKbQw'
+#EMAIL_USE_TLS = True
+#EMAIL_PORT = '587'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_HOST_USER = '849697001@smtp-brevo.com'
+EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
+EMAIL_USE_TLS = True
+EMAIL_PORT = '587'

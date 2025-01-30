@@ -35,7 +35,7 @@ def send_verification_code(request):
         send_mail(
             'Your Verification Code',
             f'Your code is {user.verification_code}',
-            'no-reply@transcendence.com',
+            'supertabaluga@gmail.com',
             [email]
         )
         return Response({"message": "Verification code sent."})
