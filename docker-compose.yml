@@ -68,4 +68,5 @@ volumes:
 
 networks:
   transcendence_network:
+  #  name: ft_transcendence_network
     driver: bridge

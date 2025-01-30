@@ -1,15 +1,76 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong Game</title>
-    <link rel="stylesheet" href="css/main.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong Game</title>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-    <div id="menu-container"></div>
-    <div id="game-container"></div>
-    <script src="js/game/displayMenu.js"></script>
-    <script src="js/game/game_screen.js"></script>
+  <!-- Menü- und Spielbereich -->
+  <div id="menu-container"></div>
+  <div id="game-container"></div>
+  
+  <!-- Signup Form -->
+  <div id="signup-container">
+    <h2>Sign Up</h2>
+    <form id="signup-form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required />
+      
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required />
+      
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required />
+      
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <div id="2fa-container" style="display: none;">
+      <h3>2FA Verification</h3>
+      <label for="verification-code">
+        Enter the verification code sent to your email:
+      </label>
+      <input
+        type="text"
+        id="verification-code"
+        name="verification-code"
+        required
+      />
+      <button id="verify-code">Verify Code</button>
+    </div>
+  </div>
+
+  <!-- Login Form (Initially hidden) -->
+  <div id="login-container">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label for="login-username">Username</label>
+      <input type="text" id="login-username" name="login-username" required />
+  
+      <label for="login-password">Password</label>
+      <input
+        type="password"
+        id="login-password"
+        name="login-password"
+        required
+      />
+  
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <div id="profile-container" style="display: none;">
+    <h2>Willkommen in deinem Profil!</h2>
+    <p id="profile-data">Hier erscheinen deine Profildaten...</p>
+    <button id="logout-button">Logout</button>
+  </div>
+  <!-- Skripte (am Ende des Body platzieren) -->
+  <script src="js/game/displayMenu.js"></script>
+  <script src="js/game/game_screen.js"></script>
+  <script src="js/signup.js"></script>
 </body>
-</html> 
+</html>
