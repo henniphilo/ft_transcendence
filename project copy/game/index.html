@@ -5,20 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pong Game</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+        #background-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        #menu-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background-color: #000;
-            color: #fff;
-            font-family: 'Arial', sans-serif;
-        }
-        #menu-container {
+            z-index: 1;
             text-align: center;
         }
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        /* Rest of your existing styles */
         .menu-item {
             padding: 10px 20px;
             margin: 5px;
@@ -32,7 +61,7 @@
             background-color: #555;
         }
         .settings-container {
-            background-color: #333;
+            background-color: rgba(51, 51, 51, 0.8);
             padding: 20px;
             border-radius: 10px;
         }
@@ -43,7 +72,7 @@
             display: block;
             margin-bottom: 5px;
         }
-        .setting-item input {
+        .setting-item input, .setting-item select {
             padding: 5px;
             width: 100px;
             background-color: #444;
@@ -54,7 +83,7 @@
         .winner-screen {
             text-align: center;
             padding: 20px;
-            background-color: #333;
+            background-color: rgba(51, 51, 51, 0.8);
             border-radius: 10px;
         }
         .winner-screen h1 {
@@ -65,7 +94,7 @@
             display: flex;
             justify-content: space-around;
             padding: 10px;
-            background-color: #333;
+            background-color: rgba(51, 51, 51, 0.8);
             margin-bottom: 20px;
         }
         .player-score {
@@ -74,47 +103,33 @@
         }
         #game-canvas {
             border: 2px solid #fff;
-            background-color: #000;
+            background-color: transparent;
         }
-        
         .game-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-        
-        #game-container {
-            display: none;  /* Initially hidden */
-            width: 100%;
-            height: 100vh;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: #000;
-        }
-        
-        .setting-item select {
-            padding: 5px;
-            font-size: 16px;
-            background-color: #444;
-            color: white;
-            border: 1px solid #666;
-            border-radius: 4px;
-            width: 100%;
-            margin-top: 5px;
-        }
-        
-        .setting-item select:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
     </style>
 </head>
 <body>
-    <div id="menu-container"></div>
-    <div id="game-container"></div>
-    <script src="static/js/displayMenu.js"></script>
-    <script src="static/js/game_screen.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.152.2/build/three.module.js",
+                "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js",
+                "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
+            }
+        }
+    </script>
+    <div id="app">
+        <canvas id="background-canvas"></canvas>
+        <div id="menu-container"></div>
+        <div id="game-container"></div>
+    </div>
+    <script type="module" src="static/js/background3d.js"></script>
+    <script type="module" src="static/js/displayMenu.js"></script>
+    <script type="module" src="static/js/game_screen.js"></script>
 </body>
-</html> 
+</html>
