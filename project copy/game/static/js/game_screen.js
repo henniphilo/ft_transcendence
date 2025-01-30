@@ -205,9 +205,9 @@ class GameScreen {
             this.gameState = JSON.parse(event.data);
             this.updateScene();
 
-            if (this.gameState.winner) {
-                this.displayWinnerScreen();
-            }
+            // if (this.gameState.winner) {
+            //     this.displayWinnerScreen();
+            // }
         };
 
         this.ws.onclose = () => console.log('WebSocket closed');
@@ -254,7 +254,7 @@ class GameScreen {
             console.error("Element with id 'game-container' not found");
         }
 
-        this.camera.position.set(0, 0, 10);
+        this.camera.position.set(0, 0, 50);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
@@ -266,26 +266,37 @@ class GameScreen {
         this.scene.add(ambientLight);
 
 
-        // Ball
-        // const ballGeometry = new THREE.SphereGeometry(0.1, 32, 32);
-        // const ballMaterial = new THREE.MeshBasicMaterial({ color: 'lightgreen' });
+        // // Ball
+        // const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+        // const ballMaterial = new THREE.MeshStandardMaterial({
+        //     color: 'lightgreen',
+        //     metalness: 0.8, // Higher value makes it more metallic
+        //     roughness: 0.2  // Lower value makes it shinier
+        // });
         // this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
+        // this.ball.scale.set(1, 1, 1);
         // this.scene.add(this.ball);
 
         //human
-        // Load Ball Model (GLTF)
+      //  Load Ball Model (GLTF)
         this.loadModel('u-bahn/woman_walking.glb', (model) => {
         this.ball = model;
-        this.ball.position.set(0, 6, 0); // Set initial position of the ball
-        this.ball.scale.set(0.0009, 0.0009, 0.0009); // Adjust scale if needed
+        this.ball.position.set(5, 6, 0); // Set initial position of the ball
+        this.ball.scale.set(0.005, 0.005, 0.005); // Adjust scale if needed
+        this.ball.rotation.y = Math.PI / 2;
         this.scene.add(this.ball);
         });
 
+        // Ensure proper lighting for shiny effects
+        const pointLight = new THREE.PointLight(0xffffff, 0.5);
+        pointLight.position.set(5, 5, 5); // Adjust position as needed
+        this.scene.add(pointLight);
+        this.scene.add(ambientLight);
 
         // Load Paddle Models
         this.loadModel('u-bahn/lowpoly_berlin_u-bahn.glb', (model) => {
             this.models.uBahn = model;
-            this.addPaddles();  // Now call addPaddles() after model is loaded
+            this.addPaddles();
         });
 
         this.animate();
@@ -306,54 +317,82 @@ class GameScreen {
                 console.log('Model loaded:', gltf);
                 const model = gltf.scene;
 
-                // Scale the model
-                model.scale.set(0.1, 0.1, 0.1);
+          // Compute bounding box
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3();
+          box.getSize(size); // Get dimensions (width, height, depth)
 
-                // Rotate the model to face the camera
-                model.rotation.y = Math.PI / 2;
+          // Find the largest dimension and scale uniformly
+          const maxDimension = Math.max(size.x, size.y, size.z);
+          const targetSize = 1; // Set your target size (e.g., 1 unit)
+          const scaleFactor = targetSize / maxDimension;
+          model.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-                callback(model);
-            },
-            (xhr) => {
-                console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
-            },
-            (error) => {
-                console.error('An error occurred while loading the model:', error);
-            }
-        );
-    }
+          // Recompute bounding box after scaling
+          const newBox = new THREE.Box3().setFromObject(model);
+          const center = new THREE.Vector3();
+          newBox.getCenter(center);
 
-    addPaddles() {
-        if (!this.models.uBahn) return;
+          // Center the model at (0, 0, 0)
+          model.position.sub(center);
 
-        this.paddles.player1 = this.models.uBahn.clone();
-        this.paddles.player1.position.set(-4.5, 0, 0);
-        this.paddles.player1.rotation.y = Math.PI; // Rotate  paddle
-        this.scene.add(this.paddles.player1);
+          const axesHelper = new THREE.AxesHelper(5);
+          console.log(axesHelper);
+     //     model.add(axesHelper);
 
-        this.paddles.player2 = this.models.uBahn.clone();
-        this.paddles.player2.position.set(4.5, 0, 0);
-        this.paddles.player2.rotation.y = Math.PI; // Rotate  paddle
-        this.scene.add(this.paddles.player2);
-    }
+          callback(model);
+      },
+      (xhr) => {
+          console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
+      },
+      (error) => {
+          console.error('An error occurred while loading the model:', error);
+      }
+  );
+}
 
-    updateScene() {
-        if (!this.paddles.player1 || !this.paddles.player2 || !this.ball) return;
 
-        const scaleX = 4.5;
-        const scaleY = 2;
+addPaddles() {
+    if (!this.models.uBahn) return;
 
-        this.paddles.player1.position.y = this.gameState.player1.paddle.center * scaleY;
-        this.paddles.player2.position.y = this.gameState.player2.paddle.center * scaleY;
+    // Player 1 Paddle (Left)
+    this.paddles.player1 = this.models.uBahn.clone();
+    this.paddles.player1.scale.set(2, 2, 2);
+    this.paddles.player1.position.set(-30, 0, 0); // Match PADDLE_X = -0.9 (scaled by scaleX)
+    this.paddles.player1.rotation.y = Math.PI; // Rotate paddle
+    this.scene.add(this.paddles.player1);
 
-        if(this.ball) {
+    // Player 2 Paddle (Right)
+    this.paddles.player2 = this.models.uBahn.clone();
+    this.paddles.player2.scale.set(2, 2, 2);
+    this.paddles.player2.position.set(30, 0, 0); // Match PADDLE_X = 0.9 (scaled by scaleX)
+    this.paddles.player2.rotation.y = Math.PI; // Rotate paddle
+    this.scene.add(this.paddles.player2);
+}
+
+updateScene() {
+    if (!this.paddles.player1 || !this.paddles.player2 || !this.ball) return;
+
+    // Scaling factors to match Python coordinate system
+    const scaleX = 9; // Matches PADDLE_X range [-0.9, 0.9]
+    const scaleY = 5; // Matches vertical range [-1.0, 1.0]
+
+    // Update paddle positions
+    this.paddles.player1.position.y = this.gameState.player1.paddle.center * scaleY;
+    this.paddles.player2.position.y = this.gameState.player2.paddle.center * scaleY;
+
+    // Update ball position
+    if (this.ball) {
         this.ball.position.set(
             this.gameState.ball[0] * scaleX,
             this.gameState.ball[1] * scaleY,
             0
-        ); }
-        else console.log("error with ball human")
+        );
+    } else {
+        console.log("Error: Ball model is missing");
     }
+}
+
 
     animate() {
         requestAnimationFrame(() => this.animate());

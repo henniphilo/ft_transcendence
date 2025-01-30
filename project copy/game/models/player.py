@@ -21,4 +21,4 @@ class Player:
 
     def __post_init__(self):
         if self.player_type == PlayerType.HUMAN and self.controls is None:
-            raise ValueError("Human players must have controls assigned") 
+            raise ValueError("Human players must have controls assigned")
