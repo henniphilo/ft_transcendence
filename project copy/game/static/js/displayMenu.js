@@ -1,4 +1,4 @@
-import { GameScreen } from './game_screen';
+import { GameScreen } from './game_screen.js';
 
 export class MenuDisplay {
     constructor() {
