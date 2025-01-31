@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'api',
     'users',
+    'channels',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -82,7 +83,10 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+# Use ASGI for WebSocket/async support while maintaining WSGI for regular HTTP
+# Keep both but prioritize ASGI
+ASGI_APPLICATION = 'backend.asgi.application'  # Required for WebSockets/Channels
+WSGI_APPLICATION = 'backend.wsgi.application'  # Keep for traditional HTTP requests
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
