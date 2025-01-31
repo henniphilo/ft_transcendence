@@ -1,5 +1,7 @@
-class GameScreen {
+export class GameScreen {
     constructor(gameState, onBackToMenu) {
+        console.log("GameScreen loaded!");
+
         this.gameState = gameState;
         this.onBackToMenu = onBackToMenu;
         this.canvas = null;
@@ -9,7 +11,7 @@ class GameScreen {
         this.keyState = {};
         this.scoreBoard = null;
         this.gameMode = new URLSearchParams(window.location.search).get('mode') || 'pvp';
-        
+
         this.setupWebSocket();
         this.setupControls();
     }
@@ -17,12 +19,12 @@ class GameScreen {
     setupWebSocket() {
         this.gameId = crypto.randomUUID();
         this.ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/game/${this.gameId}`);
-        
+
         this.ws.onmessage = (event) => {
             this.gameState = JSON.parse(event.data);
             this.updateScoreBoard();  // Update Score bei jedem neuen Spielzustand
             this.draw();
-            
+
             if (this.gameState.winner) {
                 this.displayWinnerScreen();
             }
@@ -52,7 +54,7 @@ class GameScreen {
             if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
                 return; // Ignoriere Pfeiltasten im AI-Modus
             }
-            
+
             if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.keyState[e.key] = true;
@@ -63,7 +65,7 @@ class GameScreen {
             if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
                 return; // Ignoriere Pfeiltasten im AI-Modus
             }
-            
+
             if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 this.keyState[e.key] = false;
@@ -72,8 +74,10 @@ class GameScreen {
     }
 
     display() {
+        console.log("Game wird angezeigt...");
+
         const container = document.getElementById('game-container');
-        
+
         if (this.gameState.winner) {
             this.displayWinnerScreen();
         } else {
@@ -98,10 +102,10 @@ class GameScreen {
 
     updateScoreBoard() {
         if (!this.scoreBoard) return;
-        
+
         const player1Score = this.scoreBoard.querySelector('#player1-score');
         const player2Score = this.scoreBoard.querySelector('#player2-score');
-        
+
         if (player1Score && player2Score) {
             player1Score.textContent = `${this.gameState.player1.name}: ${this.gameState.player1.score}`;
             player2Score.textContent = `${this.gameState.player2.name}: ${this.gameState.player2.score}`;
@@ -170,7 +174,7 @@ class GameScreen {
     initCanvas() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
-        
+
         // Setze eine feste Größe für das Spielfeld
         this.canvas.width = 800;
         this.canvas.height = 600;  // Höher für bessere Proportionen
@@ -185,4 +189,4 @@ class GameScreen {
             clearInterval(this.controlInterval);
         }
     }
-} 
+}

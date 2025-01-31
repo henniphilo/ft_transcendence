@@ -1,5 +1,9 @@
+import { GameScreen } from './game_screen';
+
 export class MenuDisplay {
     constructor() {
+        console.log("MenuDisplay loaded!");
+
         this.menuContainer = document.getElementById('menu-container');
         this.ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/menu`);
         this.gameMode = null;
@@ -187,6 +191,7 @@ export class MenuDisplay {
     }
 
     startGame(data) {
+        console.log("startGame wurde aufgerufen:", data);
         // Verstecke das Menü
         this.menuContainer.style.display = 'none';
 
@@ -205,7 +210,7 @@ export class MenuDisplay {
             player2: { name: "Player 2", score: 0, paddle: 0 },
             ball: [0, 0]
         }, onBackToMenu);
-
+        console.log("before display");
         window.gameScreen.display();
     }
 }
