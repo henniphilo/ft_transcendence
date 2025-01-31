@@ -2,6 +2,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 let scene, camera, renderer;
+let cameraSpeed = 0.005;
+let cameraMoveRight = 0.002;
+let cameraMoveUp = 0.001;
+
 
 function init() {
 	console.log("in init");
@@ -33,13 +37,7 @@ function init() {
 
     // Load GLB model
     const loader = new GLTFLoader();
-	// loader.register((parser) => {
-	// 	return {
-	// 		name: 'KHR_materials_pbrSpecularGlossiness',
-	// 		// Ignore the extension
-	// 		parse: () => null,
-	// 	};
-	// });
+
     loader.load(
         'ubahn/transform_u-station.glb',
         (gltf) => {
@@ -56,7 +54,14 @@ function init() {
 
 function animate() {
     requestAnimationFrame(animate);
+    camera.position.z -= cameraSpeed;
+    camera.position.x += cameraMoveRight;
+    camera.position.y += cameraMoveUp;
 
+    // Optionale Begrenzung, damit die Kamera nicht zu nah an die Szene kommt
+    // if (camera.position.y < 1) {
+    //     camera.position.y = 1;
+    // }
     // Render scene
     renderer.render(scene, camera);
 }
