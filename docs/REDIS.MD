@@ -64,3 +64,15 @@ Terminal 2 (Publisher):
 ```bash
 docker-compose exec redis redis-cli flushall
 ```
+
+## Chat
+```bash
+# Terminal 1 (Subscriber)
+docker-compose exec redis redis-cli
+127.0.0.1:6379> SUBSCRIBE chat_general
+
+# Terminal 2 (Publisher)
+docker-compose exec redis redis-cli
+127.0.0.1:6379> PUBLISH chat_general "Hello world!"
+```
+
