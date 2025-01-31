@@ -15,11 +15,52 @@ Key Features:
 
 ## Redis in this Project
 ### Check if Redis is running:
+```bash
+docker-compose exec redis redis-cli
+```
 
-**`docker-compose exec redis redis-cli`** 
-
+## Basic connectivity test:
 ```bash
 127.0.0.1:6379> ping
 PONG
 ```
 
+## Test data storage:
+```bash
+127.0.0.1:6379> set mykey "Hello, Redis!"
+OK
+127.0.0.1:6379> get mykey
+"Hello, Redis!"
+127.0.0.1:6379> del mykey
+(integer) 1
+127.0.0.1:6379> get mykey
+(nil)
+```
+
+## Test Pub/Sub (Game Server):
+Terminal 1 (Subscriber):
+```bash
+127.0.0.1:6379> subscribe game_channel
+```
+
+Terminal 2 (Publisher):
+```bash
+127.0.0.1:6379> publish game_channel "Test message"
+```
+
+## Useful commands:
+```bash
+127.0.0.1:6379> keys * (List all keys)
+127.0.0.1:6379> set (Set key value)
+127.0.0.1:6379> get (Get value of key)
+127.0.0.1:6379> del (Delete key)
+127.0.0.1:6379> del * (Delete all keys)
+127.0.0.1:6379> info (Get server information)
+127.0.0.1:6379> monitor (Log all commands)
+127.0.0.1:6379> flushdb (Delete all keys in current database)
+```
+
+## Flush all data:
+```bash
+docker-compose exec redis redis-cli flushall
+```
