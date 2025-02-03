@@ -1,14 +1,16 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-let scene, camera, renderer;
+let scene, camera, renderer, controls;
+let model;
+let particles;
 let cameraSpeed = 0.005;
 let cameraMoveRight = 0.002;
 let cameraMoveUp = 0.001;
 
-
 function init() {
-	console.log("in init");
+    console.log("in init");
     const canvas = document.getElementById('background-canvas');
 
     // Initialize scene, camera, and renderer
@@ -25,47 +27,98 @@ function init() {
     const ambientLight = new THREE.AmbientLight(0xfff0e0, 0.7);
     scene.add(ambientLight);
 
-	// Main directional light (simulating sunlight)
-	const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-	directionalLight.position.set(5, 10, 7);
-	scene.add(directionalLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 7);
+    scene.add(directionalLight);
 
     const pointLight = new THREE.PointLight(0xe0f0ff, 0.5);
     pointLight.position.set(-5, 5, 5);
     scene.add(pointLight);
 
+    // Implement Orbit Controls
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 3;
+    controls.maxDistance = 10;
+    controls.maxPolarAngle = Math.PI / 2;
 
     // Load GLB model
     const loader = new GLTFLoader();
-
     loader.load(
         'ubahn/transform_u-station.glb',
         (gltf) => {
-            scene.add(gltf.scene);
-            gltf.scene.position.set(0, -1, 0); // Adjust position
-            gltf.scene.scale.set(1, 1, 1);     // Adjust scale if needed
+            model = gltf.scene;
+            scene.add(model);
+            model.position.set(0, -1, 0);
+            model.scale.set(1, 1, 1);
         },
         undefined,
         (error) => console.error('Error loading model:', error)
     );
 
+    // Add particles
+    addParticles();
+
+    // Add event listeners
+    window.addEventListener('resize', onWindowResize, false);
+    document.addEventListener('mousemove', onMouseMove, false);
+
     animate();
+}
+
+function addParticles() {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    const size = 2000;
+
+    for (let i = 0; i < 10000; i++) {
+        const x = (Math.random() - 0.5) * size;
+        const y = (Math.random() - 0.5) * size;
+        const z = (Math.random() - 0.5) * size;
+        vertices.push(x, y, z);
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+    const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+    particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onMouseMove(event) {
+    const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+    const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    if (model) {
+        model.rotation.y = mouseX * 0.1;
+        model.rotation.x = mouseY * 0.1;
+    }
 }
 
 function animate() {
     requestAnimationFrame(animate);
+    controls.update();
+
     camera.position.z -= cameraSpeed;
     camera.position.x += cameraMoveRight;
     camera.position.y += cameraMoveUp;
 
-    // Optionale Begrenzung, damit die Kamera nicht zu nah an die Szene kommt
-    // if (camera.position.y < 1) {
-    //     camera.position.y = 1;
-    // }
-    // Render scene
+    if (particles) {
+        particles.rotation.y += 0.0005;
+    }
+
     renderer.render(scene, camera);
 }
 
 export function initBackground3D() {
     init();
 }
+
