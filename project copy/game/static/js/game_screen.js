@@ -1,3 +1,5 @@
+import { ThreeJSManager } from "./3dmanager.js";
+
 export class GameScreen {
     constructor(gameState, onBackToMenu) {
         console.log("GameScreen loaded!");
@@ -14,6 +16,26 @@ export class GameScreen {
 
         this.setupWebSocket();
         this.setupControls();
+        this.threeJSManager = new ThreeJSManager();
+        this.setupThreeJS();
+    }
+
+    async setupThreeJS() {
+        try {
+            await this.threeJSManager.loadModels();
+            this.startGameLoop();
+        } catch (error) {
+            console.error('Failed to load 3D models:', error);
+        }
+    }
+
+    startGameLoop() {
+        const gameLoop = () => {
+            this.threeJSManager.updatePositions(this.gameState);
+            this.threeJSManager.render();
+            requestAnimationFrame(gameLoop);
+        };
+        gameLoop();
     }
 
     setupWebSocket() {
@@ -188,5 +210,6 @@ export class GameScreen {
         if (this.controlInterval) {
             clearInterval(this.controlInterval);
         }
+        this.threeJSManager.cleanup();
     }
 }
