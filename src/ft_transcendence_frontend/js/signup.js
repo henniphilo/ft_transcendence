@@ -141,7 +141,7 @@ document.getElementById('verify-code').addEventListener('click', function() {
         if (!refreshToken) {
           return Promise.reject('Kein Refresh-Token vorhanden. Bitte einloggen.');
         }
-      
+
         return fetch('http://0.0.0.0:8000/api/users/token/refresh/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -159,11 +159,11 @@ document.getElementById('verify-code').addEventListener('click', function() {
           console.log('Access-Token erneuert:', data.access);
         });
       }
-      
-  
+
+
   function getProfile() {
     const accessToken = localStorage.getItem('accessToken');
-  
+
     fetch('http://0.0.0.0:8000/api/users/profile/', {
       method: 'GET',
       headers: {
@@ -174,8 +174,8 @@ document.getElementById('verify-code').addEventListener('click', function() {
       if (response.status === 401) {
         // Access Token evtl. abgelaufen -> Refresh versuchen
         console.log('Access Token abgelaufen, versuche Refresh...');
-        return refreshAccessToken().then(() => getProfile());  
-        // <--- Achtung, ggf. Endlosschleifen abfangen, 
+        return refreshAccessToken().then(() => getProfile());
+        // <--- Achtung, ggf. Endlosschleifen abfangen,
         // falls das Refresh auch 401 gibt (z. B. Refresh-Token ungültig).
       } else if (!response.ok) {
         return Promise.reject(`Fehler: ${response.status} ${response.statusText}`);
@@ -192,53 +192,75 @@ document.getElementById('verify-code').addEventListener('click', function() {
     });
   }
 
-  
+
 
   document.getElementById('logout-button').addEventListener('click', function() {
     // Tokens aus localStorage löschen
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-  
+
     // UI anpassen
     document.getElementById('logout-button').style.display = 'none';
     document.getElementById('login-container').style.display = 'block';
     document.getElementById('game-container').style.display = 'none';
-  
+
     alert('Logout erfolgreich!');
   });
-  
-  document.getElementById('login-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-  
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-  
-    fetch('http://0.0.0.0:8000/api/users/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    })
-    .then(response => {
-      if (!response.ok) return response.json().then(err => Promise.reject(err));
-      return response.json();
-    })
-    .then(data => {
-      // -> { access: "...", refresh: "..." }
-      localStorage.setItem('accessToken', data.access);
-      localStorage.setItem('refreshToken', data.refresh);
-  
-      // Login-Form ausblenden
-      document.getElementById('login-form').style.display = 'none';
-      alert('Login erfolgreich!');
-  
-      // Neu: Profil laden und Container zeigen
-      showUserProfile();
-    })
-    .catch(err => {
-      console.error('Login fehlgeschlagen:', err);
-      alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
-    });
-  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const logoutButton = document.getElementById('logout-button');
+    const loginForm = document.getElementById('login-form');
+
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function() {
+            // Tokens aus localStorage löschen
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+
+            // UI anpassen
+            logoutButton.style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('game-container').style.display = 'none';
+
+            alert('Logout erfolgreich!');
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            fetch('http://0.0.0.0:8000/api/users/login/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) return response.json().then(err => Promise.reject(err));
+                return response.json();
+            })
+            .then(data => {
+                localStorage.setItem('accessToken', data.access);
+                localStorage.setItem('refreshToken', data.refresh);
+
+                // Login-Form ausblenden
+                loginForm.style.display = 'none';
+                alert('Login erfolgreich!');
+
+                // Neu: Profil laden und Container zeigen
+                showUserProfile();
+            })
+            .catch(err => {
+                console.error('Login fehlgeschlagen:', err);
+                alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
+            });
+        });
+    }
+});
+
 
 
   /* 3) Profil-Endpoint abrufen (Beispiel) */
@@ -259,14 +281,14 @@ document.getElementById('verify-code').addEventListener('click', function() {
       return res.json();
     });
   }
-  
+
   /* 2) Profil-Container + Daten anzeigen */
   function showUserProfile() {
     getProfile() // oder loadUserProfile(), je nach Code
       .then(data => {
         // p#profile-data mit JSON oder spezifischen Daten füllen
         document.getElementById('profile-data').textContent = JSON.stringify(data);
-  
+
         // Profil-Container einblenden
         document.getElementById('profile-container').style.display = 'block';
       })
@@ -277,19 +299,18 @@ document.getElementById('verify-code').addEventListener('click', function() {
         // Optional: localStorage.clear(), etc.
       });
   }
-  
-  
+
+
   /* 4) Logout im Profil-Container */
   document.getElementById('logout-button').addEventListener('click', () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-  
+
     // Profil-Container ausblenden
     document.getElementById('profile-container').style.display = 'none';
-  
+
     // Login-Form wieder anzeigen (oder Signup etc.)
     document.getElementById('login-form').style.display = 'block';
-  
+
     alert('Logout erfolgreich!');
   });
-  
