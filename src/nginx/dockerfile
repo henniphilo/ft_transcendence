@@ -11,6 +11,8 @@ COPY ft_transcendence_backend/game /usr/share/nginx/html/game
 COPY ft_transcendence_frontend/index.html /usr/share/nginx/html/
 COPY ft_transcendence_frontend/css /usr/share/nginx/html/css
 COPY ft_transcendence_frontend/js /usr/share/nginx/html/js
+COPY ft_transcendence_frontend/looks /usr/share/nginx/html/looks
+
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
