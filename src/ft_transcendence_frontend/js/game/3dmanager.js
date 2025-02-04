@@ -87,7 +87,7 @@ export class ThreeJSManager {
 
     async loadModels() {
         try {
-            const ubahnModel = await this.loadModel('assets/ubahn/lowpoly_berlin_u-bahn.glb', {
+            const ubahnModel = await this.loadModel('looks/lowpoly_berlin_u-bahn.glb', {
                 scale: 0.5,
                 addAxesHelper: true
             });

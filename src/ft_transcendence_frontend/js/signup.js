@@ -75,7 +75,7 @@ document.getElementById('signup-form').addEventListener('submit', function(event
             console.log("Erfolgreiche Registrierung");
             // Zeige das 2FA-Eingabefeld nach erfolgreicher Registrierung an
             document.getElementById('signup-form').style.display = 'none';
-            document.getElementById('2fa-container').style.display = 'block';
+            document.getElementById('twofa-container').style.display = 'block';
 
             // Sende den Verifizierungscode an die E-Mail des Benutzers
             sendVerificationCode(email);
@@ -124,7 +124,7 @@ document.getElementById('verify-code').addEventListener('click', function() {
         if (data.message) {
             alert('User verified! Now you can log in.');
             document.getElementById('signup-form').style.display = 'none';
-            document.getElementById('2fa-container').style.display = 'none';
+            document.getElementById('twofa-container').style.display = 'none';
             document.getElementById('login-container').style.display = 'block';
         } else {
             alert('Error: ' + data.error);

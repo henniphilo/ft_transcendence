@@ -1,52 +1,96 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pong Game</title>
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/main.css" />
-    <link rel="stylesheet" href="css/styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong Game</title>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-    <div id="app">
-        <canvas id="background-canvas"></canvas>
-        <div id="menu-container"></div>
-        <div id="game-container"></div>
-        <div id="three-js-container"></div>
-    </div>
+    <!-- Background Canvas (MUST BE HERE) -->
+    <canvas id="background-canvas"></canvas>
+
+    <!-- Menü- und Spielbereich -->
+    <div id="menu-container"></div>
+    <div id="game-container"></div>
+    <div id="three-js-container"></div>
 
     <!-- Signup Form -->
     <div id="signup-container">
-        <!-- ... (signup form content) ... -->
+      <h2>Sign Up</h2>
+      <form id="signup-form">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required />
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+
+        <button type="submit">Sign Up</button>
+      </form>
+
+      <div id="twofa-container" style="display: none;">
+        <h3>2FA Verification</h3>
+        <label for="verification-code">
+          Enter the verification code sent to your email:
+        </label>
+        <input
+          type="text"
+          id="verification-code"
+          name="verification-code"
+          required
+        />
+        <button id="verify-code">Verify Code</button>
+      </div>
     </div>
 
-    <!-- Login Form (Initially hidden) -->
+    <!-- Login Form -->
     <div id="login-container">
-        <!-- ... (login form content) ... -->
+      <h2>Login</h2>
+      <form id="login-form">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" name="login-username" required />
+
+        <label for="login-password">Password</label>
+        <input
+          type="password"
+          id="login-password"
+          name="login-password"
+          required
+        />
+
+        <button type="submit">Login</button>
+      </form>
     </div>
 
     <div id="profile-container" style="display: none;">
-        <!-- ... (profile content) ... -->
+      <h2>Willkommen in deinem Profil!</h2>
+      <p id="profile-data">Hier erscheinen deine Profildaten...</p>
+      <button id="logout-button">Logout</button>
     </div>
 
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@latest/build/three.module.js",
-                "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js",
-                "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
-            }
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@latest/build/three.module.js",
+          "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js",
+          "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
         }
+      }
     </script>
-    <script type="module" src="js/game/3dmanager.js"></script>
+
     <script type="module" src="js/game/background3d.js"></script>
+    <script type="module" src="js/game/3dmanager.js"></script>
     <script type="module" src="js/game/displayMenu.js"></script>
     <script type="module" src="js/game/game_screen.js"></script>
     <script type="module" src="js/game/main.js"></script>
     <script src="js/signup.js"></script>
-</body>
-</html>
+  </body>
+
 
 
 
