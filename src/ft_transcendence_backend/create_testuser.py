@@ -17,4 +17,4 @@ user.save()
 user.is_verified = True  # <--- Oder das entsprechende Attribut
 user.save()
 
-print("✅ Testuser angelegt und als verifiziert markiert:", user.username)
+print("✅ Testuser angelegt und als verifiziert markiert: username -> testuser und passwort -> testuser")
