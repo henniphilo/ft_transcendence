@@ -347,43 +347,61 @@ const AuthLib = (function () {
   
   
 
-  document.getElementById('edit-profile-button').addEventListener('click', () => {
-    const newBio = prompt('Neue Bio eingeben:');
-    if (!newBio) return; // Abbruch, wenn keine Bio eingegeben wird.
-    
-    // Avatar-Datei aus dem Input-Feld holen (falls vorhanden)
-    const avatarFile = document.getElementById('avatar-input').files[0];
-    console.log('Neuer Bio-Wert:', newBio);
-    if (avatarFile) {
-      console.log('Avatar-File ausgewählt:', avatarFile.name);
-    } else {
-      console.log('Kein Avatar-File ausgewählt.');
-    }
-    
-    // FormData erstellen, um Text- und Datei-Felder zu senden
-    const formData = new FormData();
+  // Event-Listener für den "Profil bearbeiten"-Button
+document.getElementById('edit-profile-button').addEventListener('click', () => {
+  const newBio = prompt('Neue Bio eingeben:');
+  // Avatar-Datei aus dem Input-Feld holen (falls vorhanden)
+  const avatarFile = document.getElementById('avatar-input').files[0];
+
+  // Falls weder Bio noch Avatar geändert werden, abbrechen
+  if (!newBio && !avatarFile) {
+    alert('Es wurden keine Änderungen vorgenommen.');
+    return;
+  }
+
+  // FormData erstellen und nur die Felder anhängen, die aktualisiert werden sollen
+  const formData = new FormData();
+  if (newBio) {
     formData.append('bio', newBio);
-    if (avatarFile) {
-      formData.append('avatar', avatarFile);
-    }
-    
-    AuthLib.updateProfile(formData)
-      .then(updatedData => {
-        console.log('Aktualisierte Profil-Daten:', updatedData);
-        fillProfileFields(updatedData);
-        // show everything in the console
-        console.log(updatedData);
-        // show the image in the console
-        console.log(updatedData.avatar);
-        alert('Profil erfolgreich aktualisiert!');
-        // show the url of the image in the console
-  
-        // Optional: Leere den Datei-Input nach erfolgreichem Upload
-        document.getElementById('avatar-input').value = "";
-      })
-      .catch(err => {
-        console.error('Fehler beim Aktualisieren:', err);
-        alert('Profil-Update fehlgeschlagen: ' + err);
-      });
-  });
-  
+  }
+  if (avatarFile) {
+    formData.append('avatar', avatarFile);
+  }
+
+  // Profil-Update via AuthLib aufrufen
+  AuthLib.updateProfile(formData)
+    .then(updatedData => {
+      console.log('Aktualisierte Profil-Daten:', updatedData);
+      fillProfileFields(updatedData);
+      alert('Profil erfolgreich aktualisiert!');
+      // Optional: Datei-Input zurücksetzen
+      document.getElementById('avatar-input').value = "";
+    })
+    .catch(err => {
+      console.error('Fehler beim Aktualisieren:', err);
+      alert('Profil-Update fehlgeschlagen: ' + err);
+    });
+});
+
+// Event-Listener für den Datei-Input: Avatar sofort hochladen, wenn ein neues Bild ausgewählt wurde
+document.getElementById('avatar-input').addEventListener('change', (e) => {
+  const avatarFile = e.target.files[0];
+  if (!avatarFile) return; // Falls keine Datei ausgewählt wurde
+
+  const formData = new FormData();
+  formData.append('avatar', avatarFile);
+
+  // Profil-Update nur für den Avatar aufrufen
+  AuthLib.updateProfile(formData)
+    .then(updatedData => {
+      console.log('Profil-Update (Avatar) erfolgreich:', updatedData);
+      fillProfileFields(updatedData);
+      alert('Avatar erfolgreich aktualisiert!');
+      // Datei-Input zurücksetzen
+      e.target.value = "";
+    })
+    .catch(err => {
+      console.error('Fehler beim Avatar-Update:', err);
+      alert('Avatar-Update fehlgeschlagen: ' + err);
+    });
+});
