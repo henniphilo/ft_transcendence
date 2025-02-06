@@ -1,20 +1,20 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 
-User = get_user_model()  # Falls du ein CustomUser hast, ansonsten django.contrib.auth.models.User
+User = get_user_model()
 
 # Neuen User anlegen
-user = User(
+user = User.objects.create_user(
     username='testuser',
     email='testuser@example.com',
-    # Passwort verschlüsseln; manche Helper-Funktionen machen das auch automatisch
-    password=make_password('testuser'),
+    password='testuser',
+    is_active=True,
+    score=0
 )
+
+# 2FA Verifizierung setzen
+user.is_verified = True
 user.save()
 
-# Falls dein Modell ein Feld für die 2FA-Verifizierung hat, z. B. "is_verified" oder "two_factor_verified"
-# oder "is_2fa_enabled/active/whatever", dann einfach hier auf True setzen
-user.is_verified = True  # <--- Oder das entsprechende Attribut
-user.save()
-
-print("✅ Testuser angelegt und als verifiziert markiert: username -> testuser und passwort -> testuser")
+print(f"✅ Testuser angelegt und als verifiziert markiert: username -> testuser und passwort -> testuser")
+print(f"Score gesetzt auf: 0")

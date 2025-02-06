@@ -14,7 +14,7 @@ CustomUser.objects.all().delete()
 for i in range(1, 16):
     username = f'testuser{i}'
     email = f'testuser{i}@example.com'
-    password = 'testpassword123'
+    password = 'testuser'  # Gleiche Passwort wie im create_testuser.py
     
     # Zufälligen Score zwischen 0 und 1000 generieren
     random_score = random.randint(0, 1000)
@@ -22,16 +22,14 @@ for i in range(1, 16):
     user = CustomUser.objects.create_user(
         username=username,
         email=email,
-        password=password,
+        password=password,  # create_user verschlüsselt das Passwort automatisch
         is_active=True,
         score=random_score
     )
     
-    print(f'Created test user: {username} with score: {random_score}')
-
-    # Falls dein Modell ein Feld für die 2FA-Verifizierung hat, z. B. "is_verified" oder "two_factor_verified"
-    # oder "is_2fa_enabled/active/whatever", dann einfach hier auf True setzen
-    user.is_verified = True  # <--- Oder das entsprechende Attribut
+    # 2FA Verifizierung setzen
+    user.is_verified = True
     user.save()
 
-    print(f"✅ Testuser{i} angelegt und als verifiziert markiert: username -> testuser{i} und passwort -> testuser")
+    print(f'Created test user: {username} with score: {random_score}')
+    print(f"✅ Testuser{i} angelegt und als verifiziert markiert: username -> {username} und passwort -> {password}")
