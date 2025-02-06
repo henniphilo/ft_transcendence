@@ -63,7 +63,10 @@ class Menu:
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
         
         elif selection == "leaderboard":
-            return {"action": "show_leaderboard"}
+            return {
+                "action": "show_leaderboard",
+                "type": "leaderboard"  # Wichtig für Frontend-Erkennung
+            }
         
         elif selection == "local":
             game_settings = self.game_settings.get_settings()

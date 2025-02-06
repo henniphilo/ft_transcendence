@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from .models import CustomUser
 from .serializers import UserSerializer
 from .permissions import IsVerified
+from .leaderboard import Leaderboard
 
 # ------------------
 # 1) Registrierung
@@ -136,3 +137,16 @@ def user_profile(request):
 #            serializer.save()
 #            return Response(serializer.data)
 #        return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+def get_leaderboard(request):
+    top_players = Leaderboard.get_top_players()
+    leaderboard_data = [
+        {
+            'rank': index + 1,
+            'username': player['username'],
+            'score': player['score']
+        }
+        for index, player in enumerate(top_players)
+    ]
+    return Response(leaderboard_data)
