@@ -26,9 +26,9 @@ migrate:
 test:
 	$(DC) exec backend sh -c "python manage.py flush --no-input && python test_auth.py"
 
-
-
 # Wirklich alles löschen: Container, Images, Volumes, Netzwerke
 fclean:
 	$(DC) down --rmi all --volumes --remove-orphans
 	docker system prune -af
+	./utils/cleanup.sh
+
