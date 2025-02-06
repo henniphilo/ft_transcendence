@@ -102,3 +102,38 @@ body {
     outline: none;
     border-color: #4CAF50;
 }
+
+.leaderboard-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    color: #fff;
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+.leaderboard-table th {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background-color: #3a3a3a;
+}
+
+.leaderboard-table tr:hover {
+    background-color: #444;
+}
