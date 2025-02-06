@@ -5,6 +5,8 @@ from models.game import PongGame
 from models.player import Player, PlayerType, Controls
 import time
 from models.ai_player import AI
+import redis
+import os
 
 class GameServer:
     def __init__(self):

@@ -24,7 +24,13 @@ migrate:
 	$(DC) exec backend python manage.py migrate
 
 test:
-	$(DC) exec backend sh -c "python manage.py flush --no-input && python test_auth.py"
+	$(DC) exec backend sh -c "python manage.py flush --no-input && python helper_scripts/test_auth.py"
+
+testuser:
+	$(DC) exec backend sh -c "python manage.py shell < helper_scripts/create_testuser.py"
+
+test15:
+	$(DC) exec backend sh -c "python manage.py shell < helper_scripts/create_fifteen_testusers.py"
 
 # Wirklich alles löschen: Container, Images, Volumes, Netzwerke
 fclean:
