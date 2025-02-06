@@ -14,6 +14,12 @@ up:
 down:
 	$(DC) down
 
+stop:
+	$(DC) stop
+
+start:
+	$(DC) start
+
 logs:
 	$(DC) logs -f
 
