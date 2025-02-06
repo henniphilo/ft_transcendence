@@ -9,7 +9,7 @@ build:
 	$(DC) build
 
 up:
-	$(DC) up -d
+	$(DC) up -d --remove-orphans
 
 down:
 	$(DC) down
