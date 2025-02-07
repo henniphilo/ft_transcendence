@@ -7,6 +7,11 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+    # Import OpenTelemetry configuration if ENABLE_OTEL is set
+    if os.getenv("ENABLE_OTEL"):
+        from .opentelemetry_config import *
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

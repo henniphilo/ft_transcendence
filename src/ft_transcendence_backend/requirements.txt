@@ -19,3 +19,7 @@ typing_extensions==4.12.2
 urllib3==2.3.0
 channels==4.1.0
 channels-redis==4.1.0
+opentelemetry-api 
+opentelemetry-sdk 
+opentelemetry-instrumentation-django 
+opentelemetry-exporter-otlp
