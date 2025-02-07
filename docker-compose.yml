@@ -37,6 +37,7 @@ services:
       - DATABASE_URL=postgresql://user:password@postgres:5432/transcendence
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - ENABLE_OTEL=true # Enable OpenTelemetry
     networks:
       - transcendence_network
     ports:
@@ -80,6 +81,9 @@ services:
       - "3000:3000"
       - "4317:4317"
       - "4318:4318"
+      - "9090:9090"  # Prometheus
+      - "3100:3100"  # Loki
+      - "3200:3200"  # Tempo
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_DEFAULT_THEME=dark

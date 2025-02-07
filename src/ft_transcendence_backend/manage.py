@@ -10,8 +10,17 @@ def main():
 
     # Import OpenTelemetry configuration if ENABLE_OTEL is set
     if os.getenv("ENABLE_OTEL"):
-        from .opentelemetry_config import setup_opentelemetry
+        from opentelemetry.opentelemetry_config import setup_opentelemetry
         setup_opentelemetry()
+    
+	# Setup logging configuration
+    from opentelemetry.logging_config import setup_logging
+    setup_logging()
+
+    # Log a confirmation message
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("Logging to Loki is enabled.")
     
     try:
         from django.core.management import execute_from_command_line
