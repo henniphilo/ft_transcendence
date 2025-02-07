@@ -1,29 +1,37 @@
 {
-    # Da wir nur HTTP auf Port 80 verwenden, kann Auto HTTPS abgeschaltet werden.
+    # We disable auto HTTPS because we're using our own certificate.
     auto_https off
 }
 
-:80 {
-    # Legt das Root-Verzeichnis für statische Dateien fest
+# Redirect all HTTP requests to HTTPS
+http://* {
+    redir https://{host}{uri} permanent
+}
+
+# Handle HTTPS requests with TLS using your self-signed certificates
+https://* {
+    tls /etc/caddy/certs/localhost.pem /etc/caddy/certs/localhost-key.pem
+
+    # Set the root for static assets
     root * /usr/share/caddy/html
 
-    ## API-Requests an den Backend-Container weiterleiten
+    ## Forward API requests to the backend container
     handle /api/* {
          reverse_proxy backend:8000
     }
 
-    ## WebSocket-Requests (z. B. für das Spiel) an den entsprechenden Container weiterleiten
+    ## Forward WebSocket requests (e.g., for the game) to the backend container
     handle /ws/* {
          reverse_proxy backend:8001
     }
 
-    ## Media-Requests (z. B. Dateiuploads) an den Backend-Container weiterleiten
+    ## Forward Media requests (e.g., file uploads) to the backend container
     handle /media/* {
          reverse_proxy backend:8000
     }
 
-    ## Alle anderen Requests: versuche, die angeforderte Datei auszuliefern,
-    ## andernfalls leite auf index.html um (für Single Page Applications)
+    ## All other requests: try to serve the requested file,
+    ## otherwise fallback to index.html (for Single Page Applications)
     handle {
          try_files {path} /index.html
          file_server

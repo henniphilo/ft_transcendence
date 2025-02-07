@@ -70,8 +70,11 @@ services:
       - transcendence_network
     ports:
       - "8080:80"
+      - "8443:443"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - ./certs:/etc/caddy/certs
 
   grafana:
     image: grafana/otel-lgtm
