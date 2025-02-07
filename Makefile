@@ -9,10 +9,16 @@ build:
 	$(DC) build
 
 up:
-	$(DC) up -d
+	$(DC) up -d --remove-orphans
 
 down:
 	$(DC) down
+
+stop:
+	$(DC) stop
+
+start:
+	$(DC) start
 
 logs:
 	$(DC) logs -f
