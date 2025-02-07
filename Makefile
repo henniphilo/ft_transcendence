@@ -9,10 +9,16 @@ build:
 	$(DC) build
 
 up:
-	$(DC) up -d
+	$(DC) up -d --remove-orphans
 
 down:
 	$(DC) down
+
+stop:
+	$(DC) stop
+
+start:
+	$(DC) start
 
 logs:
 	$(DC) logs -f
@@ -36,3 +42,5 @@ test15:
 fclean:
 	$(DC) down --rmi all --volumes --remove-orphans
 	docker system prune -af
+	./utils/cleanup.sh
+
