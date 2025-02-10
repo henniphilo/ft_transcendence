@@ -13,7 +13,7 @@ const AuthLib = (function () {
     'use strict';
   
     // Basis-URL für API-Endpunkte
-    const BASE_URL = 'http://127.0.0.1:8000/api/users';
+    const BASE_URL = '/api/users';
   
     /**
      * Liest einen Cookie-Wert anhand des Namens.
