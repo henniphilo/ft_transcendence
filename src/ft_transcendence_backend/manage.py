@@ -2,6 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import logging
 
 
 def main():
@@ -18,9 +19,11 @@ def main():
     setup_logging()
 
     # Log a confirmation message
-    import logging
     logger = logging.getLogger(__name__)
     logger.info("Logging to Loki is enabled.")
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__) 
+    logger.warning("This is a warning message. test")
     
     try:
         from django.core.management import execute_from_command_line

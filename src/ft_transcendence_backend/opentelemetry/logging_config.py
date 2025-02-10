@@ -1,17 +1,15 @@
 import logging
-from loki_logger import LokiHandler
 
 def setup_logging():
-    handler = LokiHandler(
-        url="http://grafana:3100/loki/api/v1/push",
-        tags={"application": "django"},
-        version="1",
-    )
-
     logging.basicConfig(
         level=logging.INFO,
-        handlers=[handler],
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),  # Log to console
+            logging.FileHandler("app.log")  # Log to a file
+        ]
     )
 
-    logging.getLogger().addHandler(handler)
+    # Log a confirmation message
+    logger = logging.getLogger(__name__)
+    logger.info("Logging is set up.")

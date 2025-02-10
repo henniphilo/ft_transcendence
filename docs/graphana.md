@@ -10,7 +10,7 @@ http://127.0.0.1:3000/login
 This Docker image is specifically designed to be a lightweight collector for OpenTelemetry.  It bundles the OTel Collector with a pre-configured set of processors and exporters, often geared towards sending data to Grafana's Loki for logs, Tempo for traces, and Mimir for metrics.  "LGT" likely stands for Loki, Grafana, and Tempo (or Mimir).
 
 Key features:
-OTel Collector: The core of this image is the OTel Collector. This component is responsible for receiving telemetry data from your applications (or other sources), processing it, and then exporting it to your chosen backends (like Loki, Tempo, and Mimir).
+The core of this image is the OTel Collector. This component is responsible for receiving telemetry data from your applications (or other sources), processing it, and then exporting it to your chosen backends (like Loki, Tempo, and Mimir).
 Pre-configured: The grafana/otel-lgtm image comes with a configuration tailored for these backends. This simplifies setup, as you don't have to write the collector configuration from scratch. However, you'll likely still need to customize it to fit your specific needs.
 Lightweight: The image is optimized to be small and efficient, making it suitable for running in resource-constrained environments.
 How to use it:

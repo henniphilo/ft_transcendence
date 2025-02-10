@@ -44,3 +44,12 @@ fclean:
 	docker system prune -af
 	./utils/cleanup.sh
 
+# Individual container logs
+logs-backend:
+	docker logs -f ft_transcendence_backend
+
+logs-grafana:
+	docker logs -f grafana
+
+logs-nginx:
+	docker logs -f ft_transcendence_nginx
