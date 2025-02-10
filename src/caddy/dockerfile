@@ -8,6 +8,7 @@ COPY ft_transcendence_backend/game /usr/share/caddy/html/game
 COPY ft_transcendence_frontend/index.html /usr/share/caddy/html/
 COPY ft_transcendence_frontend/css /usr/share/caddy/html/css
 COPY ft_transcendence_frontend/js /usr/share/caddy/html/js
+COPY ft_transcendence_frontend/looks /usr/share/caddy/html/looks
 
 # Caddy hört standardmäßig auf Port 80 (EXPOSE ist optional)
 EXPOSE 80

@@ -1,10 +1,15 @@
-class MenuDisplay {
+import { GameScreen } from "./game_screen.js";
+
+export class MenuDisplay {
     constructor() {
-        this.menuContainer = document.getElementById('menu-container');
+        console.log("MenuDisplay loaded!");
+
+        this.container = document.getElementById('menu-container');
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
+        this.leaderboardDisplay = null;
         this.initWebSocket();
     }
 
@@ -32,20 +37,20 @@ class MenuDisplay {
     }
 
     displayMenuItems(menuItems) {
-        this.menuContainer.innerHTML = '';
+        this.container.innerHTML = '';
         menuItems.forEach(item => {
             const button = document.createElement('button');
             button.className = 'menu-item';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
-            this.menuContainer.appendChild(button);
+            this.container.appendChild(button);
         });
     }
 
     displaySettings(settings) {
         const currentSettings = this.currentSettings || settings;
-        
-        this.menuContainer.innerHTML = `
+
+        this.container.innerHTML = `
             <div class="settings-container">
                 <h2>Settings</h2>
                 <div class="setting-item">
@@ -82,9 +87,9 @@ class MenuDisplay {
                 winning_score: parseInt(document.getElementById('winning-score').value),
                 paddle_size: document.getElementById('paddle-size').value
             };
-            
+
             console.log('Sending settings:', settings);
-            
+
             await this.ws.send(JSON.stringify({
                 action: "update_settings",
                 settings: settings
@@ -101,20 +106,22 @@ class MenuDisplay {
         }));
     }
 
-    handleMenuAction(data) {
+    async handleMenuAction(data) {
+        console.log("Handling menu action:", data);
+
         if (data.is_tournament) {
             this.currentSettings = { ...this.currentSettings, tournament: true };
         }
-        
+
         switch (data.action) {
             case 'show_submenu':
                 this.displayMenuItems(data.menu_items);
                 break;
-            
+
             case 'show_player_names':
                 this.displayPlayerNamesInput(data.num_players, this.currentSettings?.tournament);
                 break;
-            
+
             case 'show_main_menu':
                 this.displayMenuItems(data.menu_items);
                 break;
@@ -134,7 +141,11 @@ class MenuDisplay {
                 alert(data.message);
                 break;
             case 'show_leaderboard':
-                console.log('Showing leaderboard...');
+                if (this.leaderboardDisplay) {
+                    this.leaderboardDisplay.cleanup();
+                }
+                this.leaderboardDisplay = new LeaderboardDisplay();
+                this.leaderboardDisplay.display();
                 break;
             case 'exit_game':
                 console.log('Exiting game...');
@@ -143,14 +154,14 @@ class MenuDisplay {
     }
 
     displayPlayerNamesInput(numPlayers, isTournament) {
-        this.menuContainer.innerHTML = `
+        this.container.innerHTML = `
             <div class="settings-container">
                 <h2>${isTournament ? 'Tournament' : 'Game'} Players</h2>
                 <form id="player-names-form">
                     ${Array.from({length: numPlayers}, (_, i) => `
                         <div class="setting-item">
                             <label for="player-${i+1}">Player ${i+1} Name:</label>
-                            <input type="text" id="player-${i+1}" 
+                            <input type="text" id="player-${i+1}"
                                    value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
                                    ${this.isAIPlayer(i) ? 'readonly' : ''}>
                         </div>
@@ -163,7 +174,7 @@ class MenuDisplay {
 
         document.getElementById('player-names-form').onsubmit = (e) => {
             e.preventDefault();
-            const playerNames = Array.from({length: numPlayers}, (_, i) => 
+            const playerNames = Array.from({length: numPlayers}, (_, i) =>
                 document.getElementById(`player-${i+1}`).value
             );
             this.startGameWithPlayers(playerNames, isTournament);
@@ -179,7 +190,7 @@ class MenuDisplay {
         const gameSettings = this.currentSettings || {};
         gameSettings.playerNames = playerNames;
         gameSettings.isTournament = isTournament;
-        
+
         this.ws.send(JSON.stringify({
             action: 'start_game',
             settings: gameSettings
@@ -187,16 +198,17 @@ class MenuDisplay {
     }
 
     startGame(data) {
+        console.log("startGame wurde aufgerufen:", data);
         // Verstecke das Menü
-        this.menuContainer.style.display = 'none';
-        
+        this.container.style.display = 'none';
+
         // Erstelle und starte das Spiel
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
-        
+
         const onBackToMenu = () => {
             gameContainer.style.display = 'none';
-            this.menuContainer.style.display = 'block';
+            this.container.style.display = 'block';
             this.requestMenuItems();
         };
 
@@ -205,12 +217,22 @@ class MenuDisplay {
             player2: { name: "Player 2", score: 0, paddle: 0 },
             ball: [0, 0]
         }, onBackToMenu);
-        
+        console.log("before display");
         window.gameScreen.display();
+    }
+display() {
+        this.container.innerHTML = `
+            <div class="menu">
+                <h1>Pong Game</h1>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('play')">Spielen</button>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
+            </div>
+        `;
     }
 }
 
 let menuDisplay;
 document.addEventListener('DOMContentLoaded', () => {
     menuDisplay = new MenuDisplay();
-}); 
+});

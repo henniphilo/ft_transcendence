@@ -11,9 +11,9 @@
  */
 const AuthLib = (function () {
     'use strict';
-  
+
     // Basis-URL für API-Endpunkte
-    const BASE_URL = 'http://127.0.0.1:8000/api/users';
+    const BASE_URL = '/api/users';
   
     /**
      * Liest einen Cookie-Wert anhand des Namens.
@@ -35,7 +35,7 @@ const AuthLib = (function () {
       }
       return cookieValue;
     }
-  
+
     /**
      * Sendet einen Verifizierungscode an die angegebene E-Mail.
      *
@@ -68,7 +68,7 @@ const AuthLib = (function () {
           }
         });
     }
-  
+
     /**
      * Registriert einen neuen Benutzer.
      *
@@ -92,7 +92,7 @@ const AuthLib = (function () {
           return response.json();
         });
     }
-  
+
     /**
      * Überprüft den 2FA-Verifizierungscode.
      *
@@ -110,7 +110,7 @@ const AuthLib = (function () {
         body: JSON.stringify({ email, code }),
       }).then(response => response.json());
     }
-  
+
     /**
      * Meldet einen Benutzer an und speichert Access- und Refresh-Token.
      *
@@ -136,7 +136,7 @@ const AuthLib = (function () {
           return data;
         });
     }
-  
+
     /**
      * Versucht, den Access-Token mit dem gespeicherten Refresh-Token zu erneuern.
      *
@@ -147,7 +147,7 @@ const AuthLib = (function () {
       if (!refreshToken) {
         return Promise.reject('Kein Refresh-Token vorhanden. Bitte einloggen.');
       }
-  
+
       return fetch(`${BASE_URL}/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,189 +163,151 @@ const AuthLib = (function () {
           localStorage.setItem('accessToken', data.access);
           console.log('Access-Token erneuert:', data.access);
         });
-    }
-  
-    /**
-     * Ruft das Profil des eingeloggten Benutzers ab.
-     *
-     * @returns {Promise<object>} Promise mit den Profil-Daten.
-     */
-    function getProfile() {
-      const accessToken = localStorage.getItem('accessToken');
-      return fetch(`${BASE_URL}/profile/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': 'Bearer ' + accessToken,
-        },
-      }).then(response => {
-        if (response.status === 401) {
-          console.log('Access Token abgelaufen, versuche Refresh...');
-          return refreshAccessToken().then(() => getProfile());
-        }
-        if (!response.ok) {
-          return Promise.reject('Fehler beim Abrufen des Profils: ' + response.status);
-        }
-        return response.json();
-      });
-    }
-  
-    /**
-     * Aktualisiert das Profil des Benutzers.
-     *
-     * @param {FormData} formData - FormData mit den zu aktualisierenden Feldern (z. B. bio, avatar).
-     * @returns {Promise<object>} Promise mit den aktualisierten Profil-Daten.
-     */
-    function updateProfile(formData) {
-      const accessToken = localStorage.getItem('accessToken');
-      return fetch(`${BASE_URL}/profile/`, {
-        method: 'PUT',
-        headers: {
-          // Hinweis: Beim Senden von FormData NICHT den Content-Type manuell setzen!
-          'Authorization': 'Bearer ' + accessToken,
-        },
-        body: formData,
-      }).then(response => {
-        if (!response.ok) {
-          return Promise.reject('Fehler beim Aktualisieren: ' + response.status);
-        }
-        return response.json();
-      });
-    }
-  
-    /**
-     * Meldet den Benutzer ab, indem Tokens entfernt werden.
-     */
-    function logoutUser() {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      console.log('Logout erfolgreich!');
-    }
-  
-    // Exponiere die Funktionen
-    return {
-      getCookie,
-      sendVerificationCode,
-      registerUser,
-      verifyCode,
-      loginUser,
-      refreshAccessToken,
-      getProfile,
-      updateProfile,
-      logoutUser,
-    };
-  })();
-  
-  /* === Beispiel: Verwendung der Library in Deinen Event-Handlern === */
-  
-  // Registrierung
-  document.getElementById('signup-form').addEventListener('submit', function (event) {
-    event.preventDefault();
-  
-    const username = document.getElementById('username').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-  
-    console.log("Daten, die gesendet werden:", { username, email, password });
-  
-    AuthLib.registerUser({ username, email, password })
-      .then(data => {
-        if (data.id) {
-          // Registrierung war erfolgreich → 2FA aktivieren
-          document.getElementById('signup-form').style.display = 'none';
-          document.getElementById('2fa-container').style.display = 'block';
-          // Verifizierungscode senden
-          return AuthLib.sendVerificationCode(email);
-        } else {
-          return Promise.reject(data.error || 'Registrierung fehlgeschlagen.');
-        }
-      })
-      .then(() => {
-        alert('Verification code sent to your email!');
-      })
-      .catch(error => {
-        console.error('Fehler:', error);
-        alert('Fehler: ' + error);
-      });
-  });
-  
-  // 2FA-Verifizierung
-  document.getElementById('verify-code').addEventListener('click', function () {
-    const verificationCode = document.getElementById('verification-code').value;
-    const email = document.getElementById('email').value;
-  
-    AuthLib.verifyCode(email, verificationCode)
-      .then(data => {
-        if (data.message) {
-          alert('User verified! Now you can log in.');
-          document.getElementById('2fa-container').style.display = 'none';
-          document.getElementById('login-container').style.display = 'block';
-        } else {
-          alert('Error: ' + (data.error || 'Verifizierung fehlgeschlagen.'));
-        }
-      })
-      .catch(error => {
-        alert('Error: ' + error);
-      });
-  });
+      }
 
-  /**
- * Aktualisiert die UI mit den Profil-Daten.
- * @param {Object} data - Das Profil-Datenobjekt.
- */
-  function fillProfileFields(data) {
-    document.getElementById('profile-username').textContent   = data.username || '';
-    document.getElementById('profile-email').textContent      = data.email || '';
-    document.getElementById('profile-bio').textContent        = data.bio || '';
-    document.getElementById('profile-birth_date').textContent = data.birth_date || '';
-    
-    const avatarImg = document.getElementById('profile-avatar');
-    if (data.avatar) {
-      // Cache-Busting: Hänge einen Zeitstempel an den Avatar-URL an
-      avatarImg.src = data.avatar + '?t=' + new Date().getTime();
-    } else {
-      avatarImg.src = 'https://placehold.co/80x80/f0f0f0/989898?text=No+Avatar';
-    }
+
+  function getProfile() {
+    const accessToken = localStorage.getItem('accessToken');
+
+    fetch('http://0.0.0.0:8000/api/users/profile/', {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + accessToken
+      }
+    })
+    .then(response => {
+      if (response.status === 401) {
+        // Access Token evtl. abgelaufen -> Refresh versuchen
+        console.log('Access Token abgelaufen, versuche Refresh...');
+        return refreshAccessToken().then(() => getProfile());
+        // <--- Achtung, ggf. Endlosschleifen abfangen,
+        // falls das Refresh auch 401 gibt (z. B. Refresh-Token ungültig).
+      } else if (!response.ok) {
+        return Promise.reject(`Fehler: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Profil-Daten:', data);
+      // Zeige die Daten z. B. auf der Seite an
+    })
+    .catch(error => {
+      console.error('Fehler beim Profil-Abruf:', error);
+      alert('Fehler beim Profil-Abruf: ' + error);
+    });
   }
-  
-  
 
-  
-  document.getElementById('login-form').addEventListener('submit', function (event) {
+
+
+  document.getElementById('logout-button').addEventListener('click', function() {
+    // Tokens aus localStorage löschen
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    // UI anpassen
+    document.getElementById('logout-button').style.display = 'none';
+    document.getElementById('login-container').style.display = 'block';
+    document.getElementById('game-container').style.display = 'none';
+
+    alert('Logout erfolgreich!');
+  });
+
+  document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
-  
+
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
-  
-    AuthLib.loginUser(username, password)
-      .then(() => {
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('logout-button').style.display = 'block';
-        alert('Login erfolgreich!');
-        // Profil laden
-        return AuthLib.getProfile();
-      })
-      .then(profileData => {
-        console.log('Profil-Daten:', profileData);
-        // Statt die rohen JSON-Daten anzuzeigen, wird die UI über fillProfileFields aktualisiert:
-        fillProfileFields(profileData);
+
+    fetch('http://0.0.0.0:8000/api/users/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+    .then(response => {
+      if (!response.ok) return response.json().then(err => Promise.reject(err));
+      return response.json();
+    })
+    .then(data => {
+      // -> { access: "...", refresh: "..." }
+      localStorage.setItem('accessToken', data.access);
+      localStorage.setItem('refreshToken', data.refresh);
+
+      // Login-Form ausblenden
+      document.getElementById('login-form').style.display = 'none';
+      alert('Login erfolgreich!');
+
+      // Neu: Profil laden und Container zeigen
+      showUserProfile();
+    })
+    .catch(err => {
+      console.error('Login fehlgeschlagen:', err);
+      alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
+    });
+  });
+
+
+  /* 3) Profil-Endpoint abrufen (Beispiel) */
+  function getProfile() {
+    const accessToken = localStorage.getItem('accessToken');
+    return fetch('http://0.0.0.0:8000/api/users/profile/', {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + accessToken }
+    })
+    .then(res => {
+      if (res.status === 401) {
+        // Access Token evtl. abgelaufen -> Refresh
+        return refreshAccessToken().then(() => getProfile());
+      }
+      if (!res.ok) {
+        throw new Error('Fehler ' + res.status);
+      }
+      return res.json();
+    });
+  }
+
+  /* 2) Profil-Container + Daten anzeigen */
+  function showUserProfile() {
+    getProfile() // oder loadUserProfile(), je nach Code
+      .then(data => {
+        // p#profile-data mit JSON oder spezifischen Daten füllen
+        document.getElementById('profile-data').textContent = JSON.stringify(data);
+
+        // Profil-Container einblenden
         document.getElementById('profile-container').style.display = 'block';
       })
       .catch(error => {
+        // Falls Profil-Abruf scheitert, ggf. wieder Login anzeigen
+        console.error('Fehler beim Profil-Abruf:', error);
+        alert('Konnte Profil nicht laden. Bitte erneut einloggen.');
+        // Optional: localStorage.clear(), etc.
+      });
+  }
+
+
+  /* 4) Logout im Profil-Container */
+  document.getElementById('logout-button').addEventListener('click', () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    // Profil-Container ausblenden
         alert('Login fehlgeschlagen: ' + (error.detail || error));
       });
   });
-  
-  
+
+
   // Logout
   document.getElementById('logout-button').addEventListener('click', function () {
     AuthLib.logoutUser();
     document.getElementById('logout-button').style.display = 'none';
     document.getElementById('login-container').style.display = 'block';
     document.getElementById('profile-container').style.display = 'none';
+
+    // Login-Form wieder anzeigen (oder Signup etc.)
+    document.getElementById('login-form').style.display = 'block';
+
     alert('Logout erfolgreich!');
   });
-  
-  
+
 
   // Event-Listener für den "Profil bearbeiten"-Button
 document.getElementById('edit-profile-button').addEventListener('click', () => {
