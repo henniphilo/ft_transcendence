@@ -9,106 +9,94 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-    <!-- Background Canvas (MUST BE HERE) -->
-    <canvas id="background-canvas"></canvas>
+  <!-- Background Canvas (MUST BE HERE) -->
+  <canvas id="background-canvas"></canvas>
 
-    <!-- Menü- und Spielbereich -->
-    <div id="menu-container"></div>
-    <div id="game-container"></div>
-    <div id="three-js-container"></div>
+  <!-- Menü- und Spielbereich -->
+  <div id="menu-container"></div>
+  <div id="game-container"></div>
+  <div id="three-js-container"></div>
 
-    <!-- Signup Form -->
-    <div id="signup-container">
-      <h2>Sign Up</h2>
-      <form id="signup-form">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required />
+  <!-- Signup Form -->
+  <div id="signup-container">
+    <h2>Sign Up</h2>
+    <form id="signup-form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required />
 
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required />
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required />
 
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required />
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required />
 
-        <button type="submit">Sign Up</button>
-      </form>
+      <button type="submit">Sign Up</button>
+    </form>
 
-      <div id="twofa-container" style="display: none;">
-        <h3>2FA Verification</h3>
-        <label for="verification-code">
-          Enter the verification code sent to your email:
-        </label>
-        <input
-          type="text"
-          id="verification-code"
-          name="verification-code"
-          required
-        />
-        <button id="verify-code">Verify Code</button>
-      </div>
-    </div>
-
-    <!-- Login Form -->
-    <div id="login-container">
-      <h2>Login</h2>
-      <form id="login-form">
-        <label for="login-username">Username</label>
-        <input type="text" id="login-username" name="login-username" required />
-
-        <label for="login-password">Password</label>
-        <input
-          type="password"
-          id="login-password"
-          name="login-password"
-          required
-        />
-
-        <button type="submit">Login</button>
-      </form>
-    </div>
-
- <!-- Profil-Container (z. B. im Body) -->
-<div id="profile-container" style="display: none;" class="profile-container">
-  <h2>Willkommen, <span id="profile-username"></span>!</h2>
-
-  <div class="profile-info">
-    <!-- Avatar-Bild -->
-    <img id="profile-avatar" src="" alt="Avatar" />
-
-    <div class="profile-details">
-      <p><strong>Email:</strong> <span id="profile-email"></span></p>
-      <p><strong>Bio:</strong> <span id="profile-bio"></span></p>
-      <p><strong>Geburtstag:</strong> <span id="profile-birth_date"></span></p>
+    <div id="twofa-container" style="display: none;">
+      <h3>2FA Verification</h3>
+      <label for="verification-code">
+        Enter the verification code sent to your email:
+      </label>
+      <input type="text" id="verification-code" name="verification-code" required />
+      <button id="verify-code">Verify Code</button>
     </div>
   </div>
 
-  <form id="profile-form" enctype="multipart/form-data">
-    <label for="avatar-input">Avatar ändern:</label>
-    <input id="avatar-input" type="file" accept="image/*" />
-  </form>
+  <!-- Login Form -->
+  <div id="login-container">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label for="login-username">Username</label>
+      <input type="text" id="login-username" name="login-username" required />
 
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" name="login-password" required />
 
-  <button id="edit-profile-button">Profil bearbeiten</button>
-  <button id="logout-button">Logout</button>
-</div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
 
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@latest/build/three.module.js",
-      "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js",
-      "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
+  <!-- Profil-Container -->
+  <div id="profile-container" class="profile-container" style="display: none;">
+    <h2>Willkommen, <span id="profile-username"></span>!</h2>
+    <div class="profile-info">
+      <!-- Avatar-Bild -->
+      <img id="profile-avatar" src="" alt="Avatar" />
+      <div class="profile-details">
+        <p><strong>Email:</strong> <span id="profile-email"></span></p>
+        <p><strong>Bio:</strong> <span id="profile-bio"></span></p>
+        <p><strong>Geburtstag:</strong> <span id="profile-birth_date"></span></p>
+      </div>
+    </div>
+    <form id="profile-form" enctype="multipart/form-data">
+      <label for="avatar-input">Avatar ändern:</label>
+      <input id="avatar-input" type="file" accept="image/*" />
+    </form>
+    <button id="edit-profile-button">Profil bearbeiten</button>
+    <button id="logout-button">Logout</button>
+  </div>
+
+  <!-- ImportMap für Three.js (falls benötigt) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@latest/build/three.module.js",
+        "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js",
+        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
+      }
     }
-  }
-</script>
+  </script>
 
   <!-- Skripte (am Ende des Body platzieren) -->
+  <!-- AuthLib muss vor den anderen Skripten geladen werden -->
+ 
+  <script src="js/signup.js"></script>
   <script type="module" src="js/game/background3d.js"></script>
   <script type="module" src="js/game/3dmanager.js"></script>
   <script src="js/game/displayLeaderboard.js"></script>
   <script type="module" src="js/game/displayMenu.js"></script>
   <script type="module" src="js/game/game_screen.js"></script>
   <script type="module" src="js/game/main.js"></script>
-  <script src="js/signup.js"></script>
 </body>
-</html> -->
+</html>
