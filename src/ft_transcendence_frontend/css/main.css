@@ -1,13 +1,40 @@
-body {
+/* General Reset */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Global Styles */
+body {
+    background-color: #f4f4f4; /* Set to gray */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #000;
+    flex-direction: column;
     color: #fff;
-    font-family: 'Arial', sans-serif;
+}
+
+/* Game Area */
+#game-container {
+    display: none;
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000;
+}
+
+#background-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
 }
 #menu-container {
     text-align: center;
@@ -21,39 +48,51 @@ body {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 .menu-item:hover {
     background-color: #555;
 }
+
+/* Settings */
 .settings-container {
     background-color: #333;
     padding: 20px;
     border-radius: 10px;
 }
+
 .setting-item {
     margin: 15px 0;
 }
+
 .setting-item label {
     display: block;
     margin-bottom: 5px;
 }
-.setting-item input {
+
+.setting-item input,
+.setting-item select {
     padding: 5px;
-    width: 100px;
+    width: 100%;
     background-color: #444;
     border: 1px solid #666;
     color: white;
     border-radius: 4px;
 }
+
+/* Winner Screen */
 .winner-screen {
     text-align: center;
     padding: 20px;
     background-color: #333;
     border-radius: 10px;
 }
+
 .winner-screen h1 {
     color: #4CAF50;
     margin-bottom: 20px;
 }
+
+/* Score Board */
 .score-board {
     display: flex;
     justify-content: space-around;
@@ -61,13 +100,23 @@ body {
     background-color: #333;
     margin-bottom: 20px;
 }
+
 .player-score {
     font-size: 24px;
     color: #fff;
 }
+
+/* Game Canvas */
 #game-canvas {
     border: 2px solid #fff;
     background-color: #000;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    body {
+        flex-direction: column;
+    }
 }
 
 .game-screen {

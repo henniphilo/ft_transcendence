@@ -1,5 +1,9 @@
-class MenuDisplay {
+import { GameScreen } from "./game_screen.js";
+
+export class MenuDisplay {
     constructor() {
+        console.log("MenuDisplay loaded!");
+
         this.container = document.getElementById('menu-container');
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
         this.gameMode = null;
@@ -45,7 +49,7 @@ class MenuDisplay {
 
     displaySettings(settings) {
         const currentSettings = this.currentSettings || settings;
-        
+
         this.container.innerHTML = `
             <div class="settings-container">
                 <h2>Settings</h2>
@@ -83,9 +87,9 @@ class MenuDisplay {
                 winning_score: parseInt(document.getElementById('winning-score').value),
                 paddle_size: document.getElementById('paddle-size').value
             };
-            
+
             console.log('Sending settings:', settings);
-            
+
             await this.ws.send(JSON.stringify({
                 action: "update_settings",
                 settings: settings
@@ -104,20 +108,20 @@ class MenuDisplay {
 
     async handleMenuAction(data) {
         console.log("Handling menu action:", data);
-        
+
         if (data.is_tournament) {
             this.currentSettings = { ...this.currentSettings, tournament: true };
         }
-        
+
         switch (data.action) {
             case 'show_submenu':
                 this.displayMenuItems(data.menu_items);
                 break;
-            
+
             case 'show_player_names':
                 this.displayPlayerNamesInput(data.num_players, this.currentSettings?.tournament);
                 break;
-            
+
             case 'show_main_menu':
                 this.displayMenuItems(data.menu_items);
                 break;
@@ -157,7 +161,7 @@ class MenuDisplay {
                     ${Array.from({length: numPlayers}, (_, i) => `
                         <div class="setting-item">
                             <label for="player-${i+1}">Player ${i+1} Name:</label>
-                            <input type="text" id="player-${i+1}" 
+                            <input type="text" id="player-${i+1}"
                                    value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
                                    ${this.isAIPlayer(i) ? 'readonly' : ''}>
                         </div>
@@ -170,7 +174,7 @@ class MenuDisplay {
 
         document.getElementById('player-names-form').onsubmit = (e) => {
             e.preventDefault();
-            const playerNames = Array.from({length: numPlayers}, (_, i) => 
+            const playerNames = Array.from({length: numPlayers}, (_, i) =>
                 document.getElementById(`player-${i+1}`).value
             );
             this.startGameWithPlayers(playerNames, isTournament);
@@ -186,7 +190,7 @@ class MenuDisplay {
         const gameSettings = this.currentSettings || {};
         gameSettings.playerNames = playerNames;
         gameSettings.isTournament = isTournament;
-        
+
         this.ws.send(JSON.stringify({
             action: 'start_game',
             settings: gameSettings
@@ -194,13 +198,14 @@ class MenuDisplay {
     }
 
     startGame(data) {
+        console.log("startGame wurde aufgerufen:", data);
         // Verstecke das Menü
         this.container.style.display = 'none';
-        
+
         // Erstelle und starte das Spiel
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
-        
+
         const onBackToMenu = () => {
             gameContainer.style.display = 'none';
             this.container.style.display = 'block';
@@ -212,11 +217,10 @@ class MenuDisplay {
             player2: { name: "Player 2", score: 0, paddle: 0 },
             ball: [0, 0]
         }, onBackToMenu);
-        
+        console.log("before display");
         window.gameScreen.display();
     }
-
-    display() {
+display() {
         this.container.innerHTML = `
             <div class="menu">
                 <h1>Pong Game</h1>
@@ -228,4 +232,7 @@ class MenuDisplay {
     }
 }
 
-const menuDisplay = new MenuDisplay(); 
+let menuDisplay;
+document.addEventListener('DOMContentLoaded', () => {
+    menuDisplay = new MenuDisplay();
+});
