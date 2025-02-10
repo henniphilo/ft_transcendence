@@ -58,11 +58,27 @@ services:
     ports:
       - "8001:8001"
 
-  caddy:
+  #caddy:
+  #  build:
+  #    context: ./src/
+  #    dockerfile: caddy/Dockerfile
+  #  container_name: ft_transcendence_caddy
+  #  restart: always
+  # depends_on:
+  #    - backend
+  #  networks:
+  #    - transcendence_network
+  #  ports:
+  #    - "8080:80"
+  #    - "8443:443"
+  #  extra_hosts:
+  #   - "host.docker.internal:host-gateway"
+
+  nginx:
     build:
       context: ./src/
-      dockerfile: caddy/Dockerfile
-    container_name: ft_transcendence_caddy
+      dockerfile: nginx/dockerfile
+    container_name: ft_transcendence_nginx
     restart: always
     depends_on:
       - backend
@@ -70,7 +86,6 @@ services:
       - transcendence_network
     ports:
       - "8080:80"
-      - "8443:443"
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

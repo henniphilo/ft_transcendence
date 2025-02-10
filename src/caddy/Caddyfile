@@ -1,18 +1,22 @@
 localhost:443 {
-    tls internal  # Caddy erstellt automatisch ein Zertifikat für localhost
-    # Legt das Root-Verzeichnis für statische Dateien fest
-    root * /usr/share/caddy/html
-    file_server
+    tls internal
 
-    ## API-Requests an Backend senden
-    reverse_proxy /api/* backend:8000
+    # Alle API-Anfragen an das Backend
+    @api path /api/*
+    reverse_proxy @api backend:8000
 
-    ## WebSockets weiterleiten
-    reverse_proxy /ws/* backend:8001
+    # Alle WebSocket-Anfragen an den entsprechenden Service
+    @ws path /ws/*
+    reverse_proxy @ws backend:8001
 
-    ## Media-Dateien weiterleiten
-    reverse_proxy /media/* backend:8000
+    # Alle Media-Anfragen
+    @media path /media/*
+    reverse_proxy @media backend:8000
 
-    ## SPA-Unterstützung (index.html für Single Page Apps)
-    try_files {path} /index.html
+    # Restliche Anfragen (statische Dateien & SPA)
+    handle {
+        root * /usr/share/caddy/html
+        try_files {path} /index.html
+        file_server
+    }
 }
