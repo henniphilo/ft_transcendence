@@ -37,15 +37,6 @@ body {
     z-index: -1;
 }
 #menu-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1;
     text-align: center;
 }
 .menu-item {
@@ -126,4 +117,101 @@ body {
     body {
         flex-direction: column;
     }
+}
+
+.game-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#game-container {
+    display: none;  /* Initially hidden */
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000;
+}
+
+.setting-item select {
+    padding: 5px;
+    font-size: 16px;
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.setting-item select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.leaderboard-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    color: #fff;
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+.leaderboard-table th {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.leaderboard-table tr:nth-child(even) {
+    background-color: #3a3a3a;
+}
+
+.leaderboard-table tr:hover {
+    background-color: #444;
+}
+
+.current-user-stats {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #444;
+}
+
+.current-user-stats h3 {
+    color: #4a90e2;
+    margin-bottom: 15px;
+}
+
+.current-user-row {
+    background-color: #4a90e2 !important;
+    color: white;
+}
+
+.not-logged-in-message {
+    color: #888;
+    padding: 10px;
+    text-align: center;
+    font-style: italic;
+}
+
+.error-message {
+    color: #ff4444;
+    padding: 10px;
+    text-align: center;
 }

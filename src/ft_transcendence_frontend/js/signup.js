@@ -1,152 +1,158 @@
-function sendVerificationCode(email) {
-    fetch('http://0.0.0.0:8000/api/users/verify/send/', {  // Anpassung der URL für das Senden des Verifizierungscodes
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')  // CSRF-Token zur Sicherheit
-        },
-        body: JSON.stringify({ email: email })
-    })
-    .then(response => {
-        console.log('Antwort-Status:', response.status);  // Logge den Statuscode
-        return response.text();  // Lese die Antwort als Text, um Fehler zu vermeiden
-    })
-    .then(text => {
-        console.log('Antworttext:', text);  // Logge die Antwort
-        try {
-            const data = JSON.parse(text);  // Versuche, die Antwort als JSON zu parsen
-            if (data.message) {
-                alert('Verification code sent to your email!');
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Fehler beim Parsen der Antwort:', error);
-            alert('Fehler beim Parsen der Serverantwort.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while sending the verification code.');
-    });
-}
+/**
+ * AuthLib – Eine kompakte Library zur Benutzer-Authentifizierung und Profilverwaltung.
+ *
+ * Diese Library stellt Funktionen zur Verfügung für:
+ * - Registrierung und 2FA (E-Mail-Verifizierung)
+ * - Login und Token-Refresh
+ * - Profilabruf und -aktualisierung
+ * - CSRF-Token-Verwaltung
+ *
+ * Verwende diese Funktionen z. B. in Deinen Event-Handlern.
+ */
+const AuthLib = (function () {
+    'use strict';
 
+    // Basis-URL für API-Endpunkte
+    const BASE_URL = 'http://127.0.0.1:8000/api/users';
 
-document.getElementById('signup-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    // Schritt 1: Eingabewerte auslesen und in der Konsole ausgeben
-    const username = document.getElementById('username').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    console.log("Eingabewerte:", { username, email, password });
-
-    // Daten vorbereiten, die gesendet werden
-    const data = {
-        username: username,
-        email: email,
-        password: password
-    };
-
-    console.log("Daten, die gesendet werden:", data);
-
-    // Schritt 2: Anfrage an die Backend-API zur Registrierung senden
-    fetch('http://0.0.0.0:8000/api/users/register/', {  // Anpassung der URL für die Registrierung
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')  // CSRF-Token zur Sicherheit
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        console.log("Antwort vom Server erhalten:", response);
-        if (!response.ok) {
-            console.log("Fehler: Antwort vom Server ist nicht ok.", response.status);
-            return Promise.reject('Fehler bei der Antwort');
-        }
-        return response.json();  // Weiter mit der Antwort, wenn sie ok ist
-    })
-    .then(data => {
-        console.log("Antwort-JSON vom Server:", data);
-
-        // Überprüfe, ob der Benutzer erfolgreich erstellt wurde
-        if (data.id) {
-            console.log("Erfolgreiche Registrierung");
-            // Zeige das 2FA-Eingabefeld nach erfolgreicher Registrierung an
-            document.getElementById('signup-form').style.display = 'none';
-            document.getElementById('twofa-container').style.display = 'block';
-
-            // Sende den Verifizierungscode an die E-Mail des Benutzers
-            sendVerificationCode(email);
-        } else {
-            console.log("Fehler bei der Registrierung:", data.error);
-            alert('Error: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Fehler:', error);
-        alert('Ein Fehler ist aufgetreten. Bitte versuche es erneut.');
-    });
-});
-
-// Funktion zum Abrufen des CSRF-Tokens aus den Cookies
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
+    /**
+     * Liest einen Cookie-Wert anhand des Namens.
+     *
+     * @param {string} name - Name des Cookies.
+     * @returns {string|null} Der Cookie-Wert oder null, wenn nicht gefunden.
+     */
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+            break;
+          }
         }
+      }
+      return cookieValue;
     }
-    return cookieValue;
-}
 
-// 2FA-Verifizierung
-document.getElementById('verify-code').addEventListener('click', function() {
-    const verificationCode = document.getElementById('verification-code').value;
-    const email = document.getElementById('email').value;
-
-    fetch('http://0.0.0.0:8000/api/users/verify/', {
+    /**
+     * Sendet einen Verifizierungscode an die angegebene E-Mail.
+     *
+     * @param {string} email - Die E-Mail-Adresse des Benutzers.
+     * @returns {Promise<object|string>} Promise mit der Serverantwort (als JSON oder Text).
+     */
+    function sendVerificationCode(email) {
+      return fetch(`${BASE_URL}/verify/send/`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
         },
-        body: JSON.stringify({ email: email, code: verificationCode })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert('User verified! Now you can log in.');
-            document.getElementById('signup-form').style.display = 'none';
-            document.getElementById('twofa-container').style.display = 'none';
-            document.getElementById('login-container').style.display = 'block';
-        } else {
-            alert('Error: ' + data.error);
-        }
-    })
-    .catch(error => {
-        alert('Error: ' + error);
-    });
-});
-
-    // Refresh-Funktion, falls du den Token erneuern willst
-    function refreshAccessToken() {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          return Promise.reject('Kein Refresh-Token vorhanden. Bitte einloggen.');
-        }
-
-        return fetch('http://0.0.0.0:8000/api/users/token/refresh/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refresh: refreshToken })
+        body: JSON.stringify({ email }),
+      })
+        .then(response => {
+          console.log('sendVerificationCode - Status:', response.status);
+          return response.text();
         })
+        .then(text => {
+          try {
+            const data = JSON.parse(text);
+            if (data.message) {
+              return data;
+            }
+            return Promise.reject(data.error || 'Unbekannter Fehler beim Senden des Codes.');
+          } catch (error) {
+            console.error('sendVerificationCode - JSON Parse Error:', error);
+            return Promise.reject('Fehler beim Parsen der Serverantwort.');
+          }
+        });
+    }
+
+    /**
+     * Registriert einen neuen Benutzer.
+     *
+     * @param {Object} data - Benutzer-Daten (z. B. { username, email, password }).
+     * @returns {Promise<object>} Promise mit der Serverantwort.
+     */
+    function registerUser(data) {
+      return fetch(`${BASE_URL}/register/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(data),
+      })
+        .then(response => {
+          console.log('registerUser - Antwort:', response);
+          if (!response.ok) {
+            return Promise.reject('Fehler bei der Registrierung (Status ' + response.status + ')');
+          }
+          return response.json();
+        });
+    }
+
+    /**
+     * Überprüft den 2FA-Verifizierungscode.
+     *
+     * @param {string} email - Die E-Mail-Adresse des Benutzers.
+     * @param {string} code - Der eingegebene Verifizierungscode.
+     * @returns {Promise<object>} Promise mit der Serverantwort.
+     */
+    function verifyCode(email, code) {
+      return fetch(`${BASE_URL}/verify/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ email, code }),
+      }).then(response => response.json());
+    }
+
+    /**
+     * Meldet einen Benutzer an und speichert Access- und Refresh-Token.
+     *
+     * @param {string} username - Der Benutzername.
+     * @param {string} password - Das Passwort.
+     * @returns {Promise<object>} Promise mit den Token-Daten.
+     */
+    function loginUser(username, password) {
+      return fetch(`${BASE_URL}/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+          }
+          return response.json();
+        })
+        .then(data => {
+          localStorage.setItem('accessToken', data.access);
+          localStorage.setItem('refreshToken', data.refresh);
+          return data;
+        });
+    }
+
+    /**
+     * Versucht, den Access-Token mit dem gespeicherten Refresh-Token zu erneuern.
+     *
+     * @returns {Promise<void>}
+     */
+    function refreshAccessToken() {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        return Promise.reject('Kein Refresh-Token vorhanden. Bitte einloggen.');
+      }
+
+      return fetch(`${BASE_URL}/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      })
         .then(response => {
           if (!response.ok) {
             return Promise.reject('Refresh fehlgeschlagen: ' + response.status);
@@ -154,7 +160,6 @@ document.getElementById('verify-code').addEventListener('click', function() {
           return response.json();
         })
         .then(data => {
-          // Erneuerten Access-Token speichern
           localStorage.setItem('accessToken', data.access);
           console.log('Access-Token erneuert:', data.access);
         });
@@ -207,60 +212,38 @@ document.getElementById('verify-code').addEventListener('click', function() {
     alert('Logout erfolgreich!');
   });
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const logoutButton = document.getElementById('logout-button');
-    const loginForm = document.getElementById('login-form');
+  document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-    if (logoutButton) {
-        logoutButton.addEventListener('click', function() {
-            // Tokens aus localStorage löschen
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
 
-            // UI anpassen
-            logoutButton.style.display = 'none';
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('game-container').style.display = 'none';
+    fetch('http://0.0.0.0:8000/api/users/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+    .then(response => {
+      if (!response.ok) return response.json().then(err => Promise.reject(err));
+      return response.json();
+    })
+    .then(data => {
+      // -> { access: "...", refresh: "..." }
+      localStorage.setItem('accessToken', data.access);
+      localStorage.setItem('refreshToken', data.refresh);
 
-            alert('Logout erfolgreich!');
-        });
-    }
+      // Login-Form ausblenden
+      document.getElementById('login-form').style.display = 'none';
+      alert('Login erfolgreich!');
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-
-            fetch('http://0.0.0.0:8000/api/users/login/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            })
-            .then(response => {
-                if (!response.ok) return response.json().then(err => Promise.reject(err));
-                return response.json();
-            })
-            .then(data => {
-                localStorage.setItem('accessToken', data.access);
-                localStorage.setItem('refreshToken', data.refresh);
-
-                // Login-Form ausblenden
-                loginForm.style.display = 'none';
-                alert('Login erfolgreich!');
-
-                // Neu: Profil laden und Container zeigen
-                showUserProfile();
-            })
-            .catch(err => {
-                console.error('Login fehlgeschlagen:', err);
-                alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
-            });
-        });
-    }
-});
-
+      // Neu: Profil laden und Container zeigen
+      showUserProfile();
+    })
+    .catch(err => {
+      console.error('Login fehlgeschlagen:', err);
+      alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
+    });
+  });
 
 
   /* 3) Profil-Endpoint abrufen (Beispiel) */
@@ -307,6 +290,16 @@ document.getElementById('verify-code').addEventListener('click', function() {
     localStorage.removeItem('refreshToken');
 
     // Profil-Container ausblenden
+        alert('Login fehlgeschlagen: ' + (error.detail || error));
+      });
+  });
+
+
+  // Logout
+  document.getElementById('logout-button').addEventListener('click', function () {
+    AuthLib.logoutUser();
+    document.getElementById('logout-button').style.display = 'none';
+    document.getElementById('login-container').style.display = 'block';
     document.getElementById('profile-container').style.display = 'none';
 
     // Login-Form wieder anzeigen (oder Signup etc.)
@@ -314,3 +307,63 @@ document.getElementById('verify-code').addEventListener('click', function() {
 
     alert('Logout erfolgreich!');
   });
+
+
+  // Event-Listener für den "Profil bearbeiten"-Button
+document.getElementById('edit-profile-button').addEventListener('click', () => {
+  const newBio = prompt('Neue Bio eingeben:');
+  // Avatar-Datei aus dem Input-Feld holen (falls vorhanden)
+  const avatarFile = document.getElementById('avatar-input').files[0];
+
+  // Falls weder Bio noch Avatar geändert werden, abbrechen
+  if (!newBio && !avatarFile) {
+    alert('Es wurden keine Änderungen vorgenommen.');
+    return;
+  }
+
+  // FormData erstellen und nur die Felder anhängen, die aktualisiert werden sollen
+  const formData = new FormData();
+  if (newBio) {
+    formData.append('bio', newBio);
+  }
+  if (avatarFile) {
+    formData.append('avatar', avatarFile);
+  }
+
+  // Profil-Update via AuthLib aufrufen
+  AuthLib.updateProfile(formData)
+    .then(updatedData => {
+      console.log('Aktualisierte Profil-Daten:', updatedData);
+      fillProfileFields(updatedData);
+      alert('Profil erfolgreich aktualisiert!');
+      // Optional: Datei-Input zurücksetzen
+      document.getElementById('avatar-input').value = "";
+    })
+    .catch(err => {
+      console.error('Fehler beim Aktualisieren:', err);
+      alert('Profil-Update fehlgeschlagen: ' + err);
+    });
+});
+
+// Event-Listener für den Datei-Input: Avatar sofort hochladen, wenn ein neues Bild ausgewählt wurde
+document.getElementById('avatar-input').addEventListener('change', (e) => {
+  const avatarFile = e.target.files[0];
+  if (!avatarFile) return; // Falls keine Datei ausgewählt wurde
+
+  const formData = new FormData();
+  formData.append('avatar', avatarFile);
+
+  // Profil-Update nur für den Avatar aufrufen
+  AuthLib.updateProfile(formData)
+    .then(updatedData => {
+      console.log('Profil-Update (Avatar) erfolgreich:', updatedData);
+      fillProfileFields(updatedData);
+      alert('Avatar erfolgreich aktualisiert!');
+      // Datei-Input zurücksetzen
+      e.target.value = "";
+    })
+    .catch(err => {
+      console.error('Fehler beim Avatar-Update:', err);
+      alert('Avatar-Update fehlgeschlagen: ' + err);
+    });
+});

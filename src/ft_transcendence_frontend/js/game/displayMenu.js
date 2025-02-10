@@ -4,11 +4,12 @@ export class MenuDisplay {
     constructor() {
         console.log("MenuDisplay loaded!");
 
-        this.menuContainer = document.getElementById('menu-container');
+        this.container = document.getElementById('menu-container');
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
+        this.leaderboardDisplay = null;
         this.initWebSocket();
     }
 
@@ -36,20 +37,20 @@ export class MenuDisplay {
     }
 
     displayMenuItems(menuItems) {
-        this.menuContainer.innerHTML = '';
+        this.container.innerHTML = '';
         menuItems.forEach(item => {
             const button = document.createElement('button');
             button.className = 'menu-item';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
-            this.menuContainer.appendChild(button);
+            this.container.appendChild(button);
         });
     }
 
     displaySettings(settings) {
         const currentSettings = this.currentSettings || settings;
 
-        this.menuContainer.innerHTML = `
+        this.container.innerHTML = `
             <div class="settings-container">
                 <h2>Settings</h2>
                 <div class="setting-item">
@@ -105,7 +106,9 @@ export class MenuDisplay {
         }));
     }
 
-    handleMenuAction(data) {
+    async handleMenuAction(data) {
+        console.log("Handling menu action:", data);
+
         if (data.is_tournament) {
             this.currentSettings = { ...this.currentSettings, tournament: true };
         }
@@ -138,7 +141,11 @@ export class MenuDisplay {
                 alert(data.message);
                 break;
             case 'show_leaderboard':
-                console.log('Showing leaderboard...');
+                if (this.leaderboardDisplay) {
+                    this.leaderboardDisplay.cleanup();
+                }
+                this.leaderboardDisplay = new LeaderboardDisplay();
+                this.leaderboardDisplay.display();
                 break;
             case 'exit_game':
                 console.log('Exiting game...');
@@ -147,7 +154,7 @@ export class MenuDisplay {
     }
 
     displayPlayerNamesInput(numPlayers, isTournament) {
-        this.menuContainer.innerHTML = `
+        this.container.innerHTML = `
             <div class="settings-container">
                 <h2>${isTournament ? 'Tournament' : 'Game'} Players</h2>
                 <form id="player-names-form">
@@ -193,7 +200,7 @@ export class MenuDisplay {
     startGame(data) {
         console.log("startGame wurde aufgerufen:", data);
         // Verstecke das Menü
-        this.menuContainer.style.display = 'none';
+        this.container.style.display = 'none';
 
         // Erstelle und starte das Spiel
         const gameContainer = document.getElementById('game-container');
@@ -201,7 +208,7 @@ export class MenuDisplay {
 
         const onBackToMenu = () => {
             gameContainer.style.display = 'none';
-            this.menuContainer.style.display = 'block';
+            this.container.style.display = 'block';
             this.requestMenuItems();
         };
 
@@ -212,6 +219,16 @@ export class MenuDisplay {
         }, onBackToMenu);
         console.log("before display");
         window.gameScreen.display();
+    }
+display() {
+        this.container.innerHTML = `
+            <div class="menu">
+                <h1>Pong Game</h1>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('play')">Spielen</button>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
+            </div>
+        `;
     }
 }
 

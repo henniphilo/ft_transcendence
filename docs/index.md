@@ -8,7 +8,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-multitudes-red?style=plastic&logo=github)](https://github.com/multitudes)  
 
 
-# ft_transcendence
+# Trainscendence
 
 > Time to shine! 
 
@@ -58,4 +58,14 @@ Thanks to your website, users will play Pong with others.
 
 ## modules
 
-[nginx](README_Omio.MD)
+- [Setup](README_Omio.md)
+- [registering_and_login](registering_and_login.md)
+- [nginx](README_Omio.MD)
+- [nginx2](nginx2.md)
+- [dockercompose](dockercompose.md)
+- [Authlib](Authlib.md)
+- [FMEA](FMEA.md)
+- [REDIS](REDIS.md)
+- [graphana](graphana.md)
+- [backend](backend.md)
+
