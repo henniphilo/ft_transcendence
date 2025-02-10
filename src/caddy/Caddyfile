@@ -1,31 +1,18 @@
-{
-    # Da wir nur HTTP auf Port 80 verwenden, kann Auto HTTPS abgeschaltet werden.
-    auto_https off
-}
-
-:80 {
+localhost:443 {
+    tls internal  # Caddy erstellt automatisch ein Zertifikat für localhost
     # Legt das Root-Verzeichnis für statische Dateien fest
     root * /usr/share/caddy/html
+    file_server
 
-    ## API-Requests an den Backend-Container weiterleiten
-    handle /api/* {
-         reverse_proxy backend:8000
-    }
+    ## API-Requests an Backend senden
+    reverse_proxy /api/* backend:8000
 
-    ## WebSocket-Requests (z. B. für das Spiel) an den entsprechenden Container weiterleiten
-    handle /ws/* {
-         reverse_proxy backend:8001
-    }
+    ## WebSockets weiterleiten
+    reverse_proxy /ws/* backend:8001
 
-    ## Media-Requests (z. B. Dateiuploads) an den Backend-Container weiterleiten
-    handle /media/* {
-         reverse_proxy backend:8000
-    }
+    ## Media-Dateien weiterleiten
+    reverse_proxy /media/* backend:8000
 
-    ## Alle anderen Requests: versuche, die angeforderte Datei auszuliefern,
-    ## andernfalls leite auf index.html um (für Single Page Applications)
-    handle {
-         try_files {path} /index.html
-         file_server
-    }
+    ## SPA-Unterstützung (index.html für Single Page Apps)
+    try_files {path} /index.html
 }
