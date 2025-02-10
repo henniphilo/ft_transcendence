@@ -85,6 +85,9 @@ services:
       - "3100:3100"  # Loki
       - "3200:3200"  # Tempo
     environment:
+	# Logging support is still in alpha, so we need to enable it explicitly
+      - ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+      - ENV OTEL_LOGS_EXPORTER=otlp
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_DEFAULT_THEME=dark
     networks:
