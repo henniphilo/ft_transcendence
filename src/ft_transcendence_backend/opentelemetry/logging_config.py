@@ -1,11 +1,12 @@
-# opentelemetry_config.py
-
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.instrumentation.django import DjangoInstrumentor
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 import logging
 import logging.config
 import os
@@ -29,7 +30,7 @@ def setup_telemetry_and_logging():
     
     # Configure OTLP exporter for OpenTelemetry
     otlp_exporter = OTLPSpanExporter(
-        endpoint="http://localhost:4317",  # OTLP gRPC endpoint
+        endpoint="http://grafana:4317",  # OTLP gRPC endpoint
         insecure=True  # For development; use SSL in production
     )
     
@@ -39,6 +40,12 @@ def setup_telemetry_and_logging():
     
     # Initialize Django instrumentation
     DjangoInstrumentor().instrument()
+    
+    # Create OTLP logging handler
+    logger_provider = LoggerProvider(resource=resource)
+    otlp_log_exporter = OTLPLogExporter(endpoint="http://grafana:4317", insecure=True)
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
+    otlp_handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
     
     # Logging configuration
     logging_config = {
@@ -54,23 +61,17 @@ def setup_telemetry_and_logging():
                 'class': 'logging.StreamHandler',
                 'formatter': 'verbose',
             },
-            'loki': {
-                'class': 'logging_loki.LokiHandler',
-                'url': 'http://localhost:3100/loki/api/v1/push',
-                'tags': {
-                    'application': 'django-app',
-                    'environment': os.getenv('ENVIRONMENT', 'development')
-                },
-                'formatter': 'verbose'
+            'otlp': {
+                '()': lambda: otlp_handler
             }
         },
         'root': {
-            'handlers': ['console', 'loki'],
+            'handlers': ['console', 'otlp'],
             'level': os.getenv('LOG_LEVEL', 'INFO'),
         },
         'loggers': {
             'django': {
-                'handlers': ['console', 'loki'],
+                'handlers': ['console', 'otlp'],
                 'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
                 'propagate': False,
             },
@@ -79,37 +80,3 @@ def setup_telemetry_and_logging():
     
     # Apply logging configuration
     logging.config.dictConfig(logging_config)
-
-# For Django settings.py
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'opentelemetry': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'opentelemetry.auto_instrumentation': {
-            'handlers': ['opentelemetry'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-    },
-}
-    
-# import logging
-
-# def setup_logging():
-#     logging.basicConfig(
-#         level=logging.INFO,
-#         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-#         handlers=[
-#             logging.StreamHandler(),  # Log to console
-#             logging.FileHandler("app.log")  # Log to a file
-#         ]
-#     )
-
-#     # Log a confirmation message
-#     logger = logging.getLogger(__name__)
-#     logger.info("Logging is set up.")

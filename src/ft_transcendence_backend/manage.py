@@ -14,7 +14,7 @@ def main():
     setup_telemetry_and_logging()
     
     logger = logging.getLogger(__name__)
-    logger.info("Application starting with OpenTelemetry and Loki logging enabled")
+    logger.info("Application starting with OpenTelemetry logging enabled")
     
     try:
         from django.core.management import execute_from_command_line

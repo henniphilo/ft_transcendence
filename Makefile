@@ -38,11 +38,14 @@ testuser:
 test15:
 	$(DC) exec backend sh -c "python manage.py shell < helper_scripts/create_fifteen_testusers.py"
 
+clean:
+	./utils/cleanup.sh
+
 # Wirklich alles löschen: Container, Images, Volumes, Netzwerke
 fclean:
 	$(DC) down --rmi all --volumes --remove-orphans
 	docker system prune -af
-	./utils/cleanup.sh
+	./utils/forcecleanup.sh
 
 # Individual container logs
 logs-backend:

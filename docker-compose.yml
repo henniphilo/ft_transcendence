@@ -51,10 +51,9 @@ services:
       - REDIS_PORT=6379
       - ENABLE_OTEL=true
       - OTEL_METRIC_EXPORT_INTERVAL=500
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317  # Changed from lgtm to grafana
-      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
       - OTEL_LOGS_EXPORTER=otlp
-      - LOKI_URL=http://grafana:3100/loki/api/v1/push
       - OTEL_SERVICE_NAME=transcendence-backend
       - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=development,service.version=1.0.0
       - OTEL_TRACES_SAMPLER=parentbased_always_on
@@ -116,10 +115,9 @@ services:
     image: grafana/otel-lgtm
     container_name: grafana
     ports:
-      - "3000:3000"  # Grafana UI
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
-      - "3100:3100"  # Loki
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
     environment:
       - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true  # Fixed syntax
       - OTEL_LOGS_EXPORTER=otlp
