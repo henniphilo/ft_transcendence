@@ -25,7 +25,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #000;
+    background-color: #803c3c;
 }
 
 #background-canvas {
@@ -42,7 +42,7 @@ body {
 .menu-item {
     padding: 10px 20px;
     margin: 5px;
-    background-color: #333;
+    background-color: #4d2626;
     border: 2px solid #fff;
     color: #fff;
     cursor: pointer;
@@ -109,7 +109,7 @@ body {
 /* Game Canvas */
 #game-canvas {
     border: 2px solid #fff;
-    background-color: #000;
+    background-color: #497041;
 }
 
 /* Responsive */
@@ -133,7 +133,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #000;
+    background-color: #267578;
 }
 
 .setting-item select {

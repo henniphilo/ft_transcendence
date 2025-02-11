@@ -41,6 +41,9 @@ test15:
 # Wirklich alles löschen: Container, Images, Volumes, Netzwerke
 fclean:
 	$(DC) down --rmi all --volumes --remove-orphans
-	docker system prune -af
+	docker system prune -af --filter "label!=postgres" --filter "label!=redis"
 	./utils/cleanup.sh
+
+re: fclean all
+
 
