@@ -9,21 +9,12 @@ def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-    # Import OpenTelemetry configuration if ENABLE_OTEL is set
-    if os.getenv("ENABLE_OTEL"):
-        from opentelemetry.opentelemetry_config import setup_opentelemetry
-        setup_opentelemetry()
+    # Setup OpenTelemetry and logging
+    from opentelemetry.logging_config import setup_telemetry_and_logging
+    setup_telemetry_and_logging()
     
-	# Setup logging configuration
-    from opentelemetry.logging_config import setup_logging
-    setup_logging()
-
-    # Log a confirmation message
     logger = logging.getLogger(__name__)
-    logger.info("Logging to Loki is enabled.")
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__) 
-    logger.warning("This is a warning message. test")
+    logger.info("Application starting with OpenTelemetry and Loki logging enabled")
     
     try:
         from django.core.management import execute_from_command_line
