@@ -15,7 +15,7 @@ stop_all_containers() {
 echo "Listing all containers, including those that have exited:"
 docker ps -a
 
-# Stop all running containers
+# Stop all running containers --- this is a destructive operation
 stop_all_containers
 
 # Remove all stopped containers
@@ -38,7 +38,7 @@ docker system prune -a -f
 echo "Removing all unused images..."
 docker image prune -a -f
 
-# Check if there are any images to remove
+# Check if there are any images to remove --- this is a destructive operation
 images=$(docker images -q)
 if [ -n "$images" ]; then
     echo "Removing all images..."
