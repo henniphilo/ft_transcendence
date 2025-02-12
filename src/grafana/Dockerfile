@@ -1,0 +1,2 @@
+FROM grafana/otel-lgtm
+

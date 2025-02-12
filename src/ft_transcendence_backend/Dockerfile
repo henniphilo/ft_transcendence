@@ -1,0 +1,35 @@
+FROM python:3.10
+
+WORKDIR /app
+
+# Kopiere requirements und installiere
+COPY requirements.txt .
+# Upgrade pip first
+RUN python -m pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+# renovate: datasource=pypi depName=opentelemetry-distro
+ENV OPENTELEMETRY_DISTRO_VERSION=0.51b0
+RUN pip install --no-cache-dir "opentelemetry-distro[otlp]==$OPENTELEMETRY_DISTRO_VERSION"
+RUN opentelemetry-bootstrap -a install
+
+# Kopiere den restlichen Code
+COPY . .
+
+# Logging support is still in alpha, so we need to enable it explicitly
+ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
+ENV OTEL_LOGS_EXPORTER=otlp
+
+# Setze den Port für Django
+EXPOSE 8001
+
+# Standardbefehl
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+
+# Default command to run the instrumented app
+CMD ["opentelemetry-instrument", \
+     "--traces_exporter", "otlp", \
+     "--metrics_exporter", "otlp", \
+     "--logs_exporter", "otlp", \
+     "--service_name", "django-server", \
+     "python", "manage.py", "runserver", "0.0.0.0:8001"]
