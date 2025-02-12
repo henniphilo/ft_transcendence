@@ -28,7 +28,11 @@ urlpatterns += [
 ]
 
 from .views import logout_view
-
 urlpatterns += [
     path("logout/", logout_view, name="logout"),
+]
+
+from .views import get_online_users
+urlpatterns += [
+    path("online-users/", get_online_users, name="online_users"),
 ]

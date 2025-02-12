@@ -206,3 +206,30 @@ def logout_view(request):
         pass  # Falls kein Refresh-Token mitgesendet wurde
 
     return JsonResponse({"message": "Logout erfolgreich"})
+
+
+from django.http import JsonResponse
+import redis
+import json
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+# Redis-Client
+redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])  # Nur eingeloggte User dürfen online User abrufen
+def get_online_users(request):
+    """
+    Gibt alle derzeit aktiven (online) User aus Redis zurück.
+    """
+    keys = redis_client.keys("user:*")  # 🔍 Alle User-Keys abrufen
+    online_users = []
+
+    for key in keys:
+        user_data = redis_client.get(key)
+        if user_data:
+            online_users.append(json.loads(user_data))  # 🔥 JSON-String zu Python-Dict umwandeln
+
+    return JsonResponse({"online_users": online_users})

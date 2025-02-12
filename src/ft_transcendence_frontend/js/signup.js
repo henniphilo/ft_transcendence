@@ -381,3 +381,36 @@ document.getElementById('avatar-input').addEventListener('change', (e) => {
       alert('Avatar-Update fehlgeschlagen: ' + err);
     });
 });
+
+async function fetchOnlineUsers() {
+  const accessToken = localStorage.getItem("accessToken");
+
+  if (!accessToken) {
+      console.log("🚫 Kein Token gefunden, nicht eingeloggt.");
+      return;
+  }
+
+  try {
+      const response = await fetch("http://localhost:8000/api/users/online-users/", {
+          method: "GET",
+          headers: {
+              "Authorization": `Bearer ${accessToken}`
+          }
+      });
+
+      const data = await response.json();
+      console.log("👥 Online User:", data.online_users);
+
+      // 🎯 User-Liste in die HTML-Seite einfügen (falls vorhanden)
+      const userList = document.getElementById("online-users-list");
+      if (userList) {
+          userList.innerHTML = data.online_users.map(user => `<li>${user.username}</li>`).join("");
+      }
+
+  } catch (error) {
+      console.error("⚠️ Fehler beim Abrufen der Online-User:", error);
+  }
+}
+
+// 🔄 Alle 10 Sekunden die Online-User aktualisieren
+setInterval(fetchOnlineUsers, 10000);
