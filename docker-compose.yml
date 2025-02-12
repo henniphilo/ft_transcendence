@@ -113,9 +113,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-    - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
     volumes:
-    - ./nginx/logs:/var/log/nginx
+      - ./nginx/logs:/var/log/nginx
 
   grafana:
     image: grafana/otel-lgtm
@@ -133,11 +133,12 @@ services:
       - transcendence_network
     volumes:
       - grafana_data:/var/lib/grafana
-
+     
 volumes:
   postgres_data:
   redis_data:
   grafana_data:
+
 
 networks:
   transcendence_network:
