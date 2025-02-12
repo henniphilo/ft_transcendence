@@ -1,1 +1,0 @@
-2025/02/12 12:53:22 [error] 8#8: *7 client intended to send too large body: 2296028 bytes, client: 172.18.0.1, server: localhost, request: "PUT /api/users/profile/ HTTP/1.1", host: "localhost:8080", referrer: "http://localhost:8080/?username=multitudes&email=metter2ooo%40gmail.com&password=123123"

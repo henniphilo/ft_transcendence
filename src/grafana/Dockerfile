@@ -1,2 +1,2 @@
-FROM graphana/otel-grafana/otel-lgtm
+FROM grafana/otel-lgtm
 
