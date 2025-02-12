@@ -5,10 +5,8 @@ class LeaderboardDisplay {
 
     display() {
         console.log("Displaying leaderboard...");
-        // Container leeren
         this.container.innerHTML = '';
         
-        // Leaderboard HTML erstellen
         const leaderboardHtml = `
             <div class="leaderboard-container">
                 <h2>Top 10 Spieler</h2>
@@ -28,41 +26,92 @@ class LeaderboardDisplay {
                         </tbody>
                     </table>
                 </div>
+                <div id="current-user-stats" class="current-user-stats">
+                    <h3>Deine Position</h3>
+                    <div id="current-user-container">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                </div>
                 <button class="menu-button" onclick="menuDisplay.handleMenuClick('back')">
                     Zurück zum Menü
                 </button>
             </div>
         `;
         
-        // Leaderboard anzeigen
         this.container.innerHTML = leaderboardHtml;
-        
-        // Daten laden
         this.loadLeaderboardData();
     }
 
     async loadLeaderboardData() {
         try {
-            const response = await fetch('/api/users/leaderboard/');
-            const data = await response.json();
+            // Hole den Access Token aus dem localStorage
+            const accessToken = localStorage.getItem('accessToken');
             
-            const tbody = document.getElementById('leaderboard-body');
-            if (!tbody) return;
+            // Request Headers mit Authorization Token
+            const headers = {
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            };
 
-            tbody.innerHTML = data.map((player) => `
-                <tr>
-                    <td>${player.rank}</td>
-                    <td>${player.username}</td>
-                    <td>${player.score}</td>
-                </tr>
-            `).join('');
-        } catch (error) {
-            console.error('Fehler beim Laden des Leaderboards:', error);
+            // Lade Top 10
+            const leaderboardResponse = await fetch('/api/users/leaderboard/');
+            const leaderboardData = await leaderboardResponse.json();
+
+            // Top 10 anzeigen
             const tbody = document.getElementById('leaderboard-body');
             if (tbody) {
-                tbody.innerHTML = `
+                tbody.innerHTML = leaderboardData.map((player) => `
                     <tr>
-                        <td colspan="3">Fehler beim Laden des Leaderboards</td>
+                        <td>${player.rank}</td>
+                        <td>${player.username}</td>
+                        <td>${player.score}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // Versuche Current User zu laden
+            try {
+                const currentUserResponse = await fetch('/api/users/current-stats/', {
+                    method: 'GET',
+                    headers: headers  // Hier wird der Token mitgeschickt
+                });
+                
+                if (currentUserResponse.status === 401) {
+                    // Token abgelaufen oder ungültig
+                    document.getElementById('current-user-container').innerHTML = `
+                        <div class="not-logged-in-message">
+                            Bitte logge dich ein, um deine Position zu sehen.
+                        </div>
+                    `;
+                } else {
+                    const currentUserData = await currentUserResponse.json();
+                    document.getElementById('current-user-container').innerHTML = `
+                        <table class="leaderboard-table">
+                            <tbody>
+                                <tr class="current-user-row">
+                                    <td>${currentUserData.rank}</td>
+                                    <td>${currentUserData.username}</td>
+                                    <td>${currentUserData.score}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching current user stats:', error);
+                document.getElementById('current-user-container').innerHTML = `
+                    <div class="error-message">
+                        Fehler beim Laden deiner Position.
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+            console.error('Fehler beim Laden des Leaderboards:', error);
+            if (document.getElementById('leaderboard-body')) {
+                document.getElementById('leaderboard-body').innerHTML = `
+                    <tr>
+                        <td colspan="3">Fehler beim Laden der Daten</td>
                     </tr>
                 `;
             }

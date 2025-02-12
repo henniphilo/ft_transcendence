@@ -41,8 +41,6 @@ services:
       - transcendence_network
     ports:
       - "8000:8000"
-
-    # Automatisch Migrations durchführen und dann starten
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
@@ -60,6 +58,22 @@ services:
     ports:
       - "8001:8001"
 
+  #caddy:
+  #  build:
+  #    context: ./src/
+  #    dockerfile: caddy/Dockerfile
+  #  container_name: ft_transcendence_caddy
+  #  restart: always
+  # depends_on:
+  #    - backend
+  #  networks:
+  #    - transcendence_network
+  #  ports:
+  #    - "8080:80"
+  #    - "8443:443"
+  #  extra_hosts:
+  #   - "host.docker.internal:host-gateway"
+
   nginx:
     build:
       context: ./src/
@@ -72,17 +86,30 @@ services:
       - transcendence_network
     ports:
       - "8080:80"
-    # volumes:
-      # - ./src/ft_transcendence_backend/game/:/usr/share/nginx/html
-      # - ./src/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/otel-lgtm
+    container_name: grafana
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DEFAULT_THEME=dark
+    networks:
+      - transcendence_network
+    volumes:
+      - grafana_data:/var/lib/grafana
+
 
 volumes:
   postgres_data:
   redis_data:
+  grafana_data:
 
 networks:
   transcendence_network:
-  #  name: ft_transcendence_network
     driver: bridge

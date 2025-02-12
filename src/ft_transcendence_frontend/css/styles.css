@@ -1,4 +1,125 @@
-.profile-container {
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Global Body Styles */
+  body {
+    background-color: #f4f7fc; /* Alternativ: #f4f4f4 – je nachdem, was dir besser gefällt */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* Textfarbe bewusst nicht auf Weiß setzen, da Container meist helle Hintergründe haben */
+  }
+  
+  /* ---------------------------
+     Formulare & Profil-Container
+     --------------------------- */
+  
+  /* Signup und Login Container */
+  #signup-container,
+  #login-container {
+    position: relative; /* Damit z-index wirksam ist */
+    z-index: 100;       /* Soll vor anderen Elementen liegen */
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    margin: 1rem;  /* Abstand, falls beide gleichzeitig angezeigt werden */
+  }
+  
+  /* Überschriften */
+  h2 {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  
+  /* Formular-Stile */
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  label {
+    text-align: left;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+  }
+  
+  input:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  
+  /* Button-Stile */
+  button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 0.5rem;
+  }
+  
+  button:hover {
+    background-color: #2563eb;
+  }
+  
+  /* 2FA Verification */
+  #twofa-container {
+    display: none;
+  }
+  
+  #twofa-container h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #333;
+  }
+  
+  #twofa-container input {
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+  }
+  
+  #twofa-container button {
+    background-color: #10b981;
+    color: white;
+  }
+  
+  #twofa-container button:hover {
+    background-color: #059669;
+  }
+  
+  /* Profil-Container */
+  .profile-container {
     max-width: 400px;
     margin: 1rem auto;
     padding: 1rem;
@@ -6,7 +127,6 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     text-align: center;
-    font-family: sans-serif;
   }
   
   .profile-container h2 {
@@ -34,143 +154,202 @@
     text-align: left;
   }
   
-  button {
-    margin: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    background-color: #999;
-    color: white;
+  /* ---------------------------
+     Game & Hintergrund-Elemente
+     --------------------------- */
+  
+  /* Hintergrund-Canvas */
+  #background-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    /* Falls nötig, damit der Canvas keine Mausklicks abfängt: */
+    pointer-events: none;
   }
   
-  button:hover {
-    background-color: #666;
-  }
-  
-
-/* Global Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
-}
-
-body {
-    background-color: #f4f7fc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  /* Game-Container */
+  #game-container {
+    display: none;  /* Wird zunächst nicht angezeigt */
+    width: 100%;
     height: 100vh;
-}
-
-#signup-container {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000;
+  }
+  
+  /* Menü-Container */
+  #menu-container {
     text-align: center;
-}
-
-h2 {
-    font-size: 24px;
-    margin-bottom: 30px;
-    color: #333;
-}
-
-/* Form Styles */
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    text-align: left;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #333;
-}
-
-input[type="text"], input[type="email"], input[type="password"], input[type="text"] {
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus {
-    border-color: #3b82f6;
-    outline: none;
-}
-
-/* Button Styles */
-button {
-    background-color: #3b82f6;
-    color: white;
-    padding: 12px;
-    font-size: 16px;
-    border: none;
-    border-radius: 6px;
+  }
+  
+  /* Menü-Elemente */
+  .menu-item {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #333;
+    border: 2px solid #fff;
+    color: #fff;
     cursor: pointer;
     transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #2563eb;
-}
-
-/* 2FA Container Styles */
-#2fa-container {
-    display: none;
-}
-
-#2fa-container h3 {
-    margin-bottom: 20px;
-    font-size: 20px;
-    color: #333;
-}
-
-#2fa-container label {
-    margin-bottom: 8px;
-}
-
-#2fa-container input {
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
+  }
+  
+  .menu-item:hover {
+    background-color: #555;
+  }
+  
+  /* ---------------------------
+     Einstellungen, Winner Screen & Leaderboard
+     --------------------------- */
+  
+  /* Settings-Container */
+  .settings-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
+  .setting-item {
+    margin: 15px 0;
+  }
+  
+  .setting-item label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .setting-item input,
+  .setting-item select {
+    padding: 5px;
     width: 100%;
-    box-sizing: border-box;
-}
-
-#2fa-container button {
-    background-color: #10b981;
+    background-color: #444;
+    border: 1px solid #666;
     color: white;
-}
-
-#2fa-container button:hover {
-    background-color: #059669;
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-    #signup-container {
-        padding: 20px;
-        width: 90%;
+    border-radius: 4px;
+  }
+  
+  /* Winner Screen */
+  .winner-screen {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    border-radius: 10px;
+  }
+  
+  .winner-screen h1 {
+    color: #4CAF50;
+    margin-bottom: 20px;
+  }
+  
+  /* Score Board */
+  .score-board {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .player-score {
+    font-size: 24px;
+    color: #fff;
+  }
+  
+  /* Game Canvas (innerhalb des Game-Containers) */
+  #game-canvas {
+    border: 2px solid #fff;
+    background-color: #000;
+  }
+  
+  /* Leaderboard */
+  .leaderboard-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    color: #fff;
+    max-width: 800px;
+    margin: 20px auto;
+  }
+  
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+  }
+  
+  .leaderboard-table th {
+    background-color: #4a90e2;
+    color: white;
+  }
+  
+  .leaderboard-table tr:nth-child(even) {
+    background-color: #3a3a3a;
+  }
+  
+  .leaderboard-table tr:hover {
+    background-color: #444;
+  }
+  
+  .current-user-stats {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #444;
+  }
+  
+  .current-user-stats h3 {
+    color: #4a90e2;
+    margin-bottom: 15px;
+  }
+  
+  .current-user-row {
+    background-color: #4a90e2 !important;
+    color: white;
+  }
+  
+  .not-logged-in-message {
+    color: #888;
+    padding: 10px;
+    text-align: center;
+    font-style: italic;
+  }
+  
+  .error-message {
+    color: #ff4444;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  /* ---------------------------
+     Responsive Styles
+     --------------------------- */
+  @media (max-width: 480px) {
+    #signup-container,
+    #login-container {
+      padding: 20px;
+      width: 90%;
     }
-
+    
     h2 {
-        font-size: 20px;
+      font-size: 20px;
     }
-
+    
     input, button {
-        font-size: 14px;
+      font-size: 14px;
     }
-}
+    
+    /* Falls nötig, kann man hier auch den Body flex-direction anpassen */
+    body {
+      flex-direction: column;
+    }
+  }
+  

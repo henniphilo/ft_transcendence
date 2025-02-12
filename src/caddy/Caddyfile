@@ -1,0 +1,22 @@
+localhost:443 {
+    tls internal
+
+    # Alle API-Anfragen an das Backend
+    @api path /api/*
+    reverse_proxy @api backend:8000
+
+    # Alle WebSocket-Anfragen an den entsprechenden Service
+    @ws path /ws/*
+    reverse_proxy @ws backend:8001
+
+    # Alle Media-Anfragen
+    @media path /media/*
+    reverse_proxy @media backend:8000
+
+    # Restliche Anfragen (statische Dateien & SPA)
+    handle {
+        root * /usr/share/caddy/html
+        try_files {path} /index.html
+        file_server
+    }
+}

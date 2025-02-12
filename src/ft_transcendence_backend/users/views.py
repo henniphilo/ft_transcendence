@@ -2,13 +2,13 @@
 
 from django.shortcuts import render  # eventuell nicht benötigt
 from rest_framework import generics, serializers
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.urls import path
 from django.core.mail import send_mail
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from django.contrib.auth import get_user_model
 
 from .models import CustomUser
@@ -140,13 +140,96 @@ def user_profile(request):
 
 @api_view(['GET'])
 def get_leaderboard(request):
-    top_players = Leaderboard.get_top_players()
-    leaderboard_data = [
-        {
-            'rank': index + 1,
-            'username': player['username'],
-            'score': player['score']
-        }
-        for index, player in enumerate(top_players)
-    ]
+    """Gibt die Top 10 Spieler zurück"""
+    users = CustomUser.objects.order_by('-score')[:10]
+    leaderboard_data = []
+    
+    for rank, user in enumerate(users, 1):
+        leaderboard_data.append({
+            'rank': rank,
+            'username': user.username,
+            'score': user.score
+        })
+    
     return Response(leaderboard_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user_stats(request):
+    """Gibt die Stats des aktuell eingeloggten Users zurück"""
+    try:
+        # Hole alle User, sortiert nach Score
+        all_users = CustomUser.objects.order_by('-score')
+        
+        # Finde die Position des aktuellen Users
+        current_user = request.user
+        user_rank = list(all_users.values_list('id', flat=True)).index(current_user.id) + 1
+        
+        return Response({
+            'username': current_user.username,
+            'score': current_user.score,
+            'rank': user_rank
+        })
+    except Exception as e:
+        print(f"Error in get_current_user_stats: {str(e)}")
+        return Response({'error': str(e)}, status=500)
+
+
+from django.http import JsonResponse
+import redis
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
+# Redis-Client für Verbindung zum Redis-Server
+redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  # Nur eingeloggte User können sich ausloggen
+def logout_view(request):
+    user = request.user
+    redis_key = f"user:{user.id}"
+
+    # ❌ User aus Redis entfernen
+    if redis_client.exists(redis_key):
+        redis_client.delete(redis_key)
+        print(f"❌ User {user.username} (ID: {user.id}) wurde aus Redis entfernt!")
+
+    # 🗑️ Optional: JWT Refresh Token aus der Datenbank blacklisten
+    try:
+        refresh_token = request.data.get("refresh_token")
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Falls du DRF-SimpleJWT mit Blacklisting nutzt
+    except Exception:
+        pass  # Falls kein Refresh-Token mitgesendet wurde
+
+    return JsonResponse({"message": "Logout erfolgreich"})
+
+
+from django.http import JsonResponse
+import redis
+import json
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+# Redis-Client
+redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])  # Nur eingeloggte User dürfen online User abrufen
+def get_online_users(request):
+    """
+    Gibt alle derzeit aktiven (online) User aus Redis zurück.
+    """
+    keys = redis_client.keys("user:*")  # 🔍 Alle User-Keys abrufen
+    online_users = []
+
+    for key in keys:
+        user_data = redis_client.get(key)
+        if user_data:
+            online_users.append(json.loads(user_data))  # 🔥 JSON-String zu Python-Dict umwandeln
+
+    return JsonResponse({"online_users": online_users})
