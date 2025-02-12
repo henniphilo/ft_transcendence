@@ -65,7 +65,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 🚀 Unsere neue Middleware für JWT-User in Redis
+    'backend.middleware.JWTUserMiddleware',
 ]
+
+# Redis-Konfiguration aus Docker-Compose nutzen
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+
 
 ROOT_URLCONF = 'backend.urls'
 

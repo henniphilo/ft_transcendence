@@ -207,10 +207,45 @@ const AuthLib = (function () {
   /**
    * Meldet den Benutzer ab.
    */
-  function logoutUser() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-  }
+  // function logoutUser() {
+    // localStorage.removeItem('accessToken');
+    // localStorage.removeItem('refreshToken');
+  // }
+  async function logoutUser() {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (!accessToken) {
+        console.log("🚫 Kein Token gefunden, bereits ausgeloggt.");
+        return;
+    }
+
+    try {
+        // 📝 API-Request an Django senden, um den User aus Redis zu entfernen
+        const response = await fetch("http://localhost:8000/api/users/logout/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ refresh_token: refreshToken })  // Optional
+        });
+
+        const result = await response.json();
+        console.log("✅ Server-Antwort:", result.message);
+
+    } catch (error) {
+        console.error("⚠️ Fehler beim Logout:", error);
+    }
+
+    // 🗑️ Tokens aus dem localStorage entfernen
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    // 🔄 Optional: User zur Login-Seite leiten
+    window.location.href = "/login";
+}
+
 
   // Exponiere die Funktionen
   return {
@@ -346,3 +381,36 @@ document.getElementById('avatar-input').addEventListener('change', (e) => {
       alert('Avatar-Update fehlgeschlagen: ' + err);
     });
 });
+
+async function fetchOnlineUsers() {
+  const accessToken = localStorage.getItem("accessToken");
+
+  if (!accessToken) {
+      console.log("🚫 Kein Token gefunden, nicht eingeloggt.");
+      return;
+  }
+
+  try {
+      const response = await fetch("http://localhost:8000/api/users/online-users/", {
+          method: "GET",
+          headers: {
+              "Authorization": `Bearer ${accessToken}`
+          }
+      });
+
+      const data = await response.json();
+      console.log("👥 Online User:", data.online_users);
+
+      // 🎯 User-Liste in die HTML-Seite einfügen (falls vorhanden)
+      const userList = document.getElementById("online-users-list");
+      if (userList) {
+          userList.innerHTML = data.online_users.map(user => `<li>${user.username}</li>`).join("");
+      }
+
+  } catch (error) {
+      console.error("⚠️ Fehler beim Abrufen der Online-User:", error);
+  }
+}
+
+// 🔄 Alle 10 Sekunden die Online-User aktualisieren
+setInterval(fetchOnlineUsers, 10000);
