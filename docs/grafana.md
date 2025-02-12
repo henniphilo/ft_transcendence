@@ -69,3 +69,13 @@ https://github.com/grafana/docker-otel-lgtm/
 ```bash
 
 ```
+
+## Loki 
+
+### test the connection
+
+First of all in the grafana dashboard, go to connections and datasources. Click on Loki. On the bottom of the page you will see  button: Test. This will tell you if Loki is connected and running.
+
+Next you can click on the explore button to start building queries.
+
+ 
