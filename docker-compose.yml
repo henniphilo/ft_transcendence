@@ -1,16 +1,24 @@
+name: ft_transcendence
+
+# these are common to all containers
+x-common: &common
+  env_file:
+    - .env
+  restart: on-failure
+  networks:
+    - transcendence_network
+  init: true
+
 services:
   postgres:
+    <<: *common
     image: "postgres:16"
-    container_name: ft_transcendence_postgres
-    restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: transcendence
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - transcendence_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user"]
       interval: 10s
@@ -18,11 +26,8 @@ services:
       retries: 5
 
   redis:
+    <<: *common
     image: "redis:alpine"
-    container_name: ft_transcendence_redis
-    restart: always
-    networks:
-      - transcendence_network
     ports:
       - "6380:6379"
     volumes:
@@ -35,11 +40,10 @@ services:
       retries: 5
 
   backend:
+    <<: *common
     build:
       context: ./src/ft_transcendence_backend
       dockerfile: dockerfile
-    container_name: ft_transcendence_backend
-    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,8 +65,6 @@ services:
       - OTEL_TRACES_SAMPLER=parentbased_always_on
       - OTEL_METRICS_EXPORTER=otlp
       - OTEL_PYTHON_LOG_CORRELATION=true
-    networks:
-      - transcendence_network
     ports:
       - "8000:8000"
     command: >
@@ -71,14 +73,11 @@ services:
              python manage.py runserver 0.0.0.0:8000"
 
   game:
+    <<: *common
     build:
       context: ./src/ft_transcendence_backend/game
       dockerfile: dockerfile
-    container_name: ft_transcendence_game
-    restart: always
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
-    networks:
-      - transcendence_network
     ports:
       - "8001:8001"
 
@@ -99,15 +98,12 @@ services:
   #   - "host.docker.internal:host-gateway"
 
   nginx:
+    <<: *common
     build:
       context: ./src/
       dockerfile: nginx/dockerfile
-    container_name: ft_transcendence_nginx
-    restart: always
     depends_on:
       - backend
-    networks:
-      - transcendence_network
     ports:
       - "8080:80"
     extra_hosts:
@@ -118,8 +114,8 @@ services:
       - ./nginx/logs:/var/log/nginx
 
   grafana:
+    <<: *common
     image: grafana/otel-lgtm
-    container_name: grafana
     ports:
       - "3000:3000"
       - "4317:4317"
@@ -134,12 +130,50 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
      
+  portainer:
+    <<: *common
+    build: ./portainer/
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - portainer-data:/data
+    depends_on:
+      - nginx
+    networks:
+      - transcendence_network
+    ports:
+      - "9443:9443"
+
 volumes:
   postgres_data:
+      name: postgres_data
+      driver: local
+      driver_opts:
+        type: none
+        device: ./data/postgres-data
+        o: bind
   redis_data:
+      name: redis_data
+      driver: local
+      driver_opts:
+        type: none
+        device: ./data/redis-data
+        o: bind
   grafana_data:
-
+      name: grafana_data
+      driver: local
+      driver_opts:
+        type: none
+        device: ./data/grafana-data
+        o: bind
+  portainer-data:
+    name: portainer-data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/portainer-data
 
 networks:
   transcendence_network:
+    name: transcendence_network
     driver: bridge
