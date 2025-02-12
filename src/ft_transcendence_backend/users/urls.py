@@ -26,3 +26,9 @@ urlpatterns += [
 urlpatterns += [
     path('current-stats/', get_current_user_stats, name='current-user-stats'),
 ]
+
+from .views import logout_view
+
+urlpatterns += [
+    path("logout/", logout_view, name="logout"),
+]

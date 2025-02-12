@@ -207,10 +207,45 @@ const AuthLib = (function () {
   /**
    * Meldet den Benutzer ab.
    */
-  function logoutUser() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-  }
+  // function logoutUser() {
+    // localStorage.removeItem('accessToken');
+    // localStorage.removeItem('refreshToken');
+  // }
+  async function logoutUser() {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (!accessToken) {
+        console.log("🚫 Kein Token gefunden, bereits ausgeloggt.");
+        return;
+    }
+
+    try {
+        // 📝 API-Request an Django senden, um den User aus Redis zu entfernen
+        const response = await fetch("http://localhost:8000/api/users/logout/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ refresh_token: refreshToken })  // Optional
+        });
+
+        const result = await response.json();
+        console.log("✅ Server-Antwort:", result.message);
+
+    } catch (error) {
+        console.error("⚠️ Fehler beim Logout:", error);
+    }
+
+    // 🗑️ Tokens aus dem localStorage entfernen
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    // 🔄 Optional: User zur Login-Seite leiten
+    window.location.href = "/login";
+}
+
 
   // Exponiere die Funktionen
   return {

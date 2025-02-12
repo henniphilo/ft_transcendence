@@ -173,3 +173,36 @@ def get_current_user_stats(request):
     except Exception as e:
         print(f"Error in get_current_user_stats: {str(e)}")
         return Response({'error': str(e)}, status=500)
+
+
+from django.http import JsonResponse
+import redis
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
+# Redis-Client für Verbindung zum Redis-Server
+redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0, decode_responses=True)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  # Nur eingeloggte User können sich ausloggen
+def logout_view(request):
+    user = request.user
+    redis_key = f"user:{user.id}"
+
+    # ❌ User aus Redis entfernen
+    if redis_client.exists(redis_key):
+        redis_client.delete(redis_key)
+        print(f"❌ User {user.username} (ID: {user.id}) wurde aus Redis entfernt!")
+
+    # 🗑️ Optional: JWT Refresh Token aus der Datenbank blacklisten
+    try:
+        refresh_token = request.data.get("refresh_token")
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Falls du DRF-SimpleJWT mit Blacklisting nutzt
+    except Exception:
+        pass  # Falls kein Refresh-Token mitgesendet wurde
+
+    return JsonResponse({"message": "Logout erfolgreich"})
