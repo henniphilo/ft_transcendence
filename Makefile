@@ -3,10 +3,7 @@ DC = docker-compose
 .PHONY: all build up down logs migrations migrate test fclean
 
 # Default-Ziel: bei "make" wird alles gestartet und migrations und migrate ist im dockefile!
-all: setup build up
-
-setup:
-	chmod +x utils/setup.sh && ./utils/setup.sh
+all: build up
 
 build:
 	$(DC) build
@@ -14,6 +11,9 @@ build:
 up:
 	$(DC) up -d --remove-orphans
 
+rebuild:
+	$(DC) up -d --build --remove-orphans
+	
 down:
 	$(DC) down
 

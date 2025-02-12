@@ -21,10 +21,15 @@ ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV OTEL_LOGS_EXPORTER=otlp
 
 # Setze den Port für Django
-EXPOSE 8000
+EXPOSE 8001
 
 # Standardbefehl
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
 
 # Default command to run the instrumented app
-CMD ["opentelemetry-instrument", "--traces_exporter", "otlp", "--metrics_exporter", "otlp", "--logs_exporter", "otlp", "--service_name", "django-server", "python", "manage.py", "runserver", "0.0.0.0:8001"]
+CMD ["opentelemetry-instrument", \
+     "--traces_exporter", "otlp", \
+     "--metrics_exporter", "otlp", \
+     "--logs_exporter", "otlp", \
+     "--service_name", "django-server", \
+     "python", "manage.py", "runserver", "0.0.0.0:8001"]

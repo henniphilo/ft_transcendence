@@ -13,10 +13,6 @@ services:
   postgres:
     <<: *common
     image: "postgres:16"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: transcendence
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -49,22 +45,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      - DATABASE_URL=postgresql://user:password@postgres:5432/transcendence
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - OTEL_SERVICE_NAME=django-app
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
-      - OTEL_METRIC_EXPORT_INTERVAL=500
-      - ENABLE_OTEL=true
-      - OTEL_LOGS_EXPORTER=otlp
-      - OTEL_SERVICE_NAME=transcendence-backend
-      - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=development,service.version=1.0.0
-      - OTEL_TRACES_SAMPLER=parentbased_always_on
-      - OTEL_METRICS_EXPORTER=otlp
-      - OTEL_PYTHON_LOG_CORRELATION=true
     ports:
       - "8000:8000"
     command: >
@@ -81,21 +61,20 @@ services:
     ports:
       - "8001:8001"
 
-  #caddy:
-  #  build:
-  #    context: ./src/
-  #    dockerfile: caddy/Dockerfile
-  #  container_name: ft_transcendence_caddy
-  #  restart: always
-  # depends_on:
-  #    - backend
-  #  networks:
-  #    - transcendence_network
-  #  ports:
-  #    - "8080:80"
-  #    - "8443:443"
-  #  extra_hosts:
-  #   - "host.docker.internal:host-gateway"
+  caddy:
+    <<: *common
+    build:
+      context: ./src/caddy
+      dockerfile: dockerfile
+    ports:
+      - "8081:80"  # Run Caddy on a different port for testing
+      - "8444:443"  # Run Caddy on a different port for testing
+    depends_on:
+      - backend
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   nginx:
     <<: *common
@@ -108,8 +87,6 @@ services:
       - "8080:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
     volumes:
       - ./nginx/logs:/var/log/nginx
 
@@ -120,13 +97,6 @@ services:
       - "3000:3000"
       - "4317:4317"
       - "4318:4318"
-    environment:
-      - OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true  # Fixed syntax
-      - OTEL_LOGS_EXPORTER=otlp
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_DEFAULT_THEME=dark
-    networks:
-      - transcendence_network
     volumes:
       - grafana_data:/var/lib/grafana
      
@@ -145,33 +115,9 @@ services:
 
 volumes:
   postgres_data:
-      name: postgres_data
-      driver: local
-      driver_opts:
-        type: none
-        device: ./data/postgres-data
-        o: bind
   redis_data:
-      name: redis_data
-      driver: local
-      driver_opts:
-        type: none
-        device: ./data/redis-data
-        o: bind
   grafana_data:
-      name: grafana_data
-      driver: local
-      driver_opts:
-        type: none
-        device: ./data/grafana-data
-        o: bind
   portainer-data:
-    name: portainer-data
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./data/portainer-data
 
 networks:
   transcendence_network:
