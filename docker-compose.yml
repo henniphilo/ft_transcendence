@@ -57,16 +57,18 @@ services:
     ports:
       - "8001:8001"
 
-#   caddy:
-#     <<: *common
-#     build: src/caddy
-#     ports:
-#       - "8081:80"  # Run Caddy on a different port for testing
-#       - "8444:443"  # Run Caddy on a different port for testing
-#     depends_on:
-#       - backend
-#     extra_hosts:
-#       - "host.docker.internal:host-gateway"
+  caddy:
+    <<: *common
+    build:
+      context: ./src/
+      dockerfile: caddy/Dockerfile
+    ports:
+      - "8081:80"  # Run Caddy on a different port for testing
+      - "8444:443"  # Run Caddy on a different port for testing
+    depends_on:
+      - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   nginx:
     <<: *common
