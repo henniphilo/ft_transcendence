@@ -25,7 +25,8 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #803c3c;
+    background-color: #b5bd5d;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
 }
 
 #background-canvas {
@@ -42,15 +43,15 @@ body {
 .menu-item {
     padding: 10px 20px;
     margin: 5px;
-    background-color: #4d2626;
-    border: 2px solid #fff;
+    background-color: #8c9900f4;
+    border: 2px solid #fffffff4;
     color: #fff;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
 .menu-item:hover {
-    background-color: #555;
+    background-color: #d7eb25;
 }
 
 /* Settings */
@@ -133,7 +134,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #267578;
+    background-color: #8c9900;
 }
 
 .setting-item select {

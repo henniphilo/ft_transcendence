@@ -66,14 +66,25 @@ body {
 }
 
 #signup-container {
-    background-color: #fff;
+    background-color: #b9a84cc0;
     padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 7px;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
     width: 100%;
-    max-width: 400px;
+    max-width: 300px;
     text-align: center;
 }
+
+#login-container {
+    background-color: #8e8658c0;
+    padding: 40px;
+    border-radius: 7px;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+
 
 h2 {
     font-size: 24px;
@@ -99,7 +110,7 @@ input[type="email"],
 input[type="password"] {
     padding: 12px;
     margin-bottom: 20px;
-    border: 1px solid #ddd;
+    border: 1px solid #fff9dedf;
     border-radius: 6px;
     font-size: 14px;
     width: 100%;
@@ -107,13 +118,13 @@ input[type="password"] {
 }
 
 input:focus {
-    border-color: #3b82f6;
+    border-color: #d7eb25;
     outline: none;
 }
 
 /* Button Styles */
 button {
-    background-color: #3b82f6;
+    background-color: #8c9900;
     color: white;
     padding: 12px;
     font-size: 16px;
@@ -124,7 +135,7 @@ button {
 }
 
 button:hover {
-    background-color: #2563eb;
+    background-color: #d7eb25;
 }
 
 /* 2FA Verification */
@@ -160,7 +171,7 @@ button:hover {
 @media (max-width: 480px) {
     #signup-container, #login-container {
         padding: 20px;
-        width: 90%;
+        width: 80%;
     }
 
     h2 {

@@ -100,8 +100,8 @@ export class ThreeJSManager {
                 targetSize: 0.5,
                 addAxesHelper: true,
             });
-            this.humanModel.rotation.y = Math.PI / 2;
             this.humanModel.position.set(0, 0, 0);
+            this.humanModel.rotation.y = Math.PI;
             this.scene.add(this.humanModel);
 
             // Ball erstellen
