@@ -25,14 +25,23 @@ export class ThreeJSManager {
         this.camera.lookAt(0, 0, 0);
 
         // Beleuchtung
-        const light = new THREE.PointLight(0xffffff, 1.5, 50);
-        light.position.set(0, 5, 10);
+        const light = new THREE.PointLight(0xffffff, 2.5, 50);
+        light.position.set(0, 10, 10);
         this.scene.add(light);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         this.scene.add(ambientLight);
 
-            // OrbitControls hinzufügen
+        // Spotlight für mehr Kontraste
+        const spotLight = new THREE.SpotLight(0xffffff, 2);
+        spotLight.position.set(0, 10, 0);
+        spotLight.angle = Math.PI / 4;
+        spotLight.penumbra = 0.2;
+        spotLight.decay = 2;
+        spotLight.distance = 30;
+        this.scene.add(spotLight);
+
+        // OrbitControls hinzufügen
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;  // Sanfte Bewegungen
         this.controls.dampingFactor = 0.02;  // Reduziere für langsamere Trägheit (Standard: 0.05)
@@ -87,18 +96,26 @@ export class ThreeJSManager {
             this.ubahnModels[1].position.set(4, 0, 0);
             this.scene.add(this.ubahnModels[0], this.ubahnModels[1]);
 
-            // Ball erstellen
-            const ballGeometry = new THREE.SphereGeometry(0.2, 10, 10);
-            const ballMaterial = new THREE.MeshStandardMaterial({
-                color: 'lightgreen',
-                metalness: 0.5,
-                roughness: 0.3
+            this.humanModel = await this.loadModel('looks/woman_walking.glb', {
+                targetSize: 0.5,
+                addAxesHelper: true,
             });
-            this.humanModel = new THREE.Mesh(ballGeometry, ballMaterial);
+            this.humanModel.rotation.y = Math.PI / 2;
             this.humanModel.position.set(0, 0, 0);
             this.scene.add(this.humanModel);
 
-            console.log("> Ball geladen <");
+            // Ball erstellen
+            // const ballGeometry = new THREE.SphereGeometry(0.2, 10, 10);
+            // const ballMaterial = new THREE.MeshStandardMaterial({
+            //     color: 'lightgreen',
+            //     metalness: 0.5,
+            //     roughness: 0.3
+            // });
+            // this.humanModel = new THREE.Mesh(ballGeometry, ballMaterial);
+            // this.humanModel.position.set(0, 0, 0);
+            // this.scene.add(this.humanModel);
+
+            console.log("> Human geladen <");
 
         } catch (error) {
             console.error('Fehler beim Laden der Modelle:', error);
@@ -111,6 +128,14 @@ export class ThreeJSManager {
         // Ballposition
         const ballX = gameState.ball[0] * 4;
         const ballZ = gameState.ball[1] * 3;
+
+            // Check movement direction
+        if (ballX > this.humanModel.position.x) {
+            this.humanModel.rotation.y = Math.PI; // Facing left
+        } else if (ballX < this.humanModel.position.x) {
+            this.humanModel.rotation.y = 0; // Facing right
+        }
+
         this.humanModel.position.set(ballX, 0.5, ballZ);
 
         // Spielerpositionen
