@@ -100,6 +100,17 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
+        if (itemId === 'online') {
+            this.displaySearchingScreen();
+            return;
+        }
+        if (itemId === 'back' && this.container.querySelector('.searching-container')) {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_game'
+            }));
+            return;
+        }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
@@ -115,7 +126,11 @@ export class MenuDisplay {
 
         switch (data.action) {
             case 'show_submenu':
-                this.displayMenuItems(data.menu_items);
+                if (data.menu_items === this.online_mode_items) {
+                    this.displaySearchingScreen();
+                } else {
+                    this.displayMenuItems(data.menu_items);
+                }
                 break;
 
             case 'show_player_names':
@@ -230,6 +245,22 @@ export class MenuDisplay {
                 <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
             </div>
         `;
+    }
+
+    displaySearchingScreen() {
+        this.container.innerHTML = `
+            <div class="searching-container">
+                <h2>Searching for Players</h2>
+                <div class="loading-spinner"></div>
+                <p>Please wait while we find an opponent...</p>
+                <button class="menu-item" id="cancel-button">Cancel</button>
+            </div>
+        `;
+
+        // Event Listener nach dem Hinzufügen zum DOM
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            this.handleMenuClick('back');
+        });
     }
 }
 

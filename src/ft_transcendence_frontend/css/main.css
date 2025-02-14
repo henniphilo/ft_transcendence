@@ -164,3 +164,42 @@ body {
 .leaderboard-table tr:hover {
     background-color: #444;
 }
+
+.searching-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: #fff;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #8c9900;
+    border-top: 5px solid #d7eb25;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.cancel-button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #8c9900f4;
+    border: 2px solid #fffffff4;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+    background-color: #d7eb25;
+}
