@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class ThreeJSManager {
@@ -9,8 +10,11 @@ export class ThreeJSManager {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
         this.loader = new GLTFLoader();
+        this.fbxLoader = new FBXLoader(); // FBX Loader hinzufügen
         this.ubahnModels = [];
         this.humanModel = null;
+        this.mixer = null; // Animation Mixer
+        this.animations = []; // Animations Array
 
         this.setupScene();
     }
@@ -86,8 +90,8 @@ export class ThreeJSManager {
         this.controls.screenSpacePanning = false;
         this.controls.maxPolarAngle = Math.PI / 2; // Begrenzung: Nicht unter das Spielfeld schauen
 
-            const ubahnModel = await this.loadModel('looks/lowpoly_berlin_u-bahn.glb', {
-                targetSize: 3,
+            const ubahnModel = await this.loadModel('looks/ubahn-bigbig.glb', {
+                targetSize: 4,
                 addAxesHelper: true
             });
 
@@ -96,24 +100,13 @@ export class ThreeJSManager {
             this.ubahnModels[1].position.set(4, 0, 0);
             this.scene.add(this.ubahnModels[0], this.ubahnModels[1]);
 
-            this.humanModel = await this.loadModel('looks/woman_walking.glb', {
-                targetSize: 0.5,
+            this.humanModel = await this.loadModel('looks/Texting_and_Walking_turned.fbx', {
+                targetSize: 1,
                 addAxesHelper: true,
             });
+            // this.humanModel.rotation.y = Math.PI / 2;
             this.humanModel.position.set(0, 0, 0);
-            this.humanModel.rotation.y = Math.PI;
             this.scene.add(this.humanModel);
-
-            // Ball erstellen
-            // const ballGeometry = new THREE.SphereGeometry(0.2, 10, 10);
-            // const ballMaterial = new THREE.MeshStandardMaterial({
-            //     color: 'lightgreen',
-            //     metalness: 0.5,
-            //     roughness: 0.3
-            // });
-            // this.humanModel = new THREE.Mesh(ballGeometry, ballMaterial);
-            // this.humanModel.position.set(0, 0, 0);
-            // this.scene.add(this.humanModel);
 
             console.log("> Human geladen <");
 
@@ -130,13 +123,13 @@ export class ThreeJSManager {
         const ballZ = gameState.ball[1] * 3;
 
             // Check movement direction
-        if (ballX > this.humanModel.position.x) {
+        if (ballX < this.humanModel.position.x) {
             this.humanModel.rotation.y = Math.PI; // Facing left
-        } else if (ballX < this.humanModel.position.x) {
+        } else if (ballX > this.humanModel.position.x) {
             this.humanModel.rotation.y = 0; // Facing right
         }
 
-        this.humanModel.position.set(ballX, 0.5, ballZ);
+        this.humanModel.position.set(ballX, 0, ballZ);
 
         // Spielerpositionen
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * 3;
@@ -154,7 +147,10 @@ export class ThreeJSManager {
     }
 
     render() {
-       // this.controls.update();
+        this.controls.update();
+        if (this.mixer) {
+            this.mixer.update(0.01); // Zeit in Sekunden seit dem letzten Frame
+        }
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -164,14 +160,20 @@ export class ThreeJSManager {
 
     loadModel(path, options = {}) {
         return new Promise((resolve, reject) => {
-            this.loader.load(
+            const loader = path.endsWith('.glb') ? this.loader : this.fbxLoader;
+
+            loader.load(
                 path,
-                (gltf) => {
-                    console.log('Modell geladen:', gltf);
-                    const model = gltf.scene;
+                (model) => {
+                    let object = model; // Standardwert
+                    if (path.endsWith('.glb')) {
+                        object = model.scene; // GLTF hat eine Szene
+                    }
+
+                    console.log('Modell geladen:', object);
 
                     // Bounding Box berechnen
-                    const box = new THREE.Box3().setFromObject(model);
+                    const box = new THREE.Box3().setFromObject(object);
                     const size = new THREE.Vector3();
                     box.getSize(size);
 
@@ -179,37 +181,43 @@ export class ThreeJSManager {
                     if (options.targetSize) {
                         const maxDimension = Math.max(size.x, size.y, size.z);
                         const scaleFactor = options.targetSize / maxDimension;
-                        model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        object.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     }
                     if (options.scale) {
                         if (typeof options.scale === 'number') {
-                            model.scale.set(options.scale, options.scale, options.scale);
+                            object.scale.set(options.scale, options.scale, options.scale);
                         } else if (Array.isArray(options.scale) && options.scale.length === 3) {
-                            model.scale.set(...options.scale);
+                            object.scale.set(...options.scale);
                         }
-                    } else {
-                        const maxDimension = Math.max(size.x, size.y, size.z);
-                        const targetSize = options.targetSize || 1;
-                        const scaleFactor = targetSize / maxDimension;
-                        model.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     }
 
                     // Position setzen
                     if (options.position) {
-                        model.position.set(...options.position);
+                        object.position.set(...options.position);
                     } else {
-                        const newBox = new THREE.Box3().setFromObject(model);
+                        const newBox = new THREE.Box3().setFromObject(object);
                         const center = new THREE.Vector3();
                         newBox.getCenter(center);
-                        model.position.sub(center);
+                        object.position.sub(center);
                     }
 
                     if (options.addAxesHelper) {
                         const axesHelper = new THREE.AxesHelper(5);
-                        model.add(axesHelper);
+                        object.add(axesHelper);
                     }
 
-                    resolve(model);
+                    // Animationsverarbeitung (falls vorhanden)
+                    if (model.animations && model.animations.length > 0) {
+                        console.log('Animationen gefunden:', model.animations);
+                        this.mixer = new THREE.AnimationMixer(object);
+                        this.animations = model.animations;
+
+                        // Starte die erste Animation
+                        const action = this.mixer.clipAction(this.animations[0]);
+                        action.play();
+                    }
+
+                    resolve(object);
                 },
                 (xhr) => {
                     console.log(`${(xhr.loaded / xhr.total) * 100}% geladen`);
