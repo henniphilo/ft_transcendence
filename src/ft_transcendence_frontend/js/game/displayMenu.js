@@ -144,7 +144,7 @@ export class MenuDisplay {
                 if (this.leaderboardDisplay) {
                     this.leaderboardDisplay.cleanup();
                 }
-                this.leaderboardDisplay = new LeaderboardDisplay();
+                this.leaderboardDisplay = new LeaderboardDisplay(this);
                 this.leaderboardDisplay.display();
                 break;
             case 'exit_game':
@@ -220,7 +220,8 @@ export class MenuDisplay {
         console.log("before display");
         window.gameScreen.display();
     }
-display() {
+
+    display() {
         this.container.innerHTML = `
             <div class="menu">
                 <h1>Pong Game</h1>

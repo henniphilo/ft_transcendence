@@ -65,7 +65,9 @@ class Menu:
         elif selection == "leaderboard":
             return {
                 "action": "show_leaderboard",
-                "type": "leaderboard"  # Wichtig für Frontend-Erkennung
+                "type": "leaderboard",
+                "back_action": "show_main_menu",
+                "back_menu_items": self.menu_items
             }
         
         elif selection == "local":
