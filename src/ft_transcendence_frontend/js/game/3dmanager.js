@@ -100,11 +100,11 @@ export class ThreeJSManager {
             this.ubahnModels[1].position.set(4, 0, 0);
             this.scene.add(this.ubahnModels[0], this.ubahnModels[1]);
 
-            this.humanModel = await this.loadModel('looks/Texting_and_Walking_turned.fbx', {
+            // Annahme: 'looks/walking-woman4.fbx' ist dein Mixamo Modell im FBX Format
+            this.humanModel = await this.loadModel('looks/Texting_And_Walking.fbx', {
                 targetSize: 1,
                 addAxesHelper: true,
             });
-            // this.humanModel.rotation.y = Math.PI / 2;
             this.humanModel.position.set(0, 0, 0);
             this.scene.add(this.humanModel);
 

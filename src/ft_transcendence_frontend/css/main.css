@@ -30,6 +30,7 @@ body {
 }
 
 #background-canvas {
+    background-color: #f0e47de2;
     position: absolute;
     top: 0;
     left: 0;
@@ -109,7 +110,7 @@ body {
 
 /* Game Canvas */
 #game-canvas {
-    border: 2px solid #fff;
+    border: 2px solid #f8edab;
     background-color: #497041;
 }
 
