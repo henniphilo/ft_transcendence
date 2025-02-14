@@ -1,9 +1,9 @@
 class GameSettings:
     def __init__(self):
         print("Initializing GameSettings")
-        self._ball_speed = 5
+        self._ball_speed = 2
         self._paddle_speed = 5
-        self._winning_score = 5
+        self._winning_score = 50000
         self._paddle_size = "middle"
         self._mode = "pvp"  # Standard: PvP
         self._difficulty = "medium"  # Standard: Medium
@@ -116,7 +116,7 @@ class GameSettings:
             updated_settings = self.get_settings()
             print(f"Settings successfully updated to: {updated_settings}")
             return {"action": "settings_updated", "settings": updated_settings}
-            
+
         except (ValueError, TypeError) as e:
             print(f"Error updating settings: {str(e)}")
-            return {"action": "error", "message": str(e)} 
+            return {"action": "error", "message": str(e)}

@@ -6,8 +6,6 @@ export class GameScreen {
 
         this.gameState = gameState;
         this.onBackToMenu = onBackToMenu;
-        //this.canvas = null;
-        //this.ctx = null;
         this.gameId = null;
         this.ws = null;
         this.keyState = {};
@@ -43,7 +41,7 @@ export class GameScreen {
 
     setupWebSocket() {
         this.gameId = crypto.randomUUID();
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/game/${this.gameId}`);
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
 
         this.ws.onmessage = (event) => {
             this.gameState = JSON.parse(event.data);
@@ -58,10 +56,10 @@ export class GameScreen {
 
     setupControls() {
         this.keyState = {
-            'w': false,
-            's': false,
-            'ArrowUp': false,
-            'ArrowDown': false
+            'a': false,
+            'd': false,
+            'ArrowRight': false,
+            'ArrowLeft': false
         };
 
         // Kontinuierliches Senden, wenn Tasten gedrückt sind
@@ -76,11 +74,11 @@ export class GameScreen {
 
         document.addEventListener('keydown', (e) => {
             // Nur WASD-Steuerung erlauben wenn gegen AI
-            if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+            if (this.gameMode === 'ai' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
                 return; // Ignoriere Pfeiltasten im AI-Modus
             }
 
-            if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            if (e.key === 'a' || e.key === 'd' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
                 e.preventDefault();
                 this.keyState[e.key] = true;
             }
@@ -91,7 +89,7 @@ export class GameScreen {
                 return; // Ignoriere Pfeiltasten im AI-Modus
             }
 
-            if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            if (e.key === 'a' || e.key === 'd' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
                 e.preventDefault();
                 this.keyState[e.key] = false;
             }
@@ -137,46 +135,6 @@ export class GameScreen {
         }
     }
 
-    // draw() {
-    //     if (!this.ctx) return;
-
-    //     // Hintergrund
-    //     this.ctx.fillStyle = '#000';
-    //     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    //     // Mittellinie
-    //     this.ctx.strokeStyle = '#fff';
-    //     this.ctx.setLineDash([5, 15]);
-    //     this.ctx.beginPath();
-    //     this.ctx.moveTo(this.canvas.width / 2, 0);
-    //     this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
-    //     this.ctx.stroke();
-    //     this.ctx.setLineDash([]);
-
-    //     // Ball
-    //     const ballX = (this.gameState.ball[0] + 1) * this.canvas.width / 2;
-    //     const ballY = (this.gameState.ball[1] + 1) * this.canvas.height / 2;
-    //     this.ctx.fillStyle = '#fff';
-    //     this.ctx.beginPath();
-    //     this.ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
-    //     this.ctx.fill();
-
-    //     // Paddle Dimensionen
-    //     const paddleWidth = 10;
-
-    //     // Player 1 Paddle - Verwende die exakten Koordinaten vom Backend
-    //     const p1Top = (this.gameState.player1.paddle.top + 1) * this.canvas.height / 2;
-    //     const p1Bottom = (this.gameState.player1.paddle.bottom + 1) * this.canvas.height / 2;
-    //     const p1Height = p1Bottom - p1Top;
-    //     this.ctx.fillRect(0, p1Top, paddleWidth, p1Height);
-
-    //     // Player 2 Paddle - Verwende die exakten Koordinaten vom Backend
-    //     const p2Top = (this.gameState.player2.paddle.top + 1) * this.canvas.height / 2;
-    //     const p2Bottom = (this.gameState.player2.paddle.bottom + 1) * this.canvas.height / 2;
-    //     const p2Height = p2Bottom - p2Top;
-    //     this.ctx.fillRect(this.canvas.width - paddleWidth, p2Top, paddleWidth, p2Height);
-    // }
-
     displayWinnerScreen() {
         const container = document.getElementById('game-container');
         container.innerHTML = `
@@ -195,15 +153,6 @@ export class GameScreen {
         }
         this.onBackToMenu();
     }
-
-    // initCanvas() {
-    //     this.canvas = document.getElementById('game-canvas');
-    //     this.ctx = this.canvas.getContext('2d');
-
-    //     // Setze eine feste Größe für das Spielfeld
-    //     this.canvas.width = 800;
-    //     this.canvas.height = 600;  // Höher für bessere Proportionen
-    // }
 
     cleanup() {
         if (this.ws) {
