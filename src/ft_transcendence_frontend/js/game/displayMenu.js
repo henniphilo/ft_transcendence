@@ -117,14 +117,44 @@ export class MenuDisplay {
         }));
     }
 
-    async handleMenuAction(data) {
+    handleMenuAction(data) {
         console.log("Handling menu action:", data);
-
-        if (data.is_tournament) {
-            this.currentSettings = { ...this.currentSettings, tournament: true };
-        }
-
+        
         switch (data.action) {
+            case 'searching_opponent':
+                this.displaySearchingScreen(data.message);
+                break;
+                
+            case 'game_found':
+                console.log("Match found! Starting game...");
+                // Container für das Spiel anzeigen
+                const gameContainer = document.getElementById('game-container');
+                this.container.style.display = 'none';
+                gameContainer.style.display = 'block';
+
+                // Neues GameScreen-Objekt erstellen
+                const gameScreen = new GameScreen({
+                    player1: { 
+                        name: data.player1, 
+                        score: 0 
+                    },
+                    player2: { 
+                        name: data.player2, 
+                        score: 0 
+                    },
+                    playerRole: data.playerRole,  // Wichtig für die Steuerung!
+                    ball: [0, 0]
+                }, () => {
+                    // Back to menu callback
+                    gameContainer.style.display = 'none';
+                    this.container.style.display = 'block';
+                    this.requestMenuItems();
+                });
+
+                // Spiel starten
+                gameScreen.display();
+                break;
+
             case 'show_submenu':
                 if (data.menu_items === this.online_mode_items) {
                     this.displaySearchingScreen();
@@ -234,6 +264,33 @@ export class MenuDisplay {
         }, onBackToMenu);
         console.log("before display");
         window.gameScreen.display();
+    }
+
+    displaySearchingScreen(message) {
+        this.container.innerHTML = `
+            <div class="searching-box">
+                <div class="searching-container">
+                    <h2>${message || 'Searching for opponent...'}</h2>
+                    <div class="loading-spinner"></div>
+                    <button class="menu-item cancel-search">
+                        Cancel Search
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Event Listener direkt hinzufügen statt onclick im HTML
+        const cancelButton = this.container.querySelector('.cancel-search');
+        cancelButton.addEventListener('click', () => {
+            this.cancelSearch();
+        });
+    }
+
+    cancelSearch() {
+        this.ws.send(JSON.stringify({
+            action: 'menu_selection',
+            selection: 'cancel_search'
+        }));
     }
 
     display() {

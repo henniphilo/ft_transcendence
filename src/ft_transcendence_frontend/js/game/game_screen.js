@@ -3,10 +3,36 @@ import { ThreeJSManager } from "./3dmanager.js";
 export class GameScreen {
     constructor(gameState, onBackToMenu) {
         console.log("GameScreen loaded!");
+        this.gameId = gameState.game_id;  // Verwende die game_id vom Matchmaking!
 
-        this.gameState = gameState;
+        // Initialisiere mit vollständiger Struktur
+        this.gameState = {
+            player1: {
+                name: gameState.player1.name,
+                score: gameState.player1.score,
+                paddle: {
+                    top: 0,
+                    bottom: 0,
+                    center: 0
+                }
+            },
+            player2: {
+                name: gameState.player2.name,
+                score: gameState.player2.score,
+                paddle: {
+                    top: 0,
+                    bottom: 0,
+                    center: 0
+                }
+            },
+            ball: [0, 0],
+            playerRole: gameState.playerRole
+        };
+
         this.onBackToMenu = onBackToMenu;
-        this.gameId = null;
+        this.playerRole = gameState.playerRole;
+        //this.canvas = null;
+        //this.ctx = null;
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
@@ -40,56 +66,64 @@ export class GameScreen {
     }
 
     setupWebSocket() {
-        this.gameId = crypto.randomUUID();
+        // Verwende die game_id vom Matchmaking
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
 
         this.ws.onmessage = (event) => {
-            this.gameState = JSON.parse(event.data);
+            const newState = JSON.parse(event.data);
+            this.gameState = {
+                ...this.gameState,
+                ...newState
+            };
             this.updateScoreBoard();
-            this.threeJSManager.updatePositions(this.gameState);
+        };
 
-            if (this.gameState.winner) {
-                this.displayWinnerScreen();
-            }
+        this.ws.onopen = () => {
+            console.log("WebSocket connection established");
+            // Sende initiale Spieldaten
+            this.ws.send(JSON.stringify({
+                action: 'init_game',
+                settings: this.gameState
+            }));
+        };
+
+        this.ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
         };
     }
 
     setupControls() {
-        this.keyState = {
-            'a': false,
-            'd': false,
-            'ArrowRight': false,
-            'ArrowLeft': false
-        };
+        if (this.playerRole === 'player1') {
+            this.keyState = {
+                'w': false,
+                's': false
+            };
+        } else if (this.playerRole === 'player2') {
+            this.keyState = {
+                'ArrowUp': false,
+                'ArrowDown': false
+            };
+        }
 
-        // Kontinuierliches Senden, wenn Tasten gedrückt sind
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
-                    keys: this.keyState
+                    keys: this.keyState,
+                    playerRole: this.playerRole
                 }));
             }
         }, 16);
 
         document.addEventListener('keydown', (e) => {
-            // Nur WASD-Steuerung erlauben wenn gegen AI
-            if (this.gameMode === 'ai' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
-                return; // Ignoriere Pfeiltasten im AI-Modus
-            }
-
-            if (e.key === 'a' || e.key === 'd' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = true;
             }
         });
 
         document.addEventListener('keyup', (e) => {
-            if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-                return; // Ignoriere Pfeiltasten im AI-Modus
-            }
-
-            if (e.key === 'a' || e.key === 'd' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = false;
             }

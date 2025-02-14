@@ -2,16 +2,19 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import logging
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-    # Import OpenTelemetry configuration if ENABLE_OTEL is set
-    if os.getenv("ENABLE_OTEL"):
-        from .opentelemetry_config import setup_opentelemetry
-        setup_opentelemetry()
+    # Setup OpenTelemetry and logging
+    from opentelemetry.logging_config import setup_telemetry_and_logging
+    setup_telemetry_and_logging()
+    
+    logger = logging.getLogger(__name__)
+    logger.info("Application starting with OpenTelemetry logging enabled")
     
     try:
         from django.core.management import execute_from_command_line

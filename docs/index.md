@@ -14,13 +14,12 @@
 
 ## Project Overview
 
+Version 15.1
+
 ft_transcendence is a group project focused on creating a website for a Pong contest. The project requires adherence to specific technical and security constraints, with opportunities for modular enhancements.
 
-## Essential Points
-
-- **Decision-Making:** Flexibility in module implementation within specified constraints. Justifications may be required during evaluation.
-- **Technology Use:** Use of libraries or tools that provide complete solutions for features or modules is prohibited. Small libraries for subcomponents are allowed.
-- **Design Considerations:** Thorough understanding of project requirements is crucial before coding.
+- Flexibility in module implementation within specified constraints. Justifications may be required during evaluation.
+- Use of libraries or tools that provide complete solutions for features or modules is prohibited. Small libraries for subcomponents are allowed.
 
 Thanks to your website, users will play Pong with others. 
 
@@ -49,12 +48,17 @@ Thanks to your website, users will play Pong with others.
 
 ## Evaluation
 - While the visual aesthetics can vary, it must still capture the essence of the original Pong (1972).
-- Justification required for any unapproved libraries or tools.
 - Bonus points available for additional modules, assessed only if mandatory requirements are perfectly met.
 
-## Version
+## Running the application
 
-- **Current Version:** 15.1
+On the root level of the project, run the following command:
+
+```bash
+make
+```
+
+This will build the Docker image and run the application. The application will be available at `http://localhost:8080`.
 
 ## modules
 

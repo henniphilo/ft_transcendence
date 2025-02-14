@@ -12,4 +12,5 @@ COPY ft_transcendence_frontend/css /usr/share/nginx/html/css
 COPY ft_transcendence_frontend/js /usr/share/nginx/html/js
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

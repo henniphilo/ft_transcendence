@@ -11,6 +11,9 @@ build:
 up:
 	$(DC) up -d --remove-orphans
 
+rebuild:
+	$(DC) up -d --build --remove-orphans
+	
 down:
 	$(DC) down
 
@@ -38,12 +41,24 @@ testuser:
 test15:
 	$(DC) exec backend sh -c "python manage.py shell < helper_scripts/create_fifteen_testusers.py"
 
+clean:
+	./utils/cleanup.sh
+
 # Wirklich alles löschen: Container, Images, Volumes, Netzwerke
 fclean:
 	$(DC) down --rmi all --volumes --remove-orphans
-	docker system prune -af --filter "label!=postgres" --filter "label!=redis"
-	./utils/cleanup.sh
+	docker system prune -af
+	./utils/forcecleanup.sh
 
-re: fclean all
+# Individual container logs
+logs-backend:
+	docker logs -f ft_transcendence-backend
 
+logs-grafana:
+	docker logs -f ft_transcendence-grafana
 
+logs-nginx:
+	docker logs -f ft_transcendence-nginx
+
+logs-portainer:
+	docker logs -f ft_transcendence-portainer-1
