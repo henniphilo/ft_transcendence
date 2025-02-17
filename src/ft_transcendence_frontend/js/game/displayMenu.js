@@ -100,22 +100,67 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
+        if (itemId === 'online') {
+            this.displaySearchingScreen();
+            return;
+        }
+        if (itemId === 'back' && this.container.querySelector('.searching-container')) {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_game'
+            }));
+            return;
+        }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
         }));
     }
 
-    async handleMenuAction(data) {
+    handleMenuAction(data) {
         console.log("Handling menu action:", data);
-
-        if (data.is_tournament) {
-            this.currentSettings = { ...this.currentSettings, tournament: true };
-        }
-
+        
         switch (data.action) {
+            case 'searching_opponent':
+                this.displaySearchingScreen(data.message);
+                break;
+                
+            case 'game_found':
+                console.log("Match found! Starting game...");
+                // Container für das Spiel anzeigen
+                const gameContainer = document.getElementById('game-container');
+                this.container.style.display = 'none';
+                gameContainer.style.display = 'block';
+
+                // Neues GameScreen-Objekt erstellen
+                const gameScreen = new GameScreen({
+                    player1: { 
+                        name: data.player1, 
+                        score: 0 
+                    },
+                    player2: { 
+                        name: data.player2, 
+                        score: 0 
+                    },
+                    playerRole: data.playerRole,  // Wichtig für die Steuerung!
+                    ball: [0, 0]
+                }, () => {
+                    // Back to menu callback
+                    gameContainer.style.display = 'none';
+                    this.container.style.display = 'block';
+                    this.requestMenuItems();
+                });
+
+                // Spiel starten
+                gameScreen.display();
+                break;
+
             case 'show_submenu':
-                this.displayMenuItems(data.menu_items);
+                if (data.menu_items === this.online_mode_items) {
+                    this.displaySearchingScreen();
+                } else {
+                    this.displayMenuItems(data.menu_items);
+                }
                 break;
 
             case 'show_player_names':
@@ -144,7 +189,7 @@ export class MenuDisplay {
                 if (this.leaderboardDisplay) {
                     this.leaderboardDisplay.cleanup();
                 }
-                this.leaderboardDisplay = new LeaderboardDisplay();
+                this.leaderboardDisplay = new LeaderboardDisplay(this);
                 this.leaderboardDisplay.display();
                 break;
             case 'exit_game':
@@ -220,7 +265,35 @@ export class MenuDisplay {
         console.log("before display");
         window.gameScreen.display();
     }
-display() {
+
+    displaySearchingScreen(message) {
+        this.container.innerHTML = `
+            <div class="searching-box">
+                <div class="searching-container">
+                    <h2>${message || 'Searching for opponent...'}</h2>
+                    <div class="loading-spinner"></div>
+                    <button class="menu-item cancel-search">
+                        Cancel Search
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Event Listener direkt hinzufügen statt onclick im HTML
+        const cancelButton = this.container.querySelector('.cancel-search');
+        cancelButton.addEventListener('click', () => {
+            this.cancelSearch();
+        });
+    }
+
+    cancelSearch() {
+        this.ws.send(JSON.stringify({
+            action: 'menu_selection',
+            selection: 'cancel_search'
+        }));
+    }
+
+    display() {
         this.container.innerHTML = `
             <div class="menu">
                 <h1>Pong Game</h1>
@@ -229,6 +302,22 @@ display() {
                 <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
             </div>
         `;
+    }
+
+    displaySearchingScreen() {
+        this.container.innerHTML = `
+            <div class="searching-container">
+                <h2>Searching for Players</h2>
+                <div class="loading-spinner"></div>
+                <p>Please wait while we find an opponent...</p>
+                <button class="menu-item" id="cancel-button">Cancel</button>
+            </div>
+        `;
+
+        // Event Listener nach dem Hinzufügen zum DOM
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            this.handleMenuClick('back');
+        });
     }
 }
 

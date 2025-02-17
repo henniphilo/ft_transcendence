@@ -1,6 +1,7 @@
 class LeaderboardDisplay {
-    constructor() {
+    constructor(menuDisplayInstance) {
         this.container = document.getElementById('menu-container');
+        this.menuDisplay = menuDisplayInstance;
     }
 
     display() {
@@ -32,7 +33,7 @@ class LeaderboardDisplay {
                         <!-- Wird dynamisch gefüllt -->
                     </div>
                 </div>
-                <button class="menu-button" onclick="menuDisplay.handleMenuClick('back')">
+                <button class="menu-item" id="back-button">
                     Zurück zum Menü
                 </button>
             </div>
@@ -40,6 +41,11 @@ class LeaderboardDisplay {
         
         this.container.innerHTML = leaderboardHtml;
         this.loadLeaderboardData();
+
+        // Event Listener für den Back-Button
+        document.getElementById('back-button').addEventListener('click', () => {
+            this.menuDisplay.handleMenuClick('back');
+        });
     }
 
     async loadLeaderboardData() {
@@ -121,7 +127,4 @@ class LeaderboardDisplay {
     cleanup() {
         // Aufräumen wenn nötig
     }
-}
-
-// Globale Verfügbarkeit sicherstellen
-window.LeaderboardDisplay = LeaderboardDisplay; 
+} 

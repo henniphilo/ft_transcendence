@@ -1,6 +1,8 @@
 from fastapi import FastAPI, WebSocket
 import json
 from settings import GameSettings
+import uuid
+import asyncio
 
 class Menu:
     def __init__(self):
@@ -8,6 +10,8 @@ class Menu:
         self.current_menu_stack = []
         self.current_game_settings = None
         self.is_tournament = False  # Neuer Flag für Tournament-Modus
+        self.searching_players = {}  # {websocket: player_name}
+        self.matchmaking_task = None
         
         # Hauptmenü
         self.menu_items = [
@@ -47,6 +51,12 @@ class Menu:
             {"id": "back", "text": "Back"}
         ]
 
+    async def start_matchmaking_loop(self):
+        """Startet eine kontinuierliche Überprüfung nach möglichen Matches"""
+        while True:
+            await self.match_players()
+            await asyncio.sleep(1)  # Überprüfe jede Sekunde
+
     async def handle_menu_selection(self, websocket: WebSocket, selection: str):
         print(f"\n=== Menu Selection ===")
         print(f"Selection: {selection}")
@@ -65,7 +75,9 @@ class Menu:
         elif selection == "leaderboard":
             return {
                 "action": "show_leaderboard",
-                "type": "leaderboard"  # Wichtig für Frontend-Erkennung
+                "type": "leaderboard",
+                "back_action": "show_main_menu",
+                "back_menu_items": self.menu_items
             }
         
         elif selection == "local":
@@ -82,8 +94,29 @@ class Menu:
             return {"action": "start_game", "settings": game_settings}
         
         elif selection == "online":
-            self.current_menu_stack.append("play_mode")
-            return {"action": "show_submenu", "menu_items": self.online_mode_items}
+            # Füge den Spieler zur Suchliste hinzu
+            player_name = "Player"  # Hier später den echten Spielernamen verwenden
+            self.searching_players[websocket] = player_name
+            
+            # Starte Matchmaking-Loop, falls noch nicht gestartet
+            if not self.matchmaking_task or self.matchmaking_task.done():
+                self.matchmaking_task = asyncio.create_task(self.start_matchmaking_loop())
+            
+            return {
+                "action": "searching_opponent",
+                "message": "Searching for opponent..."
+            }
+        
+        elif selection == "cancel_search":
+            if websocket in self.searching_players:
+                del self.searching_players[websocket]
+            
+            # Wenn keine Spieler mehr suchen, stoppe den Matchmaking-Loop
+            if not self.searching_players and self.matchmaking_task:
+                self.matchmaking_task.cancel()
+                self.matchmaking_task = None
+            
+            return {"action": "show_main_menu", "menu_items": self.menu_items}
         
         elif selection in ["host", "join"]:
             game_settings = self.game_settings.get_settings()
@@ -158,3 +191,48 @@ class Menu:
             return self.current_game_settings
         # Ansonsten Standard-Settings
         return self.game_settings.get_settings() 
+
+    async def match_players(self):
+        """Versucht, zwei suchende Spieler zu matchen"""
+        print(f"Checking for matches... Current players: {len(self.searching_players)}")  # Debug print
+        
+        if len(self.searching_players) >= 2:
+            # Nimm die ersten zwei Spieler
+            player1_ws, player1_name = list(self.searching_players.items())[0]
+            player2_ws, player2_name = list(self.searching_players.items())[1]
+
+            print(f"Found match: {player1_name} vs {player2_name}")  # Debug print
+
+            # Entferne sie aus der Suchliste
+            del self.searching_players[player1_ws]
+            del self.searching_players[player2_ws]
+
+            # Erstelle ein neues Spiel
+            game_id = str(uuid.uuid4())
+            game_settings = self.game_settings.get_settings()
+            game_settings.update({
+                "mode": "online",
+                "player1_name": player1_name,
+                "player2_name": player2_name
+            })
+
+            # Informiere beide Spieler mit ihren spezifischen Rollen
+            await player1_ws.send_json({
+                "action": "game_found",
+                "game_id": game_id,
+                "settings": game_settings,
+                "player1": player1_name,
+                "player2": player2_name,
+                "playerRole": "player1"  # WASD Controls
+            })
+
+            await player2_ws.send_json({
+                "action": "game_found",
+                "game_id": game_id,
+                "settings": game_settings,
+                "player1": player1_name,
+                "player2": player2_name,
+                "playerRole": "player2"  # WASD Controls
+            })
+
+            print(f"Game {game_id} created and players notified")  # Debug print 

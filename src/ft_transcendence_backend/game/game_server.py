@@ -20,24 +20,27 @@ class GameServer:
         print("\n=== New Game Started ===")
         print(f"Game ID: {game_id}")
         print(f"Received Settings: {settings}")
-
-        is_ai_mode = settings.get("mode") == "ai"  # Prüfe explizit auf "ai"
-        print(f"Game Mode: {'AI' if is_ai_mode else 'Local Multiplayer'}")
-
-        if is_ai_mode:
-            print(f"AI Difficulty: {settings.get('difficulty')}")
-
+        
+        is_ai_mode = settings.get("mode") == "ai"
+        is_online_mode = settings.get("mode") == "online"
+        
         # Erstelle Spieler basierend auf Spielmodus
-        player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
-
-        if is_ai_mode:
+        if is_online_mode:
+            # Online Modus: Beide Spieler mit WASD Controls
+            player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"), 
+                           player_type=PlayerType.HUMAN, controls=Controls.WASD)
+            player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"), 
+                           player_type=PlayerType.HUMAN, controls=Controls.WASD)
+        elif is_ai_mode:
+            # AI Modus bleibt unverändert
+            player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
             player2 = Player(id="p2", name="AI Player", player_type=PlayerType.AI, controls=Controls.ARROWS)
             self.ai_players[game_id] = AI(settings.get("difficulty", "medium"))
-            print("AI Player created and initialized")
         else:
+            # Lokaler Modus bleibt unverändert
+            player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
             player2 = Player(id="p2", name="Player 2", player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
-            print("Human Player 2 created")
-
+        
         self.active_games[game_id] = PongGame(settings, player1, player2)
         game = self.active_games[game_id]
         game.start_game()
@@ -48,9 +51,8 @@ class GameServer:
             while True:
                 data = await websocket.receive_json()
                 if data["action"] == "key_update":
-                    # Im AI-Modus nur Spieler 1 Eingaben verarbeiten
                     if is_ai_mode:
-                        # Filtere Pfeiltasten raus
+                        # Im AI-Modus nur Spieler 1 Eingaben verarbeiten
                         ai_safe_keys = {
                             'a': data['keys'].get('a', False),
                             'd': data['keys'].get('d', False),
@@ -59,7 +61,7 @@ class GameServer:
                         }
                         self.handle_input(game, ai_safe_keys)
                     else:
-                        # Im PvP-Modus normale Eingabeverarbeitung
+                        # Im Online/Local Modus normale Eingabeverarbeitung
                         self.handle_input(game, data["keys"])
 
         except Exception as e:

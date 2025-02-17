@@ -1,14 +1,6 @@
-/* General Reset */
-* {
+body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
-}
-
-/* Global Styles */
-body {
-    background-color: #f4f4f4; /* Set to gray */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,51 +42,39 @@ body {
     cursor: pointer;
     transition: background-color 0.3s;
 }
-
 .menu-item:hover {
     background-color: #d7eb25;
 }
-
-/* Settings */
 .settings-container {
     background-color: #333;
     padding: 20px;
     border-radius: 10px;
 }
-
 .setting-item {
     margin: 15px 0;
 }
-
 .setting-item label {
     display: block;
     margin-bottom: 5px;
 }
-
-.setting-item input,
-.setting-item select {
+.setting-item input {
     padding: 5px;
-    width: 100%;
+    width: 100px;
     background-color: #444;
     border: 1px solid #666;
     color: white;
     border-radius: 4px;
 }
-
-/* Winner Screen */
 .winner-screen {
     text-align: center;
     padding: 20px;
     background-color: #333;
     border-radius: 10px;
 }
-
 .winner-screen h1 {
     color: #4CAF50;
     margin-bottom: 20px;
 }
-
-/* Score Board */
 .score-board {
     display: flex;
     justify-content: space-around;
@@ -102,13 +82,10 @@ body {
     background-color: #333;
     margin-bottom: 20px;
 }
-
 .player-score {
     font-size: 24px;
     color: #fff;
 }
-
-/* Game Canvas */
 #game-canvas {
     border: 2px solid #f8edab;
     background-color: #497041;
@@ -122,6 +99,7 @@ body {
 }
 
 .game-screen {
+    background-color: #8c9900;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -189,31 +167,41 @@ body {
     background-color: #444;
 }
 
-.current-user-stats {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 2px solid #444;
-}
-
-.current-user-stats h3 {
-    color: #4a90e2;
-    margin-bottom: 15px;
-}
-
-.current-user-row {
-    background-color: #4a90e2 !important;
-    color: white;
-}
-
-.not-logged-in-message {
-    color: #888;
-    padding: 10px;
+.searching-container {
+    background-color: #333;
+    padding: 20px;
+    border-radius: 10px;
     text-align: center;
-    font-style: italic;
+    color: #fff;
+    max-width: 400px;
+    margin: 20px auto;
 }
 
-.error-message {
-    color: #ff4444;
-    padding: 10px;
-    text-align: center;
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #8c9900;
+    border-top: 5px solid #d7eb25;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.cancel-button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #8c9900f4;
+    border: 2px solid #fffffff4;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+    background-color: #d7eb25;
 }

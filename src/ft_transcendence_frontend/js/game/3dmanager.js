@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { TextureLoader } from 'three/examples/jsm/loaders/TextureLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class ThreeJSManager {
@@ -21,8 +22,13 @@ export class ThreeJSManager {
 
     setupScene() {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setClearColor(0xffffff); // Hintergrund schwarz
+     //   this.renderer.setClearColor('yellow');
         document.body.appendChild(this.renderer.domElement);
+
+        // Game Background Texture
+        const loader = new THREE.TextureLoader();
+        const bgTexture = loader.load('looks/fahrscheinebitte.jpg');
+        this.scene.background = bgTexture;
 
         // Kamera Setup
         this.camera.position.set(-1, 6, -15);
