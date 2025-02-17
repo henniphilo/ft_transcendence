@@ -44,27 +44,23 @@
 
   <template id="template-menu">
     <div id="menu-container">
-      <div id="profile-container" class="profile-container">
-        <h2>Willkommen, <span id="profile-username"></span>!</h2>
-        <div class="profile-info">
-          <img id="profile-avatar" src="" alt="Avatar" />
-          <div class="profile-details">
-            <p><strong>Email:</strong> <span id="profile-email"></span></p>
-            <p><strong>Bio:</strong> <span id="profile-bio"></span></p>
-            <p><strong>Geburtstag:</strong> <span id="profile-birth_date"></span></p>
-          </div>
+      <h2>Willkommen, <span id="profile-username"></span>!</h2>
+      <div class="profile-info">
+        <img id="profile-avatar" src="" alt="Avatar" />
+        <div class="profile-details">
+          <p><strong>Email:</strong> <span id="profile-email"></span></p>
+          <p><strong>Bio:</strong> <span id="profile-bio"></span></p>
+          <p><strong>Geburtstag:</strong> <span id="profile-birth_date"></span></p>
         </div>
-        <form id="profile-form" enctype="multipart/form-data">
-          <label for="avatar-input">Avatar ändern:</label>
-          <input id="avatar-input" type="file" accept="image/*" />
-        </form>
-        <button id="edit-profile-button">Profil bearbeiten</button>
-        <button id="logout-button">Logout</button>
       </div>
-      <h3>Online Benutzer:</h3>
-      <ul id="online-users-list"></ul>
+      <form id="profile-form" enctype="multipart/form-data">
+        <label for="avatar-input">Avatar ändern:</label>
+        <input id="avatar-input" type="file" accept="image/*" />
+      </form>
+      <button id="edit-profile-button">Profil bearbeiten</button>
+      <button id="logout-button">Logout</button>
       <div id="menu-options">
-        <button id="start-game-button">Start Game</button>
+        <!-- Hier werden die Menüelemente von der MenuDisplay-Klasse hinzugefügt -->
       </div>
     </div>
   </template>

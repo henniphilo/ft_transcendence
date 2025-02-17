@@ -1,7 +1,7 @@
 import { GameScreen } from "./game_screen.js";
 
 export class MenuDisplay {
-    constructor() {
+    constructor(userProfile) {
         console.log("MenuDisplay loaded!");
 
         this.container = document.getElementById('menu-container');
@@ -10,6 +10,7 @@ export class MenuDisplay {
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
         this.leaderboardDisplay = null;
+        this.userProfile = userProfile; // Speichere Benutzerprofil
         this.initWebSocket();
     }
 
@@ -37,14 +38,64 @@ export class MenuDisplay {
     }
 
     displayMenuItems(menuItems) {
-        this.container.innerHTML = '';
+        this.container.innerHTML = `
+            <div class="menu-profile-container">
+                <div class="menu-section">
+                    <div id="menu-options"></div>
+                </div>
+                <div class="profile-section">
+                    <h2>Willkommen, ${this.userProfile.username}!</h2>
+                    <div class="profile-info">
+                        <img id="profile-avatar" src="${this.userProfile.avatar}" alt="Avatar" />
+                        <div class="profile-details">
+                            <p><strong>Email:</strong> ${this.userProfile.email}</p>
+                            <p><strong>Bio:</strong> ${this.userProfile.bio}</p>
+                            <p><strong>Geburtstag:</strong> ${this.userProfile.birth_date}</p>
+                        </div>
+                    </div>
+                    <form id="profile-form" enctype="multipart/form-data">
+                        <label for="avatar-input">Avatar ändern:</label>
+                        <input id="avatar-input" type="file" accept="image/*" />
+                    </form>
+                    <button id="edit-profile-button">Profil bearbeiten</button>
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        `;
+
         menuItems.forEach(item => {
             const button = document.createElement('button');
             button.className = 'menu-item';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
-            this.container.appendChild(button);
+            this.container.querySelector('#menu-options').appendChild(button);
         });
+
+        // Event-Listener für Profil-Buttons
+        document.getElementById('edit-profile-button').addEventListener('click', () => {
+            this.editProfile();
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            this.logout();
+        });
+    }
+
+    editProfile() {
+        const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
+        if (newBio !== null) {
+            this.userProfile.bio = newBio;
+            document.querySelector('.profile-details p:nth-child(2) span').textContent = newBio;
+            console.log('Profil aktualisiert:', this.userProfile);
+            // Hier kannst du auch einen API-Call machen, um die Änderungen zu speichern
+        }
+    }
+
+    logout() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        console.log('Logout erfolgreich');
+        window.location.href = '/login'; // Leite den Benutzer zur Login-Seite um
     }
 
     displaySettings(settings) {
@@ -323,5 +374,12 @@ export class MenuDisplay {
 
 let menuDisplay;
 document.addEventListener('DOMContentLoaded', () => {
-    menuDisplay = new MenuDisplay();
+    const userProfile = {
+        username: "Benutzername",
+        avatar: "path/to/avatar.jpg",
+        email: "benutzer@example.com",
+        bio: "Kurze Bio",
+        birth_date: "01.01.1990"
+    };
+    menuDisplay = new MenuDisplay(userProfile);
 });

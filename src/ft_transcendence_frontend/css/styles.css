@@ -188,3 +188,18 @@ button:hover {
     background-color: #c0392b;
   }
   
+.menu-profile-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.menu-section {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.profile-section {
+    flex: 1;
+    max-width: 300px;
+}
+  

@@ -1,3 +1,5 @@
+import { MenuDisplay } from './game/displayMenu.js'; // Importiere die MenuDisplay-Klasse
+
 document.addEventListener("DOMContentLoaded", () => {
     const templates = {
         signup: document.getElementById("template-signup"),
@@ -42,19 +44,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupLogin() {
-        document.getElementById("login-form").addEventListener("submit", (event) => {
+        document.getElementById("login-form").addEventListener("submit", async (event) => {
             event.preventDefault();
-            console.log("Login successful");
-            showTemplate("menu");
+            // Führe den Login-Prozess durch und erhalte das Token
+            // Speichere das Token im localStorage oder einer anderen sicheren Stelle
+
+            try {
+                const userProfile = await AuthLib.getProfile();
+                console.log("Login successful");
+                showTemplate("menu");
+                const menuDisplay = new MenuDisplay(userProfile);
+                menuDisplay.display();
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
         });
     }
 
     function setupMenu() {
-        const startGameButton = document.getElementById("start-game-button");
-        startGameButton.addEventListener("click", () => {
-            console.log("Starting game...");
-            showTemplate("game");
-        });
+        // Initialisiere die MenuDisplay-Klasse
+        const menuDisplay = new MenuDisplay();
+        menuDisplay.display(); // Zeige das Menü an
     }
 
     // Initially show the signup template
