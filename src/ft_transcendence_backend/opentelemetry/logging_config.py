@@ -30,9 +30,13 @@ def setup_telemetry_and_logging():
     
     # Configure OTLP exporter for OpenTelemetry
     otlp_exporter = OTLPSpanExporter(
-        endpoint="http://grafana:4317",  # OTLP gRPC endpoint
-        insecure=True  # For development; use SSL in production
-    )
+    	endpoint="http://tempo:4317",  # Changed from grafana to tempo
+    	insecure=True
+	)
+    otlp_log_exporter = OTLPLogExporter(
+   		endpoint="http://tempo:4317",  # Changed from grafana to tempo
+    	insecure=True
+	)
     
     tracer_provider = TracerProvider(resource=resource)
     tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))

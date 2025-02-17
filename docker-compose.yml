@@ -85,6 +85,28 @@ services:
     volumes:
       - ./src/nginx/logs:/var/log/nginx
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yml
+    volumes:
+      - ./config/loki-config.yml:/etc/loki/local-config.yml
+    networks:
+      - transcendence_network
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yml" ]
+    volumes:
+      - ./config/tempo.yml:/etc/tempo.yml
+    ports:
+      - "3200:3200"   # tempo
+      - "4317:4317"   # otlp grpc
+      - "4318:4318"   # otlp http
+    networks:
+      - transcendence_network
+  
   grafana:
     <<: *common
     build: 
@@ -103,22 +125,28 @@ services:
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./src/grafana:/etc/grafana/provisioning/datasources
+      # - ./src/grafana:/etc/grafana/provisioning/datasources
+      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
       - ./src/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
       - ./src/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - redis
+      - loki
+      - tempo
 
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector-contrib:latest  # Using contrib version for Loki support
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
+      - "4319:4317"  # Changed from 4317 to avoid conflict
+      - "4320:4318"  # Changed from 4318 to avoid conflict
+    networks:
+      - transcendence_network
     depends_on:
-      - grafana
+      - tempo
+      - loki
      
 #   portainer:
 #     <<: *common
@@ -138,6 +166,7 @@ volumes:
   redis_data:
   grafana_data:
   portainer-data:
+  loki-data:
 
 networks:
   transcendence_network:

@@ -1,0 +1,29 @@
+# config/grafana-datasources.yml
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      timeout: 30
+    editable: true
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: 'prometheus'
+    editable: true
+
+  - name: redis-datasource
+    type: redis-datasource
+    url: redis:6379
+    isDefault: true
+    access: proxy
+    editable: true
