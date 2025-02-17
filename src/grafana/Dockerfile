@@ -1,4 +1,4 @@
-FROM grafana/otel-lgtm
+FROM grafana/grafana:latest
 
 USER root
 
