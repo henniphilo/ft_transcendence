@@ -125,7 +125,7 @@ services:
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
     volumes:
       - grafana_data:/var/lib/grafana
-      # - ./src/grafana:/etc/grafana/provisioning/datasources
+      - ./src/grafana:/etc/grafana/provisioning/datasources
       - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
       - ./src/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
       - ./src/grafana/dashboards:/var/lib/grafana/dashboards
@@ -148,18 +148,16 @@ services:
       - tempo
       - loki
      
-#   portainer:
-#     <<: *common
-#     build: src/portainer
-#     volumes:
-#       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-#       - portainer-data:/data
-#     depends_on:
-#       - nginx
-#     networks:
-#       - transcendence_network
-#     ports:
-#       - "9443:9443"
+  portainer:
+    <<: *common
+    build: src/portainer
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - portainer-data:/data
+    depends_on:
+      - nginx
+    ports:
+      - "9443:9443"
 
 volumes:
   postgres_data:
