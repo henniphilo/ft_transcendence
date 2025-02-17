@@ -3,7 +3,20 @@ import { ThreeJSManager } from "./3dmanager.js";
 export class GameScreen {
     constructor(gameState, onBackToMenu) {
         console.log("GameScreen loaded!");
-        this.gameId = gameState.game_id;  // Verwende die game_id vom Matchmaking!
+        console.log("Empfangenes gameState:", gameState);
+        //    console.log("GameScreen initialized with gameId:", gameState.gameId);  // Setze es korrekt aus gameState
+
+        if (!gameState) {
+            console.error("❌ FEHLER: gameState FEHLT!", gameState);
+        }
+        if (!gameState.game_id) {
+            gameState.game_id = `local-1`;  //${Date.now()
+            this.gameId = gameState.game_id;  // Verwende die game_id vom Matchmaking!
+            console.log("change: game_id ist jetzt ", gameState.game_id);}
+        else {
+            console.log("✅ GameScreen initialized with gameId:", gameState.game_id);
+        }
+
 
         // Initialisiere mit vollständiger Struktur
         this.gameState = {
@@ -29,8 +42,10 @@ export class GameScreen {
             playerRole: gameState.playerRole
         };
 
+        this.gameId = gameState.game_id;
         this.onBackToMenu = onBackToMenu;
         this.playerRole = gameState.playerRole;
+        console.log("Player role:", this.playerRole);
         //this.canvas = null;
         //this.ctx = null;
         this.ws = null;
@@ -43,6 +58,20 @@ export class GameScreen {
         this.setupWebSocket();
         this.setupControls();
         this.setupThreeJS();
+
+        // this.gameState = gameState;
+        // this.onBackToMenu = onBackToMenu;
+        // this.gameId = null;
+        // this.ws = null;
+        // this.keyState = {};
+        // this.scoreBoard = null;
+        // this.gameMode = new URLSearchParams(window.location.search).get('mode') || 'pvp';
+
+        // this.threeJSManager = new ThreeJSManager();
+
+        // this.setupWebSocket();
+        // this.setupControls();
+        // this.setupThreeJS();
     }
 
     async setupThreeJS() {
@@ -66,21 +95,21 @@ export class GameScreen {
     }
 
     setupWebSocket() {
-        // Verwende die game_id vom Matchmaking
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
+        if (!this.gameId) {
+            console.error("❌ FEHLER: gameId ist nicht gesetzt! WebSocket kann nicht gestartet werden.");
+            return;
+        }
+
+        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/local-1`); //${this.gameId}
 
         this.ws.onmessage = (event) => {
             const newState = JSON.parse(event.data);
-            this.gameState = {
-                ...this.gameState,
-                ...newState
-            };
+            this.gameState = { ...this.gameState, ...newState };
             this.updateScoreBoard();
         };
 
         this.ws.onopen = () => {
             console.log("WebSocket connection established");
-            // Sende initiale Spieldaten
             this.ws.send(JSON.stringify({
                 action: 'init_game',
                 settings: this.gameState
@@ -92,7 +121,9 @@ export class GameScreen {
         };
     }
 
+
     setupControls() {
+        console.log("Controls initialized");
         if (this.playerRole === 'player1') {
             this.keyState = {
                 'd': false,
@@ -116,6 +147,7 @@ export class GameScreen {
         }, 16);
 
         document.addEventListener('keydown', (e) => {
+            console.log("Taste gedrückt:", e.key);
             if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = true;

@@ -16,7 +16,7 @@ export class MenuDisplay {
 
     initWebSocket() {
         this.ws.onopen = () => {
-            console.log('Connected to server');
+            console.log('init menue server');
             this.requestMenuItems();
         };
 
@@ -44,13 +44,9 @@ export class MenuDisplay {
                     <div id="menu-options"></div>
                 </div>
                 <div class="profile-section">
-                    <h2>Willkommen, ${this.userProfile.username}!</h2>
+                    <h2>Willkommen, !</h2>
                     <div class="profile-info">
-                        <img id="profile-avatar" src="${this.userProfile.avatar}" alt="Avatar" />
-                        <div class="profile-details">
-                            <p><strong>Email:</strong> ${this.userProfile.email}</p>
-                            <p><strong>Bio:</strong> ${this.userProfile.bio}</p>
-                            <p><strong>Geburtstag:</strong> ${this.userProfile.birth_date}</p>
+
                         </div>
                     </div>
                     <form id="profile-form" enctype="multipart/form-data">
@@ -170,14 +166,18 @@ export class MenuDisplay {
 
     handleMenuAction(data) {
         console.log("Handling menu action:", data);
-        
+
         switch (data.action) {
             case 'searching_opponent':
                 this.displaySearchingScreen(data.message);
                 break;
-                
+
             case 'game_found':
                 console.log("Match found! Starting game...");
+
+                // game_id aus der Serverantwort setzen
+                this.game_id = data.game_id;
+
                 // Container für das Spiel anzeigen
                 const gameContainer = document.getElementById('game-container');
                 this.container.style.display = 'none';
@@ -185,13 +185,13 @@ export class MenuDisplay {
 
                 // Neues GameScreen-Objekt erstellen
                 const gameScreen = new GameScreen({
-                    player1: { 
-                        name: data.player1, 
-                        score: 0 
+                    player1: {
+                        name: data.player1,
+                        score: 0
                     },
-                    player2: { 
-                        name: data.player2, 
-                        score: 0 
+                    player2: {
+                        name: data.player2,
+                        score: 0
                     },
                     playerRole: data.playerRole,  // Wichtig für die Steuerung!
                     ball: [0, 0]
@@ -222,9 +222,10 @@ export class MenuDisplay {
                 this.displayMenuItems(data.menu_items);
                 break;
             case 'start_game':
+
                 // Wechsel zum GameScreen-Template
                 showTemplate('game');
-                this.startGame(data);
+             //   this.startGame(data);
                 break;
             case 'show_settings':
                 this.currentSettings = data.settings;  // Speichere die Einstellungen
@@ -295,36 +296,39 @@ export class MenuDisplay {
         }));
     }
 
-    startGame(data) {
-        console.log("startGame wurde aufgerufen:", data);
+    // startGame(data) {
+    //     console.log("startGame wurde aufgerufen:", data);
+    //      // Falls keine game_id vom Server kommt, generieren wir eine eigene für lokale Spiele
+    //     this.game_id = data.game_id || `local-1`; //${Date.now()
+    //     console.log("startGame lets go, game_id: ", this.game_id)
+    //     // Verstecke das Menü
+    //     this.container.style.display = 'none';
 
-        // Verstecke das Menü
-        this.container.style.display = 'none';
+    //     // Versuche, das gameContainer-Element zu finden
+    //     const gameContainer = document.getElementById('game-container');
+    //     if (!gameContainer) {
+    //         console.error('gameContainer ist null. Stelle sicher, dass das Template korrekt geladen wurde.');
+    //         return;
+    //     }
 
-        // Versuche, das gameContainer-Element zu finden
-        const gameContainer = document.getElementById('game-container');
-        if (!gameContainer) {
-            console.error('gameContainer ist null. Stelle sicher, dass das Template korrekt geladen wurde.');
-            return;
-        }
+    //     // Erstelle und starte das Spiel
+    //     gameContainer.style.display = 'block';
 
-        // Erstelle und starte das Spiel
-        gameContainer.style.display = 'block';
+    //     const onBackToMenu = () => {
+    //         gameContainer.style.display = 'none';
+    //         this.container.style.display = 'block';
+    //         this.requestMenuItems();
+    //     };
 
-        const onBackToMenu = () => {
-            gameContainer.style.display = 'none';
-            this.container.style.display = 'block';
-            this.requestMenuItems();
-        };
-
-        window.gameScreen = new GameScreen({
-            player1: { name: "Player 1", score: 0, paddle: 0 },
-            player2: { name: "Player 2", score: 0, paddle: 0 },
-            ball: [0, 0]
-        }, onBackToMenu);
-        console.log("before display");
-        window.gameScreen.display();
-    }
+    //     window.gameScreen = new GameScreen({
+    //         player1: { name: "Player 1", score: 0, paddle: 0 },
+    //         player2: { name: "Player 2", score: 0, paddle: 0 },
+    //         ball: [0, 0],
+    //         game_id: this.game_id
+    //     }, onBackToMenu);
+    //     console.log("before display");
+    //     window.gameScreen.display();
+    // }
 
     displaySearchingScreen(message) {
         this.container.innerHTML = `

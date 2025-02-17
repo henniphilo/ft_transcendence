@@ -59,8 +59,8 @@ class AI:
 
     def get_empty_keys(self):
         return {
-            'd': False,
-            'a': False,
-            'ArrowRight': False,
-            'ArrowLeft': False
+            'w': False,
+            's': False,
+            'ArrowUp': False,
+            'ArrowDown': False
         }

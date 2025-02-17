@@ -12,14 +12,14 @@ class Menu:
         self.is_tournament = False  # Neuer Flag für Tournament-Modus
         self.searching_players = {}  # {websocket: player_name}
         self.matchmaking_task = None
-        
+
         # Hauptmenü
         self.menu_items = [
             {"id": "play_game", "text": "Play Game"},
             {"id": "play_tournament", "text": "Play Tournament"},
             {"id": "leaderboard", "text": "Leaderboard"}
         ]
-        
+
         # Spielmodus-Menü
         self.play_mode_items = [
             {"id": "local", "text": "Play Local"},
@@ -27,7 +27,7 @@ class Menu:
             {"id": "online", "text": "Play Online"},
             {"id": "back", "text": "Back"}
         ]
-        
+
         # AI-Schwierigkeitsgrad
         self.ai_difficulty_items = [
             {"id": "easy", "text": "Easy"},
@@ -35,7 +35,7 @@ class Menu:
             {"id": "impossible", "text": "Impossible"},
             {"id": "back", "text": "Back"}
         ]
-        
+
         # Turnier-Spieleranzahl
         self.tournament_size_items = [
             {"id": "4_players", "text": "4 Players"},
@@ -43,7 +43,7 @@ class Menu:
             {"id": "8_players", "text": "8 Players"},
             {"id": "back", "text": "Back"}
         ]
-        
+
         # Neues Online-Modus-Menü
         self.online_mode_items = [
             {"id": "host", "text": "Host Game"},
@@ -61,17 +61,17 @@ class Menu:
         print(f"\n=== Menu Selection ===")
         print(f"Selection: {selection}")
         print(f"Current Menu Stack: {self.current_menu_stack}")
-        
+
         if selection == "play_game":
             self.is_tournament = False
             self.current_menu_stack.append("main")
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
-        
+
         elif selection == "play_tournament":
             self.is_tournament = True
             self.current_menu_stack.append("main")
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
-        
+
         elif selection == "leaderboard":
             return {
                 "action": "show_leaderboard",
@@ -79,7 +79,7 @@ class Menu:
                 "back_action": "show_main_menu",
                 "back_menu_items": self.menu_items
             }
-        
+
         elif selection == "local":
             game_settings = self.game_settings.get_settings()
             game_settings.update({
@@ -87,37 +87,37 @@ class Menu:
                 "is_tournament": self.is_tournament
             })
             self.current_game_settings = game_settings
-            
+
             if self.is_tournament:
                 self.current_menu_stack.append("mode")
                 return {"action": "show_submenu", "menu_items": self.tournament_size_items}
             return {"action": "start_game", "settings": game_settings}
-        
+
         elif selection == "online":
             # Füge den Spieler zur Suchliste hinzu
             player_name = "Player"  # Hier später den echten Spielernamen verwenden
             self.searching_players[websocket] = player_name
-            
+
             # Starte Matchmaking-Loop, falls noch nicht gestartet
             if not self.matchmaking_task or self.matchmaking_task.done():
                 self.matchmaking_task = asyncio.create_task(self.start_matchmaking_loop())
-            
+
             return {
                 "action": "searching_opponent",
                 "message": "Searching for opponent..."
             }
-        
+
         elif selection == "cancel_search":
             if websocket in self.searching_players:
                 del self.searching_players[websocket]
-            
+
             # Wenn keine Spieler mehr suchen, stoppe den Matchmaking-Loop
             if not self.searching_players and self.matchmaking_task:
                 self.matchmaking_task.cancel()
                 self.matchmaking_task = None
-            
+
             return {"action": "show_main_menu", "menu_items": self.menu_items}
-        
+
         elif selection in ["host", "join"]:
             game_settings = self.game_settings.get_settings()
             game_settings.update({
@@ -126,16 +126,16 @@ class Menu:
                 "is_tournament": self.is_tournament
             })
             self.current_game_settings = game_settings
-            
+
             if self.is_tournament:
                 self.current_menu_stack.append("online_mode")
                 return {"action": "show_submenu", "menu_items": self.tournament_size_items}
             return {"action": "start_game", "settings": game_settings}
-        
+
         elif selection == "ai":
             self.current_menu_stack.append("play_mode")
             return {"action": "show_submenu", "menu_items": self.ai_difficulty_items}
-        
+
         elif selection in ["easy", "medium", "impossible"]:
             game_settings = self.game_settings.get_settings()
             game_settings.update({
@@ -144,12 +144,12 @@ class Menu:
                 "is_tournament": self.is_tournament
             })
             self.current_game_settings = game_settings
-            
+
             if self.is_tournament:
                 self.current_menu_stack.append("difficulty")
                 return {"action": "show_submenu", "menu_items": self.tournament_size_items}
             return {"action": "start_game", "settings": game_settings}
-        
+
         elif selection in ["4_players", "6_players", "8_players"]:
             num_players = int(selection.split("_")[0])
             return {
@@ -157,7 +157,7 @@ class Menu:
                 "num_players": num_players,
                 "tournament": True
             }
-        
+
         elif selection == "back":
             if self.current_menu_stack:
                 last_menu = self.current_menu_stack.pop()
@@ -176,13 +176,13 @@ class Menu:
         return await self.game_settings.update_settings(settings_data)
 
     async def get_menu_items(self):
-        return self.menu_items 
+        return self.menu_items
 
     def display_settings(self, settings):
         # This method is not provided in the original file or the code block
         # It's assumed to exist as it's called in the code block
         # Implementation of display_settings method
-        pass 
+        pass
 
     def get_current_settings(self):
         # Verwende die gespeicherten Spiel-Settings, falls vorhanden
@@ -190,12 +190,12 @@ class Menu:
             print(f"Using current game settings: {self.current_game_settings}")
             return self.current_game_settings
         # Ansonsten Standard-Settings
-        return self.game_settings.get_settings() 
+        return self.game_settings.get_settings()
 
     async def match_players(self):
         """Versucht, zwei suchende Spieler zu matchen"""
         print(f"Checking for matches... Current players: {len(self.searching_players)}")  # Debug print
-        
+
         if len(self.searching_players) >= 2:
             # Nimm die ersten zwei Spieler
             player1_ws, player1_name = list(self.searching_players.items())[0]
@@ -213,7 +213,8 @@ class Menu:
             game_settings.update({
                 "mode": "online",
                 "player1_name": player1_name,
-                "player2_name": player2_name
+                "player2_name": player2_name,
+                "game_id": game_id
             })
 
             # Informiere beide Spieler mit ihren spezifischen Rollen
@@ -235,4 +236,4 @@ class Menu:
                 "playerRole": "player2"  # WASD Controls
             })
 
-            print(f"Game {game_id} created and players notified")  # Debug print 
+            print(f"Game {game_id} created and players notified")  # Debug print

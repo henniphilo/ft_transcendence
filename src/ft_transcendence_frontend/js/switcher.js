@@ -53,18 +53,18 @@ document.addEventListener("DOMContentLoaded", () => {
             // Hole die Eingaben
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
-    
+
             try {
                 // Führe den Login durch und speichere die Tokens
                 await AuthLib.loginUser(username, password);
                 alert('Login erfolgreich!');
-    
+
                 // Optional: Login-Container ausblenden
                 document.getElementById('login-container').style.display = 'none';
-    
+
                 // Hole das Benutzerprofil
                 const userProfile = await AuthLib.getProfile();
-    
+
                 // Zeige das Menü an und übergebe das Profil
                 showTemplate("menu");
                 const menuDisplay = new MenuDisplay(userProfile);
@@ -83,20 +83,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupGameScreen() {
-        // Hier wird der GameScreen initialisiert
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
-        const gameScreen = new GameScreen({
+
+        const gameState = {
             player1: { name: "Player 1", score: 0, paddle: 0 },
             player2: { name: "Player 2", score: 0, paddle: 0 },
-            ball: [0, 0]
-        }, () => {
-            // Back to menu callback
+            ball: [0, 0],
+            playerRole: null,
+            gameId: null
+        };
+
+        const gameScreen = new GameScreen(gameState, () => {
             gameContainer.style.display = 'none';
             showTemplate('menu');
         });
+
+        console.log(">> GameScreen initialized with gameState:", gameState);
+
+            // Falls ein game_id gesendet wird, setze es im gameState
+            if (data.game_id) {
+                gameState.gameId = data.game_id;
+                gameScreen.gameId = data.game_id; // WICHTIG!
+                console.log("Game ID received:", gameState.gameId);
+            }
+
+            if (data.playerRole) {
+                gameScreen.playerRole = data.playerRole;
+                gameScreen.gameState.playerRole = data.playerRole;
+                console.log("Player role received:", gameScreen.playerRole);
+            }
+
         gameScreen.display();
     }
+
 
     // Initially show the signup template
     showTemplate("signup");

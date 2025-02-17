@@ -7,6 +7,8 @@ import time
 from models.ai_player import AI
 import redis
 import os
+import uuid  # Für UUID-Generierung
+
 
 class GameServer:
     def __init__(self):
@@ -17,19 +19,27 @@ class GameServer:
     async def handle_game(self, websocket: WebSocket, game_id: str, settings: dict):
         await websocket.accept()
 
+
+         # Falls keine gameID existiert, erstelle eine neue
+        if not game_id:
+             mode = settings.get("mode", "local")
+             prefix = "local" if mode == "local" else "ai" if mode == "ai" else "online"
+             game_id = f"{prefix}-{uuid.uuid4().hex[:8]}"  # Kürzere UUID für Lesbarkeit
+
+
         print("\n=== New Game Started ===")
         print(f"Game ID: {game_id}")
         print(f"Received Settings: {settings}")
-        
+
         is_ai_mode = settings.get("mode") == "ai"
         is_online_mode = settings.get("mode") == "online"
-        
+
         # Erstelle Spieler basierend auf Spielmodus
         if is_online_mode:
             # Online Modus: Beide Spieler mit WASD Controls
-            player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"), 
+            player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"),
                            player_type=PlayerType.HUMAN, controls=Controls.WASD)
-            player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"), 
+            player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"),
                            player_type=PlayerType.HUMAN, controls=Controls.WASD)
         elif is_ai_mode:
             # AI Modus bleibt unverändert
@@ -40,7 +50,7 @@ class GameServer:
             # Lokaler Modus bleibt unverändert
             player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
             player2 = Player(id="p2", name="Player 2", player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
-        
+
         self.active_games[game_id] = PongGame(settings, player1, player2)
         game = self.active_games[game_id]
         game.start_game()
@@ -86,30 +96,37 @@ class GameServer:
         elif keys.get('ArrowLeft'):
             game.move_paddle(game.player2, 1 * movement_multiplier)
 
-    async def game_loop(self, websocket: WebSocket, game: PongGame, game_id: str):
-        try:
-            while True:
-                if game_id in self.active_games:
-                    if not game.game_active:  # Wenn das Spiel vorbei ist
-                        print("Game ended, cleaning up resources...")
-                        if game_id in self.ai_players:
-                            del self.ai_players[game_id]
-                        if game_id in self.active_games:
-                            del self.active_games[game_id]
-                        break  # Beende den Loop
 
-                    # Normale Spiel-Loop
-                    if game_id in self.ai_players:
-                        ai_move = self.ai_players[game_id].calculate_move(game.get_game_state())
-                        self.handle_input(game, ai_move["keys"])
-
-                    game_state = game.update_game_state()
-                    await websocket.send_json(game_state)
-                await asyncio.sleep(1/60)
-        except Exception as e:
-            print(f"Game loop error: {e}")
-            # Cleanup bei Fehlern
-            if game_id in self.ai_players:
-                del self.ai_players[game_id]
+async def game_loop(self, websocket: WebSocket, game: PongGame, game_id: str, player_role: str):
+    try:
+        while True:
             if game_id in self.active_games:
-                del self.active_games[game_id]
+                if not game.game_active:  # Wenn das Spiel vorbei ist
+                    print("Game ended, cleaning up resources...")
+                    if game_id in self.ai_players:
+                        del self.ai_players[game_id]
+                    if game_id in self.active_games:
+                        del self.active_games[game_id]
+                    break  # Beende den Loop
+
+                # Normale Spiel-Loop
+                if game_id in self.ai_players:
+                    ai_move = self.ai_players[game_id].calculate_move(game.get_game_state())
+                    self.handle_input(game, ai_move["keys"])
+
+                game_state = game.update_game_state()
+                game_state["game_id"] = game_id  # <== Game ID hinzufügen
+                game_state["playerRole"] = player_role if player_role in ["player1", "player2"] else "spectator"
+
+                await websocket.send_json(game_state)
+
+            await asyncio.sleep(1/60)  # 60 FPS Update-Rate
+
+    except Exception as e:
+        print(f"Game loop error: {e}")
+        # Cleanup bei Fehlern
+        if game_id in self.ai_players:
+            del self.ai_players[game_id]
+        if game_id in self.active_games:
+            del self.active_games[game_id]
+
