@@ -52,13 +52,10 @@ fclean:
 
 # Individual container logs
 logs-backend:
-	docker logs -f ft_transcendence-backend
+	docker logs -f ft_transcendence_backend
 
 logs-grafana:
-	docker logs -f ft_transcendence-grafana
+	docker logs -f grafana
 
 logs-nginx:
-	docker logs -f ft_transcendence-nginx
-
-logs-portainer:
-	docker logs -f ft_transcendence-portainer-1
+	docker logs -f ft_transcendence_nginx
