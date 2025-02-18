@@ -12,73 +12,53 @@
   <!-- Background Canvas (MUST BE HERE) -->
   <canvas id="background-canvas"></canvas>
 
-  <!-- Menü- und Spielbereich -->
-  <div id="menu-container"></div>
-  <div id="game-container"></div>
-  <div id="three-js-container"></div>
-
-  <!-- Signup Form -->
-  <div id="signup-container">
-    <h2>Sign Up</h2>
-    <form id="signup-form">
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" required />
-
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required />
-
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" required />
-
-      <button type="submit">Sign Up</button>
-    </form>
-
-    <div id="twofa-container" style="display: none;">
-      <h3>2FA Verification</h3>
-      <label for="verification-code">
-        Enter the verification code sent to your email:
-      </label>
-      <input type="text" id="verification-code" name="verification-code" required />
-      <button id="verify-code">Verify Code</button>
+  <!-- Templates -->
+  <template id="template-signup">
+    <div id="signup-container">
+      <h2>Sign Up</h2>
+      <form id="signup-form">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required />
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+        <button type="submit">Sign Up</button>
+      </form>
+      <button id="switch-to-login">Login</button>
     </div>
-  </div>
+  </template>
 
-  <!-- Login Form -->
-  <div id="login-container">
-    <h2>Login</h2>
-    <form id="login-form">
-      <label for="login-username">Username</label>
-      <input type="text" id="login-username" name="login-username" required />
+  <template id="template-login">
+    <div id="login-container">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" name="login-username" required />
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" name="login-password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </template>
 
-      <label for="login-password">Password</label>
-      <input type="password" id="login-password" name="login-password" required />
-
-      <button type="submit">Login</button>
-    </form>
-  </div>
-
-  <!-- Profil-Container -->
-  <div id="profile-container" class="profile-container" style="display: none;">
-    <h2>Willkommen, <span id="profile-username"></span>!</h2>
-    <div class="profile-info">
-      <!-- Avatar-Bild -->
-      <img id="profile-avatar" src="" alt="Avatar" />
-      <div class="profile-details">
-        <p><strong>Email:</strong> <span id="profile-email"></span></p>
-        <p><strong>Bio:</strong> <span id="profile-bio"></span></p>
-        <p><strong>Geburtstag:</strong> <span id="profile-birth_date"></span></p>
+  <template id="template-menu">
+    <div id="menu-container">
+      <h2>Willkommen, <span id="profile-username"></span>!</h2>
+      <div id="menu-options">
+        <!-- Hier werden die Menüelemente von der MenuDisplay-Klasse hinzugefügt -->
       </div>
     </div>
-    <form id="profile-form" enctype="multipart/form-data">
-      <label for="avatar-input">Avatar ändern:</label>
-      <input id="avatar-input" type="file" accept="image/*" />
-    </form>
-    <button id="edit-profile-button">Profil bearbeiten</button>
-    <button id="logout-button">Logout</button>
-  </div>
+  </template>
 
-  <h3>Online Benutzer:</h3>
-  <ul id="online-users-list"></ul>
+  <template id="template-game">
+    <div id="game-container" style="display: none;">
+      <!-- Der GameScreen wird hier angezeigt -->
+    </div>
+  </template>
+
+  <!-- Content Div for Dynamic Loading -->
+  <div id="content"></div>
 
   <!-- ImportMap für Three.js (falls benötigt) -->
   <script type="importmap">
@@ -102,5 +82,6 @@
   <script type="module" src="js/game/displayMenu.js"></script>
   <script type="module" src="js/game/game_screen.js"></script>
   <script type="module" src="js/game/main.js"></script>
+  <script type="module" src="js/switcher.js"></script>
 </body>
 </html>

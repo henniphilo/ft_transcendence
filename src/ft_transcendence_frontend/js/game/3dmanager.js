@@ -68,24 +68,24 @@ export class ThreeJSManager {
         field.position.set(0, 0, 0);  // Damit das Feld in XZ-Ebene bleibt
         this.scene.add(field);
 
-        // Mittellinie
-        const lineGeometry = new THREE.PlaneGeometry(0.1, 6);
-        const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 });
-        const line = new THREE.Mesh(lineGeometry, lineMaterial);
-        line.rotation.x = -Math.PI / 2;
-        line.position.set(0, 0.01, 0);
-        this.scene.add(line);
+        // // Mittellinie
+        // const lineGeometry = new THREE.PlaneGeometry(0.1, 6);
+        // const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+        // const line = new THREE.Mesh(lineGeometry, lineMaterial);
+        // line.rotation.x = -Math.PI / 2;
+        // line.position.set(0, 0.01, 0);
+        // this.scene.add(line);
 
-        // Spielfeld-Begrenzungen
-        const borderMaterial = new THREE.MeshStandardMaterial({ color: 'yellow' });
+        // // Spielfeld-Begrenzungen
+        // const borderMaterial = new THREE.MeshStandardMaterial({ color: 'yellow' });
 
-        const topBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.1), borderMaterial);
-        topBorder.position.set(0, 0, 3);
-        this.scene.add(topBorder);
+        // const topBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.1), borderMaterial);
+        // topBorder.position.set(0, 0, 3);
+        // this.scene.add(topBorder);
 
-        const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.2), borderMaterial);
-        bottomBorder.position.set(0, 0, -3);
-        this.scene.add(bottomBorder);
+        // const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.2), borderMaterial);
+        // bottomBorder.position.set(0, 0, -3);
+        // this.scene.add(bottomBorder);
     }
 
     async loadModels() {
