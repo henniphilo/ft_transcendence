@@ -95,8 +95,8 @@ export class GameScreen {
     setupControls() {
         if (this.playerRole === 'player1') {
             this.keyState = {
-                'w': false,
-                's': false
+                'd': false,
+                'a': false
             };
         } else if (this.playerRole === 'player2') {
             this.keyState = {
