@@ -1,4 +1,5 @@
 import { MenuDisplay } from './game/displayMenu.js'; // Importiere die MenuDisplay-Klasse
+import { GameScreen } from './game/game_screen.js'; // Korrigierter Import-Pfad
 
 document.addEventListener("DOMContentLoaded", () => {
     const templates = {
@@ -28,6 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setupLogin();
         } else if (templateName === "menu") {
             setupMenu();
+        } else if (templateName === "game") {
+            setupGameScreen();
         }
     }
 
@@ -67,6 +70,25 @@ document.addEventListener("DOMContentLoaded", () => {
         menuDisplay.display(); // Zeige das Menü an
     }
 
+    function setupGameScreen() {
+        // Hier wird der GameScreen initialisiert
+        const gameContainer = document.getElementById('game-container');
+        gameContainer.style.display = 'block';
+        const gameScreen = new GameScreen({
+            player1: { name: "Player 1", score: 0, paddle: 0 },
+            player2: { name: "Player 2", score: 0, paddle: 0 },
+            ball: [0, 0]
+        }, () => {
+            // Back to menu callback
+            gameContainer.style.display = 'none';
+            showTemplate('menu');
+        });
+        gameScreen.display();
+    }
+
     // Initially show the signup template
     showTemplate("signup");
+
+    // Füge die Funktion dem globalen Fensterobjekt hinzu
+    window.showTemplate = showTemplate;
 });

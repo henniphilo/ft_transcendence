@@ -222,6 +222,8 @@ export class MenuDisplay {
                 this.displayMenuItems(data.menu_items);
                 break;
             case 'start_game':
+                // Wechsel zum GameScreen-Template
+                showTemplate('game');
                 this.startGame(data);
                 break;
             case 'show_settings':
@@ -295,11 +297,18 @@ export class MenuDisplay {
 
     startGame(data) {
         console.log("startGame wurde aufgerufen:", data);
+
         // Verstecke das Menü
         this.container.style.display = 'none';
 
-        // Erstelle und starte das Spiel
+        // Versuche, das gameContainer-Element zu finden
         const gameContainer = document.getElementById('game-container');
+        if (!gameContainer) {
+            console.error('gameContainer ist null. Stelle sicher, dass das Template korrekt geladen wurde.');
+            return;
+        }
+
+        // Erstelle und starte das Spiel
         gameContainer.style.display = 'block';
 
         const onBackToMenu = () => {
