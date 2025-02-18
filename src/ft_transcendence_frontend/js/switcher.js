@@ -47,19 +47,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupLogin() {
-        document.getElementById("login-form").addEventListener("submit", async (event) => {
+        const loginForm = document.getElementById("login-form");
+        loginForm.addEventListener("submit", async (event) => {
             event.preventDefault();
-            // Führe den Login-Prozess durch und erhalte das Token
-            // Speichere das Token im localStorage oder einer anderen sicheren Stelle
-
+            // Hole die Eingaben
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+    
             try {
+                // Führe den Login durch und speichere die Tokens
+                await AuthLib.loginUser(username, password);
+                alert('Login erfolgreich!');
+    
+                // Optional: Login-Container ausblenden
+                document.getElementById('login-container').style.display = 'none';
+    
+                // Hole das Benutzerprofil
                 const userProfile = await AuthLib.getProfile();
-                console.log("Login successful");
+    
+                // Zeige das Menü an und übergebe das Profil
                 showTemplate("menu");
                 const menuDisplay = new MenuDisplay(userProfile);
                 menuDisplay.display();
             } catch (error) {
-                console.error('Error fetching user profile:', error);
+                console.error('Login fehlgeschlagen:', error);
+                alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
             }
         });
     }
