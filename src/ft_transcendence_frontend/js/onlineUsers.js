@@ -50,8 +50,9 @@ export class OnlineUsersHandler {
         if (!accessToken) return;
 
         try {
-            const response = await fetch("http://localhost:8080/api/users/online/", {
-                method: "DELETE",
+            // Benutze den korrekten Backend-Port (8000)
+            const response = await fetch("http://localhost:8080/api/users/logout/", {
+                method: "POST",
                 headers: {
                     "Authorization": `Bearer ${accessToken}`,
                     "Content-Type": "application/json"
@@ -63,10 +64,11 @@ export class OnlineUsersHandler {
             }
 
             console.log("👋 User aus Online-Liste entfernt");
-            this.stopPolling();
         } catch (error) {
             console.error("⚠️ Fehler beim Entfernen des Users:", error);
             throw error;
+        } finally {
+            this.stopPolling();
         }
     }
 } 

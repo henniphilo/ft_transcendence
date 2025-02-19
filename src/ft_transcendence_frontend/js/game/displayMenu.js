@@ -130,21 +130,20 @@ export class MenuDisplay {
 
     async logout() {
         try {
-            // Zuerst aus der Online-Liste entfernen
+            // Erst den User aus der Online-Liste entfernen
             await OnlineUsersHandler.removeUserFromOnline();
             
-            // Dann normale Logout-Prozedur
+            // Dann die Token entfernen
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
+            
             console.log('Logout erfolgreich');
-            
-            // Stoppe das Polling
-            OnlineUsersHandler.stopPolling();
-            
             window.location.href = '/login';
         } catch (error) {
             console.error('Fehler beim Logout:', error);
-            // Trotzdem zum Login weiterleiten
+            // Trotzdem die Token entfernen und zur Login-Seite weiterleiten
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
             window.location.href = '/login';
         }
     }
