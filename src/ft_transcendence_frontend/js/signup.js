@@ -1,416 +1,332 @@
-/**
- * AuthLib – Eine kompakte Library zur Benutzer-Authentifizierung und Profilverwaltung.
- *
- * Funktionen:
- * - Registrierung und 2FA (E-Mail-Verifizierung)
- * - Login und Token-Refresh
- * - Profilabruf und -aktualisierung
- * - CSRF-Token-Verwaltung
- */
+import { MenuDisplay } from './game/displayMenu.js';
+
+// AuthLib Definition
 const AuthLib = (function () {
-  'use strict';
+    'use strict';
+    const BASE_URL = '/api/users';
 
-  // Basis-URL für API-Endpunkte
-  const BASE_URL = '/api/users';
-
-  /**
-   * Liest einen Cookie-Wert anhand des Namens.
-   * @param {string} name - Name des Cookies.
-   * @returns {string|null} Der Cookie-Wert oder null, wenn nicht gefunden.
-   */
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let cookie of cookies) {
-        cookie = cookie.trim();
-        if (cookie.startsWith(name + '=')) {
-          cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
-          break;
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                    break;
+                }
+            }
         }
-      }
-    }
-    return cookieValue;
-  }
-
-  /**
-   * Sendet einen Verifizierungscode an die angegebene E-Mail.
-   * @param {string} email - Die E-Mail-Adresse des Benutzers.
-   * @returns {Promise<object|string>} Promise mit der Serverantwort.
-   */
-  function sendVerificationCode(email) {
-    return fetch(`${BASE_URL}/verify/send/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken'),
-      },
-      body: JSON.stringify({ email }),
-    })
-      .then(response => {
-        console.log('sendVerificationCode - Status:', response.status);
-        return response.text();
-      })
-      .then(text => {
-        try {
-          const data = JSON.parse(text);
-          if (data.message) {
-            return data;
-          }
-          return Promise.reject(data.error || 'Unbekannter Fehler beim Senden des Codes.');
-        } catch (error) {
-          console.error('sendVerificationCode - JSON Parse Error:', error);
-          return Promise.reject('Fehler beim Parsen der Serverantwort.');
-        }
-      });
-  }
-
-  /**
-   * Registriert einen neuen Benutzer.
-   * @param {Object} data - Benutzer-Daten (z.B. { username, email, password }).
-   * @returns {Promise<object>} Promise mit der Serverantwort.
-   */
-  function registerUser(data) {
-    return fetch(`${BASE_URL}/register/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken'),
-      },
-      body: JSON.stringify(data),
-    })
-      .then(response => {
-        console.log('registerUser - Antwort:', response);
-        if (!response.ok) {
-          return Promise.reject('Fehler bei der Registrierung (Status ' + response.status + ')');
-        }
-        return response.json();
-      });
-  }
-
-  /**
-   * Überprüft den 2FA-Verifizierungscode.
-   * @param {string} email - Die E-Mail-Adresse des Benutzers.
-   * @param {string} code - Der eingegebene Verifizierungscode.
-   * @returns {Promise<object>} Promise mit der Serverantwort.
-   */
-  function verifyCode(email, code) {
-    return fetch(`${BASE_URL}/verify/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken'),
-      },
-      body: JSON.stringify({ email, code }),
-    }).then(response => response.json());
-  }
-
-  /**
-   * Meldet einen Benutzer an und speichert Access- und Refresh-Token.
-   * @param {string} username - Der Benutzername.
-   * @param {string} password - Das Passwort.
-   * @returns {Promise<object>} Promise mit den Token-Daten.
-   */
-  function loginUser(username, password) {
-    return fetch(`${BASE_URL}/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(err => Promise.reject(err));
-        }
-        return response.json();
-      })
-      .then(data => {
-        localStorage.setItem('accessToken', data.access);
-        localStorage.setItem('refreshToken', data.refresh);
-        return data;
-      });
-  }
-
-  /**
-   * Versucht, den Access-Token mit dem gespeicherten Refresh-Token zu erneuern.
-   * @returns {Promise<void>}
-   */
-  function refreshAccessToken() {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      return Promise.reject('Kein Refresh-Token vorhanden. Bitte einloggen.');
+        return cookieValue;
     }
 
-    return fetch(`${BASE_URL}/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh: refreshToken }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          return Promise.reject('Refresh fehlgeschlagen: ' + response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        localStorage.setItem('accessToken', data.access);
-        console.log('Access-Token erneuert:', data.access);
-      });
-  }
-
-  /**
-   * Holt das Benutzerprofil.
-   * @returns {Promise<object>} Promise mit den Profil-Daten.
-   */
-  function getProfile() {
-    const accessToken = localStorage.getItem('accessToken');
-    return fetch(`${BASE_URL}/profile/`, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + accessToken
-      }
-    })
-      .then(response => {
-        if (response.status === 401) {
-          // Access Token abgelaufen, versuche Refresh
-          return refreshAccessToken().then(() => getProfile());
-        }
-        if (!response.ok) {
-          return Promise.reject(`Fehler: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      });
-  }
-
-  /**
-   * Aktualisiert das Benutzerprofil.
-   * @param {FormData} formData - Die FormData mit den zu aktualisierenden Feldern.
-   * @returns {Promise<object>} Promise mit den aktualisierten Profil-Daten.
-   */
-  function updateProfile(formData) {
-    const accessToken = localStorage.getItem('accessToken');
-    return fetch(`${BASE_URL}/profile/`, {
-      method: 'PUT', // oder 'PATCH', je nach API
-      headers: {
-        'Authorization': 'Bearer ' + accessToken
-        // Kein Content-Type-Header, da FormData gesendet wird
-      },
-      body: formData
-    })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(err => Promise.reject(err));
-        }
-        return response.json();
-      });
-  }
-
-  /**
-   * Meldet den Benutzer ab.
-   */
-  // function logoutUser() {
-    // localStorage.removeItem('accessToken');
-    // localStorage.removeItem('refreshToken');
-  // }
-  async function logoutUser() {
-    const accessToken = localStorage.getItem("accessToken");
-    const refreshToken = localStorage.getItem("refreshToken");
-
-    if (!accessToken) {
-        console.log("🚫 Kein Token gefunden, bereits ausgeloggt.");
-        return;
-    }
-
-    try {
-        // 📝 API-Request an Django senden, um den User aus Redis zu entfernen
-        const response = await fetch("http://localhost:8000/api/users/logout/", {
-            method: "POST",
+    // ... Behalte alle AuthLib Funktionen ...
+    function sendVerificationCode(email) {
+        return fetch(`${BASE_URL}/verify/send/`, {
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
             },
-            body: JSON.stringify({ refresh_token: refreshToken })  // Optional
-        });
-
-        const result = await response.json();
-        console.log("✅ Server-Antwort:", result.message);
-
-    } catch (error) {
-        console.error("⚠️ Fehler beim Logout:", error);
+            body: JSON.stringify({ email }),
+        })
+            .then(response => {
+                console.log('sendVerificationCode - Status:', response.status);
+                return response.text();
+            })
+            .then(text => {
+                try {
+                    const data = JSON.parse(text);
+                    if (data.message) {
+                        return data;
+                    }
+                    return Promise.reject(data.error || 'Unbekannter Fehler beim Senden des Codes.');
+                } catch (error) {
+                    console.error('sendVerificationCode - JSON Parse Error:', error);
+                    return Promise.reject('Fehler beim Parsen der Serverantwort.');
+                }
+            });
     }
 
-    // 🗑️ Tokens aus dem localStorage entfernen
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    function registerUser(data) {
+        return fetch(`${BASE_URL}/register/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => {
+                console.log('registerUser - Antwort:', response);
+                if (!response.ok) {
+                    return Promise.reject('Fehler bei der Registrierung (Status ' + response.status + ')');
+                }
+                return response.json();
+            });
+    }
 
-    // 🔄 Optional: User zur Login-Seite leiten
-    window.location.href = "/login";
-}
+    function verifyCode(email, code) {
+        return fetch(`${BASE_URL}/verify/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({ email, code }),
+        }).then(response => response.json());
+    }
 
+    function loginUser(username, password) {
+        return fetch(`${BASE_URL}/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                localStorage.setItem('accessToken', data.access);
+                localStorage.setItem('refreshToken', data.refresh);
+                return data;
+            });
+    }
 
-  // Exponiere die Funktionen
-  return {
-    getCookie,
-    sendVerificationCode,
-    registerUser,
-    verifyCode,
-    loginUser,
-    refreshAccessToken,
-    getProfile,
-    updateProfile,
-    logoutUser
-  };
+    function refreshAccessToken() {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+            return Promise.reject('Kein Refresh-Token vorhanden. Bitte einloggen.');
+        }
+
+        return fetch(`${BASE_URL}/token/refresh/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return Promise.reject('Refresh fehlgeschlagen: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                localStorage.setItem('accessToken', data.access);
+                console.log('Access-Token erneuert:', data.access);
+            });
+    }
+
+    function getProfile() {
+        const accessToken = localStorage.getItem('accessToken');
+        return fetch(`${BASE_URL}/profile/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    return refreshAccessToken().then(() => getProfile());
+                }
+                if (!response.ok) {
+                    return Promise.reject(`Fehler: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            });
+    }
+
+    async function logoutUser() {
+        const accessToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
+
+        if (!accessToken) {
+            console.log("🚫 Kein Token gefunden, bereits ausgeloggt.");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8000/api/users/logout/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ refresh_token: refreshToken })
+            });
+
+            const result = await response.json();
+            console.log("✅ Server-Antwort:", result.message);
+
+        } catch (error) {
+            console.error("⚠️ Fehler beim Logout:", error);
+        }
+
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/login";
+    }
+
+    return {
+        getCookie,
+        sendVerificationCode,
+        registerUser,
+        verifyCode,
+        loginUser,
+        refreshAccessToken,
+        getProfile,
+        logoutUser
+    };
 })();
 
-/* ===================== UI-Interaktionen und Event-Listener ===================== */
+// Gemeinsame Daten für die Handler
+const SharedData = {
+    formData: null
+};
 
-/**
- * Füllt die Profilfelder im DOM mit den abgerufenen Daten.
- * Passe die Feldnamen an Deine API-Antwort an!
- */
-function fillProfileFields(data) {
-  if (data.username) {
-    document.getElementById('profile-username').textContent = data.username;
-  }
-  if (data.email) {
-    document.getElementById('profile-email').textContent = data.email;
-  }
-  if (data.bio) {
-    document.getElementById('profile-bio').textContent = data.bio;
-  }
-  if (data.birth_date) {
-    document.getElementById('profile-birth_date').textContent = data.birth_date;
-  }
-  if (data.avatar_url) {
-    document.getElementById('profile-avatar').src = data.avatar_url;
-  }
+// Handler-Klassen für die Template-Logik
+export class SignupHandler {
+    static init() {
+        console.log("SignupHandler wird initialisiert");
+        const signupForm = document.getElementById('signup-form');
+        const switchToLoginBtn = document.getElementById('switch-to-login');
+        
+        if (signupForm) {
+            signupForm.addEventListener('submit', this.handleSignup.bind(this));
+        }
+        
+        if (switchToLoginBtn) {
+            switchToLoginBtn.addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('templateChange', {
+                    detail: { template: 'login' }
+                }));
+            });
+        }
+    }
+
+    static async handleSignup(event) {
+        event.preventDefault();
+        
+        SharedData.formData = {
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+
+        try {
+            // Erst den User registrieren
+            await AuthLib.registerUser(SharedData.formData);
+            console.log("User erfolgreich registriert");
+            
+            // Dann den Verifizierungscode senden
+            await AuthLib.sendVerificationCode(SharedData.formData.email);
+            console.log("Verifizierungscode gesendet");
+            
+            document.dispatchEvent(new CustomEvent('templateChange', {
+                detail: { template: 'verify' }
+            }));
+        } catch (error) {
+            console.error('Fehler bei der Registrierung:', error);
+            alert(error);
+        }
+    }
 }
 
-/**
- * Lädt das Benutzerprofil und zeigt den Profil-Container an.
- */
-function showUserProfile() {
-  AuthLib.getProfile()
-    .then(data => {
-      fillProfileFields(data);
-      // Profil-Container anzeigen und Login-Container ausblenden
-      document.getElementById('profile-container').style.display = 'block';
-      document.getElementById('login-container').style.display = 'none';
-    })
-    .catch(error => {
-      console.error('Fehler beim Profil-Abruf:', error);
-      alert('Konnte Profil nicht laden. Bitte erneut einloggen.');
-    });
+export class VerifyHandler {
+    static init() {
+        const verifyButton = document.getElementById('verify-code');
+        if (!verifyButton) return;
+        
+        verifyButton.addEventListener('click', this.handleVerification);
+        
+        const resendButton = document.getElementById('resend-code');
+        if (resendButton) {
+            resendButton.addEventListener('click', this.handleResendCode);
+        }
+    }
+
+    static async handleVerification() {
+        if (!SharedData.formData) {
+            console.error('Keine Formulardaten gefunden');
+            return;
+        }
+
+        const code = document.getElementById('verification-code').value;
+
+        try {
+            // Nur Code verifizieren, nicht nochmal registrieren
+            await AuthLib.verifyCode(SharedData.formData.email, code);
+            console.log("Code erfolgreich verifiziert");
+            
+            SharedData.formData = null;
+            
+            alert('Registrierung erfolgreich!');
+            document.dispatchEvent(new CustomEvent('templateChange', {
+                detail: { template: 'login' }
+            }));
+        } catch (error) {
+            console.error('Fehler bei der Verifizierung:', error);
+            alert(error);
+        }
+    }
+
+    static async handleResendCode() {
+        if (!SharedData.formData) {
+            console.error('Keine E-Mail-Adresse gefunden');
+            return;
+        }
+
+        try {
+            await AuthLib.sendVerificationCode(SharedData.formData.email);
+            alert('Neuer Code wurde gesendet!');
+        } catch (error) {
+            console.error('Fehler beim erneuten Senden des Codes:', error);
+            alert(error);
+        }
+    }
 }
 
-/* Login-Formular */
-document.getElementById('login-form').addEventListener('submit', function(event) {
-  event.preventDefault();
-  const username = document.getElementById('login-username').value;
-  const password = document.getElementById('login-password').value;
-  AuthLib.loginUser(username, password)
-    .then(() => {
-      alert('Login erfolgreich!');
-      // Login-Container ausblenden und Profil anzeigen
-      document.getElementById('login-container').style.display = 'none';
-      showUserProfile();
-    })
-    .catch(err => {
-      console.error('Login fehlgeschlagen:', err);
-      alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
-    });
-});
+export class LoginHandler {
+    static init() {
+        console.log("LoginHandler wird initialisiert");
+        const loginForm = document.getElementById('login-form');
+        const switchToSignupBtn = document.getElementById('switch-to-signup');
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', this.handleLogin.bind(this));
+        }
+        
+        if (switchToSignupBtn) {
+            switchToSignupBtn.addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('templateChange', {
+                    detail: { template: 'signup' }
+                }));
+            });
+        }
+    }
 
-/* Logout-Button */
-document.getElementById('logout-button').addEventListener('click', function () {
-  AuthLib.logoutUser();
-  // UI zurücksetzen: Login-Container einblenden, Profil-Container ausblenden
-  document.getElementById('login-container').style.display = 'block';
-  document.getElementById('profile-container').style.display = 'none';
-  // Falls erforderlich, Login-Formular wieder anzeigen
-  document.getElementById('login-form').style.display = 'block';
-  alert('Logout erfolgreich!');
-});
+    static async handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
 
-/* Profil bearbeiten (z.B. Bio ändern, Avatar auswählen) */
-document.getElementById('edit-profile-button').addEventListener('click', () => {
-  const newBio = prompt('Neue Bio eingeben:');
-  const avatarFile = document.getElementById('avatar-input').files[0];
-
-  if (!newBio && !avatarFile) {
-    alert('Es wurden keine Änderungen vorgenommen.');
-    return;
-  }
-
-  const formData = new FormData();
-  if (newBio) {
-    formData.append('bio', newBio);
-  }
-  if (avatarFile) {
-    formData.append('avatar', avatarFile);
-  }
-
-  AuthLib.updateProfile(formData)
-    .then(updatedData => {
-      console.log('Aktualisierte Profil-Daten:', updatedData);
-      fillProfileFields(updatedData);
-      alert('Profil erfolgreich aktualisiert!');
-      document.getElementById('avatar-input').value = "";
-    })
-    .catch(err => {
-      console.error('Fehler beim Aktualisieren:', err);
-      alert('Profil-Update fehlgeschlagen: ' + err);
-    });
-});
-
-/* Direktes Aktualisieren des Avatars, wenn ein neues Bild ausgewählt wird */
-document.getElementById('avatar-input').addEventListener('change', (e) => {
-  const avatarFile = e.target.files[0];
-  if (!avatarFile) return;
-  const formData = new FormData();
-  formData.append('avatar', avatarFile);
-
-  AuthLib.updateProfile(formData)
-    .then(updatedData => {
-      console.log('Profil-Update (Avatar) erfolgreich:', updatedData);
-      fillProfileFields(updatedData);
-      alert('Avatar erfolgreich aktualisiert!');
-      e.target.value = "";
-    })
-    .catch(err => {
-      console.error('Fehler beim Avatar-Update:', err);
-      alert('Avatar-Update fehlgeschlagen: ' + err);
-    });
-});
-
-async function fetchOnlineUsers() {
-  const accessToken = localStorage.getItem("accessToken");
-
-  if (!accessToken) {
-      console.log("🚫 Kein Token gefunden, nicht eingeloggt.");
-      return;
-  }
-
-  try {
-      const response = await fetch("http://localhost:8000/api/users/online-users/", {
-          method: "GET",
-          headers: {
-              "Authorization": `Bearer ${accessToken}`
-          }
-      });
-
-      const data = await response.json();
-      console.log("👥 Online User:", data.online_users);
-
-      // 🎯 User-Liste in die HTML-Seite einfügen (falls vorhanden)
-      const userList = document.getElementById("online-users-list");
-      if (userList) {
-          userList.innerHTML = data.online_users.map(user => `<li>${user.username}</li>`).join("");
-      }
-
-  } catch (error) {
-      console.error("⚠️ Fehler beim Abrufen der Online-User:", error);
-  }
+        try {
+            await AuthLib.loginUser(username, password);
+            const userProfile = await AuthLib.getProfile();
+            
+            alert('Login erfolgreich!');
+            
+            document.dispatchEvent(new CustomEvent('templateChange', {
+                detail: { 
+                    template: 'menu',
+                    userProfile: userProfile
+                }
+            }));
+        } catch (error) {
+            console.error('Login fehlgeschlagen:', error);
+            alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
+        }
+    }
 }
-
-// 🔄 Alle 10 Sekunden die Online-User aktualisieren
-setInterval(fetchOnlineUsers, 10000);

@@ -1,4 +1,7 @@
 import { GameScreen } from "./game_screen.js";
+import { ProfileHandler } from '../profileHandler.js';
+import { OnlineUsersHandler } from '../onlineUsers.js';
+import { LeaderboardDisplay } from './displayLeaderboard.js';
 
 export class MenuDisplay {
     constructor(userProfile) {
@@ -48,9 +51,9 @@ export class MenuDisplay {
                     <div class="profile-info">
                         <img id="profile-avatar" src="${this.userProfile.avatar}" alt="Avatar" />
                         <div class="profile-details">
-                            <p><strong>Email:</strong> ${this.userProfile.email}</p>
-                            <p><strong>Bio:</strong> ${this.userProfile.bio}</p>
-                            <p><strong>Geburtstag:</strong> ${this.userProfile.birth_date}</p>
+                            <p><strong>Email:</strong> <span id="profile-email">${this.userProfile.email}</span></p>
+                            <p><strong>Bio:</strong> <span id="profile-bio">${this.userProfile.bio}</span></p>
+                            <p><strong>Geburtstag:</strong> <span id="profile-birth_date">${this.userProfile.birth_date}</span></p>
                         </div>
                     </div>
                     <form id="profile-form" enctype="multipart/form-data">
@@ -59,6 +62,10 @@ export class MenuDisplay {
                     </form>
                     <button id="edit-profile-button">Profil bearbeiten</button>
                     <button id="logout-button">Logout</button>
+                </div>
+                <div class="online-users-section">
+                    <h3>Online Spieler</h3>
+                    <ul id="online-users-list"></ul>
                 </div>
             </div>
         `;
@@ -71,6 +78,9 @@ export class MenuDisplay {
             this.container.querySelector('#menu-options').appendChild(button);
         });
 
+        // Starte das Polling für Online-User
+        OnlineUsersHandler.startPolling();
+
         // Event-Listener für Profil-Buttons
         document.getElementById('edit-profile-button').addEventListener('click', () => {
             this.editProfile();
@@ -79,23 +89,64 @@ export class MenuDisplay {
         document.getElementById('logout-button').addEventListener('click', () => {
             this.logout();
         });
+
+        // Event-Listener für Avatar-Upload
+        document.getElementById('avatar-input').addEventListener('change', async (e) => {
+            const avatarFile = e.target.files[0];
+            if (!avatarFile) return;
+
+            const formData = new FormData();
+            formData.append('avatar', avatarFile);
+
+            try {
+                const updatedProfile = await ProfileHandler.updateProfile(formData);
+                ProfileHandler.fillProfileFields(updatedProfile);
+                alert('Avatar erfolgreich aktualisiert!');
+            } catch (error) {
+                console.error('Fehler beim Avatar-Update:', error);
+                alert('Avatar-Update fehlgeschlagen: ' + error);
+            }
+        });
     }
 
     editProfile() {
         const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
         if (newBio !== null) {
-            this.userProfile.bio = newBio;
-            document.querySelector('.profile-details p:nth-child(2) span').textContent = newBio;
-            console.log('Profil aktualisiert:', this.userProfile);
-            // Hier kannst du auch einen API-Call machen, um die Änderungen zu speichern
+            const formData = new FormData();
+            formData.append('bio', newBio);
+            
+            ProfileHandler.updateProfile(formData)
+                .then(updatedProfile => {
+                    this.userProfile = updatedProfile;
+                    ProfileHandler.fillProfileFields(updatedProfile);
+                    alert('Profil erfolgreich aktualisiert!');
+                })
+                .catch(error => {
+                    console.error('Fehler beim Aktualisieren:', error);
+                    alert('Profil-Update fehlgeschlagen: ' + error);
+                });
         }
     }
 
-    logout() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        console.log('Logout erfolgreich');
-        window.location.href = '/login'; // Leite den Benutzer zur Login-Seite um
+    async logout() {
+        try {
+            // Zuerst aus der Online-Liste entfernen
+            await OnlineUsersHandler.removeUserFromOnline();
+            
+            // Dann normale Logout-Prozedur
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            console.log('Logout erfolgreich');
+            
+            // Stoppe das Polling
+            OnlineUsersHandler.stopPolling();
+            
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('Fehler beim Logout:', error);
+            // Trotzdem zum Login weiterleiten
+            window.location.href = '/login';
+        }
     }
 
     displaySettings(settings) {
