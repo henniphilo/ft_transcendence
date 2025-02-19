@@ -54,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupMenu(userProfile) {
         // Initialisiere die MenuDisplay-Klasse mit dem Benutzerprofil
         const menuDisplay = new MenuDisplay(userProfile);
-        menuDisplay.display();
     }
 
     function setupGameScreen() {

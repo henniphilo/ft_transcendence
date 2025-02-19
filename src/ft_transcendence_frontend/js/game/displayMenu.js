@@ -2,6 +2,8 @@ import { GameScreen } from "./game_screen.js";
 import { ProfileHandler } from '../profileHandler.js';
 import { OnlineUsersHandler } from '../onlineUsers.js';
 import { LeaderboardDisplay } from './displayLeaderboard.js';
+import { updateProfile, logoutUser, getProfile } from '../authLib.js';
+import { fillProfileFields } from '../profileHandler.js';
 
 export class MenuDisplay {
     constructor(userProfile) {
@@ -14,6 +16,7 @@ export class MenuDisplay {
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
         this.leaderboardDisplay = null;
         this.userProfile = userProfile; // Speichere Benutzerprofil
+        this.elements = {};  // Für DOM-Element-Referenzen
         this.initWebSocket();
     }
 
@@ -40,6 +43,35 @@ export class MenuDisplay {
         this.ws.send(JSON.stringify({ action: 'get_menu_items' }));
     }
 
+    async editProfile() {
+        const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
+        if (newBio !== null) {
+            const formData = new FormData();
+            formData.append('bio', newBio);
+            
+            try {
+                const updatedData = await updateProfile(formData);
+                this.userProfile = updatedData;
+                this.updateProfileDisplay(updatedData);
+                console.log('Profil erfolgreich aktualisiert!');
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren:', error);
+                alert('Profil-Update fehlgeschlagen: ' + error);
+            }
+        }
+    }
+
+    updateProfileDisplay(profileData) {
+        if (this.elements.bio) this.elements.bio.textContent = profileData.bio || '';
+        if (this.elements.email) this.elements.email.textContent = profileData.email || '';
+        if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
+        if (this.elements.avatar) {
+            this.elements.avatar.src = profileData.avatar 
+                ? profileData.avatar + '?t=' + new Date().getTime()
+                : '/assets/default-avatar.png';
+        }
+    }
+
     displayMenuItems(menuItems) {
         this.container.innerHTML = `
             <div class="menu-profile-container">
@@ -47,21 +79,17 @@ export class MenuDisplay {
                     <div id="menu-options"></div>
                 </div>
                 <div class="profile-section">
-                    <h2>Willkommen, ${this.userProfile.username}!</h2>
+                    <h2 class="profile-username">Willkommen, ${this.userProfile.username}!</h2>
                     <div class="profile-info">
-                        <img id="profile-avatar" src="${this.userProfile.avatar}" alt="Avatar" />
+                        <img class="profile-avatar" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" alt="Avatar" />
                         <div class="profile-details">
-                            <p><strong>Email:</strong> <span id="profile-email">${this.userProfile.email}</span></p>
-                            <p><strong>Bio:</strong> <span id="profile-bio">${this.userProfile.bio}</span></p>
-                            <p><strong>Geburtstag:</strong> <span id="profile-birth_date">${this.userProfile.birth_date}</span></p>
+                            <p><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
+                            <p><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
+                            <p><strong>Geburtstag:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
                         </div>
                     </div>
-                    <form id="profile-form" enctype="multipart/form-data">
-                        <label for="avatar-input">Avatar ändern:</label>
-                        <input id="avatar-input" type="file" accept="image/*" />
-                    </form>
-                    <button id="edit-profile-button">Profil bearbeiten</button>
-                    <button id="logout-button">Logout</button>
+                    <button class="edit-profile-button">Profil bearbeiten</button>
+                    <button class="logout-button">Logout</button>
                 </div>
                 <div class="online-users-section">
                     <h3>Online Spieler</h3>
@@ -69,6 +97,24 @@ export class MenuDisplay {
                 </div>
             </div>
         `;
+
+        // DOM-Elemente nach dem Rendern speichern
+        this.elements = {
+            bio: this.container.querySelector('.profile-bio'),
+            email: this.container.querySelector('.profile-email'),
+            birthDate: this.container.querySelector('.profile-birth-date'),
+            avatar: this.container.querySelector('.profile-avatar'),
+            editButton: this.container.querySelector('.edit-profile-button'),
+            logoutButton: this.container.querySelector('.logout-button')
+        };
+
+        // Event-Listener hinzufügen
+        if (this.elements.editButton) {
+            this.elements.editButton.addEventListener('click', () => this.editProfile());
+        }
+        if (this.elements.logoutButton) {
+            this.elements.logoutButton.addEventListener('click', () => this.logout());
+        }
 
         menuItems.forEach(item => {
             const button = document.createElement('button');
@@ -80,15 +126,6 @@ export class MenuDisplay {
 
         // Starte das Polling für Online-User
         OnlineUsersHandler.startPolling();
-
-        // Event-Listener für Profil-Buttons
-        document.getElementById('edit-profile-button').addEventListener('click', () => {
-            this.editProfile();
-        });
-
-        document.getElementById('logout-button').addEventListener('click', () => {
-            this.logout();
-        });
 
         // Event-Listener für Avatar-Upload
         document.getElementById('avatar-input').addEventListener('change', async (e) => {
@@ -107,25 +144,6 @@ export class MenuDisplay {
                 alert('Avatar-Update fehlgeschlagen: ' + error);
             }
         });
-    }
-
-    editProfile() {
-        const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
-        if (newBio !== null) {
-            const formData = new FormData();
-            formData.append('bio', newBio);
-            
-            ProfileHandler.updateProfile(formData)
-                .then(updatedProfile => {
-                    this.userProfile = updatedProfile;
-                    ProfileHandler.fillProfileFields(updatedProfile);
-                    alert('Profil erfolgreich aktualisiert!');
-                })
-                .catch(error => {
-                    console.error('Fehler beim Aktualisieren:', error);
-                    alert('Profil-Update fehlgeschlagen: ' + error);
-                });
-        }
     }
 
     async logout() {
