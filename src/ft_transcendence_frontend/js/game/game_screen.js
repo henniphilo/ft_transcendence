@@ -1,38 +1,17 @@
 import { ThreeJSManager } from "./3dmanager.js";
 
 export class GameScreen {
-    constructor(gameState, onBackToMenu) {
+    constructor(onBackToMenu) {
         console.log("GameScreen loaded!");
-        this.gameId = gameState.game_id;  // Verwende die game_id vom Matchmaking!
 
-        // Initialisiere mit vollständiger Struktur
         this.gameState = {
-            player1: {
-                name: gameState.player1.name,
-                score: gameState.player1.score,
-                paddle: {
-                    top: 0,
-                    bottom: 0,
-                    center: 0
-                }
-            },
-            player2: {
-                name: gameState.player2.name,
-                score: gameState.player2.score,
-                paddle: {
-                    top: 0,
-                    bottom: 0,
-                    center: 0
-                }
-            },
-            ball: [0, 0],
-            playerRole: gameState.playerRole
+            player1: { name: "Player 1", score: 0 },
+            player2: { name: "Player 2", score: 0 },
+            ball: [0, 0]
         };
-
         this.onBackToMenu = onBackToMenu;
-        this.playerRole = gameState.playerRole;
-        //this.canvas = null;
-        //this.ctx = null;
+        this.gameId = crypto.randomUUID();
+
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
@@ -66,25 +45,22 @@ export class GameScreen {
     }
 
     setupWebSocket() {
-        // Verwende die game_id vom Matchmaking
+        this.gameId = crypto.randomUUID();
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
-
-        this.ws.onmessage = (event) => {
-            const newState = JSON.parse(event.data);
-            this.gameState = {
-                ...this.gameState,
-                ...newState
-            };
-            this.updateScoreBoard();
-        };
 
         this.ws.onopen = () => {
             console.log("WebSocket connection established");
-            // Sende initiale Spieldaten
-            this.ws.send(JSON.stringify({
-                action: 'init_game',
-                settings: this.gameState
-            }));
+        };
+
+        this.ws.onmessage = (event) => {
+            console.log("Received game state:", event.data); // Debug-Log
+            this.gameState = JSON.parse(event.data);
+            this.updateScoreBoard();
+            this.threeJSManager.updatePositions(this.gameState);
+
+            if (this.gameState.winner) {
+                this.displayWinnerScreen();
+            }
         };
 
         this.ws.onerror = (error) => {
@@ -93,32 +69,35 @@ export class GameScreen {
     }
 
     setupControls() {
-        if (this.playerRole === 'player1') {
-            this.keyState = {
-                'd': false,
-                'a': false
-            };
-        } else if (this.playerRole === 'player2') {
-            this.keyState = {
-                'ArrowRight': false,
-                'ArrowLeft': false
-            };
-        }
+        // Definiere die erlaubten Tasten für beide Spieler
+        this.keyState = {
+            'a': false,
+            'd': false,
+            'ArrowRight': false,
+            'ArrowLeft': false
+        };
 
+        // Kontinuierliches Senden, wenn Tasten gedrückt sind
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
+                console.log("Sending key state:", this.keyState); // Debug-Log
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
-                    keys: this.keyState,
-                    playerRole: this.playerRole
+                    keys: this.keyState
                 }));
             }
         }, 16);
 
         document.addEventListener('keydown', (e) => {
+            // Nur WASD-Steuerung erlauben wenn gegen AI
+            if (this.gameMode === 'ai' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+                return; // Ignoriere Pfeiltasten im AI-Modus
+            }
+
             if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = true;
+                console.log("Key down:", e.key, this.keyState); // Debug-Log
             }
         });
 
@@ -126,6 +105,7 @@ export class GameScreen {
             if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = false;
+                console.log("Key up:", e.key, this.keyState); // Debug-Log
             }
         });
     }

@@ -8,6 +8,8 @@ export class ThreeJSManager {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        window.addEventListener('resize', () => this.onWindowResize());
+        window.addEventListener('keydown', (event) => this.preventArrowKeyScrolling(event));
 
         this.loader = new GLTFLoader();
         this.fbxLoader = new FBXLoader(); // FBX Loader hinzufügen
@@ -30,7 +32,7 @@ export class ThreeJSManager {
         this.scene.background = bgTexture;
 
         // Kamera Setup
-        this.camera.position.set(-1, 6, -15);
+        this.camera.position.set(-1, 3, -10);
         this.camera.lookAt(0, 0, 0);
 
         // Beleuchtung
@@ -62,31 +64,45 @@ export class ThreeJSManager {
 
         // Spielfeld
         const fieldGeometry = new THREE.PlaneGeometry(8, 6);
-        const fieldMaterial = new THREE.MeshStandardMaterial({ color: 0x4E4E4E, side: THREE.DoubleSide });
+        const fieldMaterial = new THREE.MeshStandardMaterial({ color: 'lightgrey', side: THREE.DoubleSide });
         const field = new THREE.Mesh(fieldGeometry, fieldMaterial);
         field.rotation.x = -Math.PI / 2;
         field.position.set(0, 0, 0);  // Damit das Feld in XZ-Ebene bleibt
         this.scene.add(field);
 
-        // // Mittellinie
-        // const lineGeometry = new THREE.PlaneGeometry(0.1, 6);
-        // const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 });
-        // const line = new THREE.Mesh(lineGeometry, lineMaterial);
-        // line.rotation.x = -Math.PI / 2;
-        // line.position.set(0, 0.01, 0);
-        // this.scene.add(line);
+        // Mittellinie
+        const lineGeometry = new THREE.PlaneGeometry(0.1, 6);
+        const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+        const line = new THREE.Mesh(lineGeometry, lineMaterial);
+        line.rotation.x = -Math.PI / 2;
+        line.position.set(0, 0.01, 0);
+        this.scene.add(line);
 
-        // // Spielfeld-Begrenzungen
-        // const borderMaterial = new THREE.MeshStandardMaterial({ color: 'yellow' });
+        // Spielfeld-Begrenzungen
+        const borderMaterial = new THREE.MeshStandardMaterial({ color: 'yellow' });
 
-        // const topBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.1), borderMaterial);
-        // topBorder.position.set(0, 0, 3);
-        // this.scene.add(topBorder);
+        const topBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.1), borderMaterial);
+        topBorder.position.set(0, 0, 3);
+        this.scene.add(topBorder);
 
-        // const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.2), borderMaterial);
-        // bottomBorder.position.set(0, 0, -3);
-        // this.scene.add(bottomBorder);
+        const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.2), borderMaterial);
+        bottomBorder.position.set(0, 0, -3);
+        this.scene.add(bottomBorder);
     }
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    preventArrowKeyScrolling(event) {
+        const keysToPrevent = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+        if (keysToPrevent.includes(event.key)) {
+            event.preventDefault();
+        }
+    }
+
 
     async loadModels() {
         try {
@@ -108,7 +124,7 @@ export class ThreeJSManager {
             // Annahme: 'looks/walking-woman4.fbx' ist dein Mixamo Modell im FBX Format
             this.humanModel = await this.loadModel('looks/Texting_And_Walking.fbx', {
                 targetSize: 1,
-                addAxesHelper: true,
+                addAxesHelper: false,
             });
             this.humanModel.position.set(0, 0, 0);
             this.scene.add(this.humanModel);

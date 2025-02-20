@@ -50,7 +50,7 @@ class AI:
             if target_pos > paddle_pos:
                 keys['ArrowLeft'] = True
             else:
-                keys['ArrowRight'] = True
+                keys['ArrowUp'] = True
 
         return {
             "action": "key_update",
@@ -59,8 +59,8 @@ class AI:
 
     def get_empty_keys(self):
         return {
-            'd': False,
-            'a': False,
-            'ArrowRight': False,
-            'ArrowLeft': False
+            'w': False,
+            's': False,
+            'ArrowUp': False,
+            'ArrowDown': False
         }
