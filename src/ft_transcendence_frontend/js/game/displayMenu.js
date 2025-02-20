@@ -237,8 +237,15 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
+        console.log("Menu click:", itemId); // Debug log
+        
         if (itemId === 'online') {
             this.displaySearchingScreen();
+            // Wichtig: Sende dem Server die Information, dass wir suchen
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'online'
+            }));
             return;
         }
         if (itemId === 'back' && this.container.querySelector('.searching-container')) {
@@ -255,41 +262,60 @@ export class MenuDisplay {
     }
 
     handleMenuAction(data) {
-        console.log("Handling menu action:", data);
+        console.log("\n=== Menu Action Received ===");
+        console.log("Action:", data.action);
+        console.log("Full data:", data);
         
         switch (data.action) {
             case 'searching_opponent':
-                this.displaySearchingScreen(data.message);
+                console.log("Started searching for opponent...");
+                // Zeige Wartebild an
+                this.container.innerHTML = `
+                    <div class="searching-screen">
+                        <h2>Searching for opponent...</h2>
+                        <button class="cancel-button" onclick="menuDisplay.cancelSearch()">Cancel</button>
+                    </div>
+                `;
                 break;
                 
             case 'game_found':
-                console.log("Match found! Starting game...");
-                // Container für das Spiel anzeigen
-                const gameContainer = document.getElementById('game-container');
-                this.container.style.display = 'none';
-                gameContainer.style.display = 'block';
+                console.log("Match found! Game ID:", data.game_id);
+                console.log("Player1:", data.player1);
+                console.log("Player2:", data.player2);
+                console.log("Your role:", data.playerRole);
+                
+                // Erst Template wechseln über den globalen showTemplate
+                window.showTemplate('game');
+                
+                // Kurz warten, bis das Template geladen ist
+                setTimeout(() => {
+                    const gameContainer = document.getElementById('game-container');
+                    if (!gameContainer) {
+                        console.error("Game container still not found after template switch!");
+                        return;
+                    }
+                    
+                    this.container.style.display = 'none';
+                    gameContainer.style.display = 'block';
 
-                // Neues GameScreen-Objekt erstellen
-                const gameScreen = new GameScreen({
-                    player1: { 
-                        name: data.player1, 
-                        score: 0 
-                    },
-                    player2: { 
-                        name: data.player2, 
-                        score: 0 
-                    },
-                    playerRole: data.playerRole,  // Wichtig für die Steuerung!
-                    ball: [0, 0]
-                }, () => {
-                    // Back to menu callback
-                    gameContainer.style.display = 'none';
-                    this.container.style.display = 'block';
-                    this.requestMenuItems();
-                });
+                    // Neues GameScreen-Objekt erstellen
+                    window.gameScreen = new GameScreen({
+                        player1: data.player1, 
+                        player2: data.player2,
+                        playerRole: data.playerRole,
+                        game_id: data.game_id,  // Wichtig: Verwende die ID vom Server
+                        settings: {
+                            ...data.settings,
+                            mode: "online"  // Explizit Online-Mode setzen
+                        }
+                    }, () => {
+                        gameContainer.style.display = 'none';
+                        this.container.style.display = 'block';
+                        this.requestMenuItems();
+                    });
 
-                // Spiel starten
-                gameScreen.display();
+                    window.gameScreen.display();
+                }, 100);
                 break;
 
             case 'show_submenu':
@@ -421,9 +447,10 @@ export class MenuDisplay {
     }
 
     cancelSearch() {
+        console.log("Canceling search...");
         this.ws.send(JSON.stringify({
-            action: 'menu_selection',
-            selection: 'cancel_search'
+            action: "menu_selection",
+            selection: "cancel_search"
         }));
     }
 

@@ -1,26 +1,33 @@
 import { ThreeJSManager } from "./3dmanager.js";
 
 export class GameScreen {
-    constructor(onBackToMenu) {
+    constructor(gameData, onBackToMenu) {
         console.log("GameScreen loaded!");
 
+        // Nur initiale Werte, werden vom Server überschrieben
         this.gameState = {
-            player1: { name: "Player 1", score: 0 },
-            player2: { name: "Player 2", score: 0 },
+            player1: { name: gameData.player1, score: 0 },
+            player2: { name: gameData.player2, score: 0 },
             ball: [0, 0]
         };
+        this.playerRole = gameData.playerRole;  // "player1" oder "player2"
         this.onBackToMenu = onBackToMenu;
-        this.gameId = crypto.randomUUID();
+        this.gameId = gameData.game_id;
         
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
-        this.gameMode = new URLSearchParams(window.location.search).get('mode') || 'pvp';
+        this.gameMode = 'online';  // Änderung hier: immer auf 'online' setzen
 
         this.threeJSManager = new ThreeJSManager();
 
-        this.setupWebSocket();
+        // Sende Inputs zum Server (60 mal pro Sekunde)
         this.setupControls();
+        
+        // Empfange Game State vom Server
+        this.setupWebSocket();
+        
+        // Rendere nur was wir vom Server bekommen
         this.setupThreeJS();
     }
 
@@ -37,7 +44,7 @@ export class GameScreen {
 
     startGameLoop() {
         const gameLoop = () => {
-            this.threeJSManager.updatePositions(this.gameState);
+            // Nur Rendering, keine Position-Updates!
             this.threeJSManager.render();
             requestAnimationFrame(gameLoop);
         };
@@ -45,18 +52,18 @@ export class GameScreen {
     }
 
     setupWebSocket() {
-        this.gameId = crypto.randomUUID();
+        console.log("Connecting to game with ID:", this.gameId);
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
 
         this.ws.onopen = () => {
-            console.log("WebSocket connection established");
+            console.log("WebSocket connection established for game:", this.gameId);
         };
 
         this.ws.onmessage = (event) => {
-            console.log("Received game state:", event.data); // Debug-Log
             this.gameState = JSON.parse(event.data);
             this.updateScoreBoard();
             this.threeJSManager.updatePositions(this.gameState);
+            this.threeJSManager.render();
 
             if (this.gameState.winner) {
                 this.displayWinnerScreen();
@@ -69,7 +76,6 @@ export class GameScreen {
     }
 
     setupControls() {
-        // Definiere die erlaubten Tasten für beide Spieler
         this.keyState = {
             'a': false,
             'd': false,
@@ -77,27 +83,30 @@ export class GameScreen {
             'ArrowLeft': false
         };
 
-        // Kontinuierliches Senden, wenn Tasten gedrückt sind
+        // Sende Inputs zum Server (60 mal pro Sekunde)
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
-                console.log("Sending key state:", this.keyState); // Debug-Log
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
+                    player_role: this.playerRole,
                     keys: this.keyState
                 }));
             }
-        }, 16);
+        }, 16);  // ~60 FPS
 
         document.addEventListener('keydown', (e) => {
-            // Nur WASD-Steuerung erlauben wenn gegen AI
-            if (this.gameMode === 'ai' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
-                return; // Ignoriere Pfeiltasten im AI-Modus
-            }
-
-            if (this.keyState.hasOwnProperty(e.key)) {
+            // Erlaube nur die Tasten für die entsprechende Rolle
+            if (this.playerRole === 'both') {
+                if (this.keyState.hasOwnProperty(e.key)) {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
+            } else if (this.playerRole === 'player1' && (e.key === 'a' || e.key === 'd')) {
                 e.preventDefault();
                 this.keyState[e.key] = true;
-                console.log("Key down:", e.key, this.keyState); // Debug-Log
+            } else if (this.playerRole === 'player2' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+                e.preventDefault();
+                this.keyState[e.key] = true;
             }
         });
 
@@ -105,14 +114,12 @@ export class GameScreen {
             if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = false;
-                console.log("Key up:", e.key, this.keyState); // Debug-Log
             }
         });
     }
 
     display() {
         console.log("Game wird angezeigt...");
-
         const container = document.getElementById('game-container');
 
         if (this.gameState.winner) {

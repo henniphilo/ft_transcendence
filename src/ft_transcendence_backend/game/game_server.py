@@ -10,66 +10,99 @@ import os
 
 class GameServer:
     def __init__(self):
-        self.active_games = {}
-        self.ai_players = {}  # Speichert AI-Instanzen für jedes Spiel
+        self.active_games = {}  # game_id -> PongGame
+        self.game_websockets = {}  # game_id -> list of websockets
+        self.game_loops = {}  # game_id -> game loop task
+        self.ai_players = {}
         self.UPDATE_RATE = 1/60  # 60 FPS
+
+    def print_active_games(self):
+        print("\n=== Active Games Status ===")
+        for game_id, game in self.active_games.items():
+            print(f"\nGame ID: {game_id}")
+            print(f"Connected WebSockets: {len(self.game_websockets[game_id])}")
+            print(f"Game Loop Active: {game_id in self.game_loops}")
+            print(f"Game Active: {game.game_active}")
+            print("------------------------")
 
     async def handle_game(self, websocket: WebSocket, game_id: str, settings: dict):
         await websocket.accept()
-
-        print("\n=== New Game Started ===")
-        print(f"Game ID: {game_id}")
-        print(f"Received Settings: {settings}")
+        
+        print(f"\n=== Game Settings ===")
+        print(json.dumps(settings, indent=2))
+        print("====================\n")
         
         is_ai_mode = settings.get("mode") == "ai"
-        is_online_mode = settings.get("mode") == "online"
+        is_online_mode = settings.get("mode") == "pvp"
         
-        # Erstelle Spieler basierend auf Spielmodus
+        print(f"\n=== New Game Connection ===")
+        print(f"Game ID: {game_id}")
+        print(f"Mode: {'Online' if is_online_mode else 'AI' if is_ai_mode else 'Local'}")
+        print(f"Player Role: {settings.get('player_role')}")  # Debug
+        
         if is_online_mode:
-            # Online Modus: Beide Spieler mit WASD Controls
-            player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"), 
-                           player_type=PlayerType.HUMAN, controls=Controls.WASD)
-            player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"), 
-                           player_type=PlayerType.HUMAN, controls=Controls.WASD)
-        elif is_ai_mode:
-            # AI Modus bleibt unverändert
-            player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
-            player2 = Player(id="p2", name="AI Player", player_type=PlayerType.AI, controls=Controls.ARROWS)
-            self.ai_players[game_id] = AI(settings.get("difficulty", "medium"))
+            if game_id in self.active_games:
+                print(f"Joining existing game {game_id}")
+                game = self.active_games[game_id]
+                if game_id not in self.game_websockets:
+                    self.game_websockets[game_id] = []
+                self.game_websockets[game_id].append(websocket)  # Wichtig: Füge WebSocket zur Liste hinzu
+                print(f"Players now connected: {len(self.game_websockets[game_id])}")
+                
+                if len(self.game_websockets[game_id]) == 2:
+                    print("Second player joined, starting game!")
+                    game.start_game()
+                    if game_id not in self.game_loops:
+                        self.game_loops[game_id] = asyncio.create_task(self.game_loop(game_id))
+            else:
+                print(f"Creating new online game {game_id}")
+                player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"), 
+                               player_type=PlayerType.HUMAN, controls=Controls.WASD)
+                player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"), 
+                               player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
+                
+                game = PongGame(settings, player1, player2)
+                self.active_games[game_id] = game
+                self.game_websockets[game_id] = [websocket]
+                
         else:
-            # Lokaler Modus bleibt unverändert
-            player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
-            player2 = Player(id="p2", name="Player 2", player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
-        
-        self.active_games[game_id] = PongGame(settings, player1, player2)
-        game = self.active_games[game_id]
-        game.start_game()
+            # Bestehende Logik für AI und Local Mode
+            if is_ai_mode:
+                player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
+                player2 = Player(id="p2", name="AI Player", player_type=PlayerType.AI, controls=Controls.ARROWS)
+                self.ai_players[game_id] = AI(settings.get("difficulty", "medium"))
+            else:
+                player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
+                player2 = Player(id="p2", name="Player 2", player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
 
-        game_loop = asyncio.create_task(self.game_loop(websocket, game, game_id))
+            game = PongGame(settings, player1, player2)
+            self.active_games[game_id] = game
+            self.game_websockets[game_id] = [websocket]
+            game.start_game()
+            self.game_loops[game_id] = asyncio.create_task(self.game_loop(game_id))
+
+        self.print_active_games()  # Zeige Status nach jeder Änderung
 
         try:
             while True:
                 data = await websocket.receive_json()
                 if data["action"] == "key_update":
-                    if is_ai_mode:
-                        # Im AI-Modus nur Spieler 1 Eingaben verarbeiten
-                        ai_safe_keys = {
-                            'a': data['keys'].get('a', False),
-                            'd': data['keys'].get('d', False),
-                            'ArrowRight': False,
-                            'ArrowLeft': False
-                        }
-                        self.handle_input(game, ai_safe_keys)
-                    else:
-                        # Im Online/Local Modus normale Eingabeverarbeitung
-                        self.handle_input(game, data["keys"])
-
+                    self.handle_input(game, data["keys"])
         except Exception as e:
-            if game_id in self.active_games:
-                del self.active_games[game_id]
-            if game_id in self.ai_players:
-                del self.ai_players[game_id]
-            game_loop.cancel()
+            print(f"\nError in game {game_id}: {e}")
+            if game_id in self.game_websockets:
+                self.game_websockets[game_id].remove(websocket)
+                print(f"Player disconnected from game {game_id}")
+                if not self.game_websockets[game_id]:
+                    if game_id in self.game_loops:
+                        self.game_loops[game_id].cancel()
+                        del self.game_loops[game_id]
+                    del self.active_games[game_id]
+                    del self.game_websockets[game_id]
+                    print(f"Game {game_id} cleaned up")
+                    if game_id in self.ai_players:
+                        del self.ai_players[game_id]
+            self.print_active_games()
 
     def handle_input(self, game: PongGame, keys: dict):
         movement_multiplier = game.paddle_speed  # Benutze die Geschwindigkeit aus den Settings
@@ -86,30 +119,17 @@ class GameServer:
         elif keys.get('ArrowLeft'):
             game.move_paddle(game.player2, 1 * movement_multiplier)
 
-    async def game_loop(self, websocket: WebSocket, game: PongGame, game_id: str):
-        try:
-            while True:
-                if game_id in self.active_games:
-                    if not game.game_active:  # Wenn das Spiel vorbei ist
-                        print("Game ended, cleaning up resources...")
-                        if game_id in self.ai_players:
-                            del self.ai_players[game_id]
-                        if game_id in self.active_games:
-                            del self.active_games[game_id]
-                        break  # Beende den Loop
-
-                    # Normale Spiel-Loop
-                    if game_id in self.ai_players:
-                        ai_move = self.ai_players[game_id].calculate_move(game.get_game_state())
-                        self.handle_input(game, ai_move["keys"])
-
-                    game_state = game.update_game_state()
-                    await websocket.send_json(game_state)
-                await asyncio.sleep(1/60)
-        except Exception as e:
-            print(f"Game loop error: {e}")
-            # Cleanup bei Fehlern
-            if game_id in self.ai_players:
-                del self.ai_players[game_id]
-            if game_id in self.active_games:
-                del self.active_games[game_id]
+    async def game_loop(self, game_id: str):
+        print(f"Starting game loop for game {game_id}")
+        game = self.active_games[game_id]
+        while game_id in self.active_games:
+            if game.game_active:
+                game_state = game.update_game_state()
+                for ws in self.game_websockets[game_id]:
+                    try:
+                        await ws.send_json(game_state)
+                    except Exception as e:
+                        print(f"Error sending game state: {e}")
+                        if ws in self.game_websockets[game_id]:
+                            self.game_websockets[game_id].remove(ws)
+            await asyncio.sleep(self.UPDATE_RATE)

@@ -53,7 +53,9 @@ class Menu:
 
     async def start_matchmaking_loop(self):
         """Startet eine kontinuierliche Überprüfung nach möglichen Matches"""
+        print("Starting matchmaking loop")  # Neuer Debug-Print
         while True:
+            print(f"Current searching players: {[name for name in self.searching_players.values()]}")  # Neuer Debug-Print
             await self.match_players()
             await asyncio.sleep(1)  # Überprüfe jede Sekunde
 
@@ -88,13 +90,18 @@ class Menu:
             })
             self.current_game_settings = game_settings
             
-            if self.is_tournament:
-                self.current_menu_stack.append("mode")
-                return {"action": "show_submenu", "menu_items": self.tournament_size_items}
-            return {"action": "start_game", "settings": game_settings}
+            # Neue Struktur für lokales Spiel
+            return {
+                "action": "game_found",
+                "game_id": str(uuid.uuid4()),
+                "settings": game_settings,
+                "player1": "Player 1",
+                "player2": "Player 2",
+                "playerRole": "both"  # Spezieller Wert für lokales Spiel
+            }
         
         elif selection == "online":
-            # Füge den Spieler zur Suchliste hinzu
+            print(f"New player searching for game: {websocket}")  # Neuer Debug-Print
             player_name = "Player"  # Hier später den echten Spielernamen verwenden
             self.searching_players[websocket] = player_name
             
@@ -145,10 +152,15 @@ class Menu:
             })
             self.current_game_settings = game_settings
             
-            if self.is_tournament:
-                self.current_menu_stack.append("difficulty")
-                return {"action": "show_submenu", "menu_items": self.tournament_size_items}
-            return {"action": "start_game", "settings": game_settings}
+            # Neue Struktur für AI Spiel
+            return {
+                "action": "game_found",
+                "game_id": str(uuid.uuid4()),
+                "settings": game_settings,
+                "player1": "Player 1",
+                "player2": "AI Player",
+                "playerRole": "player1"  # Im AI-Modus ist man immer Spieler 1
+            }
         
         elif selection in ["4_players", "6_players", "8_players"]:
             num_players = int(selection.split("_")[0])
@@ -194,45 +206,55 @@ class Menu:
 
     async def match_players(self):
         """Versucht, zwei suchende Spieler zu matchen"""
-        print(f"Checking for matches... Current players: {len(self.searching_players)}")  # Debug print
+        print(f"Checking for matches... Current players: {len(self.searching_players)}")
         
         if len(self.searching_players) >= 2:
             # Nimm die ersten zwei Spieler
             player1_ws, player1_name = list(self.searching_players.items())[0]
             player2_ws, player2_name = list(self.searching_players.items())[1]
 
-            print(f"Found match: {player1_name} vs {player2_name}")  # Debug print
+            print(f"Found match: {player1_name} vs {player2_name}")
 
             # Entferne sie aus der Suchliste
             del self.searching_players[player1_ws]
             del self.searching_players[player2_ws]
 
-            # Erstelle ein neues Spiel
+            # Erstelle EIN Spiel für beide Spieler
             game_id = str(uuid.uuid4())
             game_settings = self.game_settings.get_settings()
             game_settings.update({
                 "mode": "online",
+                "online_type": "host",  # Wichtig für die Spielsynchronisation
                 "player1_name": player1_name,
-                "player2_name": player2_name
+                "player2_name": player2_name,
+                "game_id": game_id  # Füge die game_id zu den Settings hinzu
             })
 
-            # Informiere beide Spieler mit ihren spezifischen Rollen
-            await player1_ws.send_json({
-                "action": "game_found",
-                "game_id": game_id,
-                "settings": game_settings,
-                "player1": player1_name,
-                "player2": player2_name,
-                "playerRole": "player1"  # WASD Controls
-            })
+            try:
+                # Beide Spieler bekommen die GLEICHE game_id
+                match_data = {
+                    "action": "game_found",
+                    "game_id": game_id,  # Die gleiche ID für beide!
+                    "settings": game_settings,
+                    "player1": player1_name,
+                    "player2": player2_name,
+                }
 
-            await player2_ws.send_json({
-                "action": "game_found",
-                "game_id": game_id,
-                "settings": game_settings,
-                "player1": player1_name,
-                "player2": player2_name,
-                "playerRole": "player2"  # WASD Controls
-            })
+                # Spieler 1 ist "Host"
+                await player1_ws.send_json({
+                    **match_data,
+                    "playerRole": "player1"
+                })
 
-            print(f"Game {game_id} created and players notified")  # Debug print 
+                # Spieler 2 ist "Client"
+                await player2_ws.send_json({
+                    **match_data,
+                    "playerRole": "player2"
+                })
+
+                print(f"Game {game_id} created and both players notified with the same ID")
+            except Exception as e:
+                print(f"Error notifying players: {e}")
+                # Falls ein Fehler auftritt, füge die Spieler wieder zur Suchliste hinzu
+                self.searching_players[player1_ws] = player1_name
+                self.searching_players[player2_ws] = player2_name 

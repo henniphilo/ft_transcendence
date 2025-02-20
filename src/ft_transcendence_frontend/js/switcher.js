@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setupMenu(data.userProfile);
                 break;
             case 'game':
-                setupGameScreen();
+                setupGameScreen(data);
                 break;
         }
     }
@@ -56,14 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const menuDisplay = new MenuDisplay(userProfile);
     }
 
-    function setupGameScreen() {
+    function setupGameScreen(data) {
         const gameContainer = document.getElementById('game-container');
-        gameContainer.style.display = 'block';
-        const gameScreen = new GameScreen(() => {
-            gameContainer.style.display = 'none';
-            showTemplate('menu');
-        });
-        gameScreen.display();
+        if (gameContainer) {
+            gameContainer.style.display = 'block';
+        }
     }
 
     // Event Listener für Template-Wechsel
