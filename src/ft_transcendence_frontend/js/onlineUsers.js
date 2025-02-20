@@ -50,7 +50,7 @@ export class OnlineUsersHandler {
         if (!accessToken) return;
 
         try {
-            // Benutze den korrekten Backend-Port (8000)
+            // FIXME: gesamte URL ist wahrscheinlich falsch (but works)
             const response = await fetch("http://localhost:8080/api/users/logout/", {
                 method: "POST",
                 headers: {

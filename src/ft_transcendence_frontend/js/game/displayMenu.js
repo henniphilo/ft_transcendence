@@ -45,19 +45,28 @@ export class MenuDisplay {
 
     async editProfile() {
         const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
-        if (newBio !== null) {
-            const formData = new FormData();
-            formData.append('bio', newBio);
+        const avatarFile = this.elements.avatarInput?.files[0];
+
+        if (!newBio && !avatarFile) {
+            alert('Es wurden keine Änderungen vorgenommen.');
+            return;
+        }
+
+        const formData = new FormData();
+        if (newBio) formData.append('bio', newBio);
+        if (avatarFile) formData.append('avatar', avatarFile);
             
-            try {
-                const updatedData = await updateProfile(formData);
-                this.userProfile = updatedData;
-                this.updateProfileDisplay(updatedData);
-                console.log('Profil erfolgreich aktualisiert!');
-            } catch (error) {
-                console.error('Fehler beim Aktualisieren:', error);
-                alert('Profil-Update fehlgeschlagen: ' + error);
+        try {
+            const updatedData = await updateProfile(formData);
+            this.userProfile = updatedData;
+            this.updateProfileDisplay(updatedData);
+            if (this.elements.avatarInput) {
+                this.elements.avatarInput.value = "";
             }
+            console.log('Profil erfolgreich aktualisiert!');
+        } catch (error) {
+            console.error('Fehler beim Aktualisieren:', error);
+            alert('Profil-Update fehlgeschlagen: ' + error);
         }
     }
 
@@ -88,6 +97,10 @@ export class MenuDisplay {
                             <p><strong>Geburtstag:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
                         </div>
                     </div>
+                    <form class="profile-form">
+                        <label for="avatar-input">Avatar ändern:</label>
+                        <input class="avatar-input" type="file" accept="image/*" />
+                    </form>
                     <button class="edit-profile-button">Profil bearbeiten</button>
                     <button class="logout-button">Logout</button>
                 </div>
@@ -104,6 +117,7 @@ export class MenuDisplay {
             email: this.container.querySelector('.profile-email'),
             birthDate: this.container.querySelector('.profile-birth-date'),
             avatar: this.container.querySelector('.profile-avatar'),
+            avatarInput: this.container.querySelector('.avatar-input'),
             editButton: this.container.querySelector('.edit-profile-button'),
             logoutButton: this.container.querySelector('.logout-button')
         };
@@ -114,6 +128,9 @@ export class MenuDisplay {
         }
         if (this.elements.logoutButton) {
             this.elements.logoutButton.addEventListener('click', () => this.logout());
+        }
+        if (this.elements.avatarInput) {
+            this.elements.avatarInput.addEventListener('change', (e) => this.handleAvatarChange(e));
         }
 
         menuItems.forEach(item => {
@@ -126,24 +143,25 @@ export class MenuDisplay {
 
         // Starte das Polling für Online-User
         OnlineUsersHandler.startPolling();
+    }
 
-        // Event-Listener für Avatar-Upload
-        document.getElementById('avatar-input').addEventListener('change', async (e) => {
-            const avatarFile = e.target.files[0];
-            if (!avatarFile) return;
+    async handleAvatarChange(e) {
+        const avatarFile = e.target.files[0];
+        if (!avatarFile) return;
 
-            const formData = new FormData();
-            formData.append('avatar', avatarFile);
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
 
-            try {
-                const updatedProfile = await ProfileHandler.updateProfile(formData);
-                ProfileHandler.fillProfileFields(updatedProfile);
-                alert('Avatar erfolgreich aktualisiert!');
-            } catch (error) {
-                console.error('Fehler beim Avatar-Update:', error);
-                alert('Avatar-Update fehlgeschlagen: ' + error);
-            }
-        });
+        try {
+            const updatedData = await updateProfile(formData);
+            this.userProfile = updatedData;
+            this.updateProfileDisplay(updatedData);
+            e.target.value = "";
+            console.log('Avatar erfolgreich aktualisiert!');
+        } catch (err) {
+            console.error('Fehler beim Avatar-Update:', err);
+            alert('Avatar-Update fehlgeschlagen: ' + err);
+        }
     }
 
     async logout() {
@@ -365,18 +383,11 @@ export class MenuDisplay {
 
     startGame(data) {
         console.log("startGame wurde aufgerufen:", data);
-
+        
         // Verstecke das Menü
         this.container.style.display = 'none';
-
-        // Versuche, das gameContainer-Element zu finden
+        
         const gameContainer = document.getElementById('game-container');
-        if (!gameContainer) {
-            console.error('gameContainer ist null. Stelle sicher, dass das Template korrekt geladen wurde.');
-            return;
-        }
-
-        // Erstelle und starte das Spiel
         gameContainer.style.display = 'block';
 
         const onBackToMenu = () => {
@@ -385,12 +396,7 @@ export class MenuDisplay {
             this.requestMenuItems();
         };
 
-        window.gameScreen = new GameScreen({
-            player1: { name: "Player 1", score: 0, paddle: 0 },
-            player2: { name: "Player 2", score: 0, paddle: 0 },
-            ball: [0, 0]
-        }, onBackToMenu);
-        console.log("before display");
+        window.gameScreen = new GameScreen(onBackToMenu);
         window.gameScreen.display();
     }
 

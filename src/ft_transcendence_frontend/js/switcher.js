@@ -57,15 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupGameScreen() {
-        // Hier wird der GameScreen initialisiert
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
-        const gameScreen = new GameScreen({
-            player1: { name: "Player 1", score: 0, paddle: 0 },
-            player2: { name: "Player 2", score: 0, paddle: 0 },
-            ball: [0, 0]
-        }, () => {
-            // Back to menu callback
+        const gameScreen = new GameScreen(() => {
             gameContainer.style.display = 'none';
             showTemplate('menu');
         });
