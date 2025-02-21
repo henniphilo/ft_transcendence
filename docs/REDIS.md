@@ -76,3 +76,18 @@ docker-compose exec redis redis-cli
 127.0.0.1:6379> PUBLISH chat_general "Hello world!"
 ```
 
+## From the mac
+
+Install redis-cli
+```bash
+brew install redis
+```
+The you will be able to login into the running container with
+```bash
+laurentb@MutantBot ft_transcendence % redis-cli -p 6380
+127.0.0.1:6380> keys
+(error) ERR wrong number of arguments for 'keys' command
+127.0.0.1:6380> keys *
+(empty array)
+```
+
