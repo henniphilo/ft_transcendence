@@ -15,3 +15,5 @@ RUN chown -R grafana:root /var/lib/grafana && \
     chmod -R 777 /var/lib/grafana
 
 USER grafana
+
+ENV GF_INSTALL_PLUGINS="redis-datasource"
