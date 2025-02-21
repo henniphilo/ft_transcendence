@@ -20,10 +20,3 @@ datasources:
       serviceMap:
         datasourceUid: 'prometheus'
     editable: true
-
-  - name: redis-datasource
-    type: redis-datasource
-    url: redis:6379
-    isDefault: true
-    access: proxy
-    editable: true

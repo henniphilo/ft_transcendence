@@ -8,12 +8,10 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 
 # Install Redis data source plugin
-RUN grafana cli plugins install redis-datasource
+# RUN grafana cli plugins install redis-datasource
 
 # Set correct permissions
 RUN chown -R grafana:root /var/lib/grafana && \
     chmod -R 777 /var/lib/grafana
 
 USER grafana
-
-ENV GF_INSTALL_PLUGINS="redis-datasource"
