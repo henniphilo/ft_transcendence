@@ -95,3 +95,14 @@ Media Requests Handling:
 `@media { path /media/* }` defines a matcher for requests to `/media/*`.  
 `handle @media { ... }` handles requests matching the @media matcher.  
 `reverse_proxy backend:8000` proxies the media requests to the backend service running on port 8000.
+
+## Tip
+to fix the formatting in the caddyfile, you can use the following command:
+```bash
+caddy fmt --overwrite
+```
+
+## links
+
+How to scrape logs with caddy
+https://github.com/Malfhas/caddy-grafana?tab=readme-ov-file
