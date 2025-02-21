@@ -24,7 +24,3 @@ schema_config:
     index:
       prefix: index_
       period: 24h
-
-storage_config:
-  filesystem:
-    directory: /tmp/loki/chunks

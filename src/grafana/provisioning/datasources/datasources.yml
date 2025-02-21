@@ -1,7 +1,16 @@
-# config/grafana-datasources.yml
+# filepath: ./src/grafana/provisioning/datasources/datasources.yml
 apiVersion: 1
-
 datasources:
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis:6379
+    jsonData:
+      tlsAuth: false
+      tlsAuthWithCACert: false
+    uid: PA7F6415749A3297A
+    editable: true
+
   - name: Loki
     type: loki
     access: proxy
