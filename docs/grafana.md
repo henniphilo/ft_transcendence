@@ -152,3 +152,5 @@ services:
 ```
 
 By using `redis:6379` as the host in the Grafana Redis data source configuration, you should be able to connect to your Redis instance running in the Docker container.
+
+

@@ -91,3 +91,19 @@ laurentb@MutantBot ft_transcendence % redis-cli -p 6380
 (empty array)
 ```
 
+## redis in grafana
+
+In Grafana you can import a dashboard. When going to localhost:3000, you can import a dashboard from the grafana.com. First go to connections data source, there will be a plus `+` button on the top right. You will be able to import the standard redis dashboard with 12776.
+electing your redis data source, you can import the dashboard and connect it.
+Then you will be able to see the dashboard with the data from the redis server.
+I will add some screenshots of the process. This is how the page looks like when you are connecting the redis data source.  
+![redis](../assets/redisdatasource.png)
+
+with save and test you can check if the connection is working.  
+
+Next you will add the dashboard with id 12776.  
+This is how it will look like:
+![redis](../assets/redisdatasource2.png)
+
+You click on redis and you get to the dashboard.  
+![redis](../assets/redisdatasource3.png)
