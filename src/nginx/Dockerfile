@@ -1,5 +1,8 @@
 FROM nginx:alpine
 
+# Installiere curl
+RUN apk add --no-cache curl
+
 # Eigene nginx.conf
 #COPY nginx.conf /etc/nginx/nginx.conf
 #COPY ./src/nginx/nginx.conf /etc/nginx/nginx.conf
