@@ -112,7 +112,7 @@ export class ThreeJSManager {
         this.controls.maxPolarAngle = Math.PI / 2; // Begrenzung: Nicht unter das Spielfeld schauen
 
             const ubahnModel = await this.loadModel('looks/ubahn-bigbig.glb', {
-                targetSize: 4,
+                targetSize: 3,
                 addAxesHelper: true
             });
 
@@ -120,6 +120,9 @@ export class ThreeJSManager {
             this.ubahnModels[0].position.set(-4, 0, 0);
             this.ubahnModels[1].position.set(4, 0, 0);
             this.scene.add(this.ubahnModels[0], this.ubahnModels[1]);
+
+            const boxHelper = new THREE.BoxHelper(this.ubahnModels[0], 0xff0000);
+            this.scene.add(boxHelper);
 
             // Annahme: 'looks/walking-woman4.fbx' ist dein Mixamo Modell im FBX Format
             this.humanModel = await this.loadModel('looks/Texting_And_Walking.fbx', {
@@ -152,11 +155,18 @@ export class ThreeJSManager {
 
         this.humanModel.position.set(ballX, 0, ballZ);
 
-        // Spielerpositionen
+       // Spielerpositionen
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * 3;
         const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * 3;
         this.ubahnModels[0].position.z = p1Z;
         this.ubahnModels[1].position.z = p2Z;
+
+        const scaleFactor = 0.03; // Anpassen je nach Spielfeldgröße
+        const paddleSize = (gameState.player1.paddle.top - gameState.player1.paddle.bottom) * scaleFactor;
+        this.ubahnModels[0].scale.set(0.01, 0.01, paddleSize); // Nur Z-Skalierung anpassen
+        this.ubahnModels[1].scale.set(0.01, 0.01, paddleSize);
+
+        console.log(gameState.player1.paddle.top, gameState.player1.paddle.bottom);
     }
 
     setupRenderer(container) {
@@ -197,6 +207,7 @@ export class ThreeJSManager {
                     const box = new THREE.Box3().setFromObject(object);
                     const size = new THREE.Vector3();
                     box.getSize(size);
+
 
                     // Skalierung setzen
                     if (options.targetSize) {
