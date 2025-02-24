@@ -30,11 +30,11 @@ def setup_telemetry_and_logging():
     
     # Configure OTLP exporter for OpenTelemetry
     otlp_exporter = OTLPSpanExporter(
-    	endpoint="http://tempo:4317",  # Changed from grafana to tempo
+    	endpoint="http://otel-collector:4317",  # Changed from grafana to tempo
     	insecure=True
 	)
     otlp_log_exporter = OTLPLogExporter(
-   		endpoint="http://tempo:4317",  # Changed from grafana to tempo
+   		endpoint="http://otel-collector:4317",  # Changed from grafana to tempo
     	insecure=True
 	)
     
@@ -47,7 +47,7 @@ def setup_telemetry_and_logging():
     
     # Create OTLP logging handler
     logger_provider = LoggerProvider(resource=resource)
-    otlp_log_exporter = OTLPLogExporter(endpoint="http://grafana:4317", insecure=True)
+    otlp_log_exporter = OTLPLogExporter(endpoint="http://otel-collector:4317", insecure=True)
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(otlp_log_exporter))
     otlp_handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
     
