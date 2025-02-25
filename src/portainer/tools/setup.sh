@@ -16,4 +16,3 @@ curl -sSL https://github.com/portainer/portainer/releases/download/${PORTAINER_V
 echo "[portainer] Portainer setup complete."
 
 exec /usr/local/portainer/portainer
-

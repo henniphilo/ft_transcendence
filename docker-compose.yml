@@ -76,7 +76,7 @@ services:
       context: ./src/
       dockerfile: caddy/Dockerfile
     ports:
-      - "8081:80"  # Run Caddy on a different port for testing
+      - "8080:80"  # Run Caddy on a different port for testing
       - "8444:443"  # Run Caddy on a different port for testing
     depends_on:
       - backend
@@ -88,24 +88,24 @@ services:
       timeout: 10s
       retries: 5
 
-  nginx:
-    <<: *common
-    build:
-      context: ./src/
-      dockerfile: nginx/Dockerfile
-    depends_on:
-      - backend
-    ports:
-      - "8080:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ./src/nginx/logs:/var/log/nginx
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
-      interval: 30s
-      timeout: 30s
-      retries: 5
+  # nginx:
+  #   <<: *common
+  #   build:
+  #     context: ./src/
+  #     dockerfile: nginx/Dockerfile
+  #   depends_on:
+  #     - backend
+  #   ports:
+  #     - "8080:80"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   volumes:
+  #     - ./src/nginx/logs:/var/log/nginx
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+  #     interval: 30s
+  #     timeout: 30s
+  #     retries: 5
   
   grafana:
     <<: *common
@@ -195,7 +195,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - portainer-data:/data
     depends_on:
-      - nginx
+      - caddy
     ports:
       - "9443:9443"
     healthcheck:
