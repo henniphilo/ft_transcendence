@@ -1,9 +1,11 @@
 import { MenuDisplay } from './game/displayMenu.js'; // Importiere die MenuDisplay-Klasse
 import { GameScreen } from './game/game_screen.js'; // Korrigierter Import-Pfad
+import { SignupHandler, VerifyHandler, LoginHandler } from './signup.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     const templates = {
         signup: document.getElementById("template-signup"),
+        verify: document.getElementById("template-verify"),
         login: document.getElementById("template-login"),
         menu: document.getElementById("template-menu"),
         game: document.getElementById("template-game")
@@ -11,92 +13,62 @@ document.addEventListener("DOMContentLoaded", () => {
     const contentDiv = document.getElementById("content");
     const backgroundCanvas = document.getElementById("background-canvas");
 
-    function showTemplate(templateName) {
-        contentDiv.innerHTML = ""; // Clear current content
-        const clone = templates[templateName].content.cloneNode(true);
+    function showTemplate(templateName, data = {}) {
+        console.log("Template wird gewechselt zu:", templateName);
+        contentDiv.innerHTML = "";
+        const template = templates[templateName];
+        if (!template) {
+            console.error("Template nicht gefunden:", templateName);
+            return;
+        }
+        
+        const clone = template.content.cloneNode(true);
         contentDiv.appendChild(clone);
 
-        // Hintergrund nur für Signup, Login und Menü anzeigen
-        if (templateName === "signup" || templateName === "login" || templateName === "menu") {
+        if (templateName === "signup" || templateName === "verify" || templateName === "login" || templateName === "menu") {
             backgroundCanvas.style.display = "block";
         } else {
             backgroundCanvas.style.display = "none";
         }
 
-        if (templateName === "signup") {
-            setupSignup();
-        } else if (templateName === "login") {
-            setupLogin();
-        } else if (templateName === "menu") {
-            setupMenu();
-        } else if (templateName === "game") {
-            setupGameScreen();
+        // Initialisiere die entsprechenden Handler
+        switch(templateName) {
+            case 'signup':
+                SignupHandler.init();
+                break;
+            case 'verify':
+                VerifyHandler.init();
+                break;
+            case 'login':
+                LoginHandler.init();
+                break;
+            case 'menu':
+                setupMenu(data.userProfile);
+                break;
+            case 'game':
+                setupGameScreen(data);
+                break;
         }
     }
 
-    function setupSignup() {
-        document.getElementById("signup-form").addEventListener("submit", (event) => {
-            event.preventDefault();
-            console.log("Signup successful");
-            showTemplate("login");
-        });
-
-        document.getElementById("switch-to-login").addEventListener("click", () => {
-            showTemplate("login");
-        });
+    function setupMenu(userProfile) {
+        // Initialisiere die MenuDisplay-Klasse mit dem Benutzerprofil
+        const menuDisplay = new MenuDisplay(userProfile);
     }
 
-    function setupLogin() {
-        const loginForm = document.getElementById("login-form");
-        loginForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            // Hole die Eingaben
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-    
-            try {
-                // Führe den Login durch und speichere die Tokens
-                await AuthLib.loginUser(username, password);
-                alert('Login erfolgreich!');
-    
-                // Optional: Login-Container ausblenden
-                document.getElementById('login-container').style.display = 'none';
-    
-                // Hole das Benutzerprofil
-                const userProfile = await AuthLib.getProfile();
-    
-                // Zeige das Menü an und übergebe das Profil
-                showTemplate("menu");
-                const menuDisplay = new MenuDisplay(userProfile);
-                menuDisplay.display();
-            } catch (error) {
-                console.error('Login fehlgeschlagen:', error);
-                alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
-            }
-        });
-    }
-
-    function setupMenu() {
-        // Initialisiere die MenuDisplay-Klasse
-        const menuDisplay = new MenuDisplay();
-        menuDisplay.display(); // Zeige das Menü an
-    }
-
-    function setupGameScreen() {
-        // Hier wird der GameScreen initialisiert
+    function setupGameScreen(data) {
         const gameContainer = document.getElementById('game-container');
-        gameContainer.style.display = 'block';
-        const gameScreen = new GameScreen({
-            player1: { name: "Player 1", score: 0, paddle: 0 },
-            player2: { name: "Player 2", score: 0, paddle: 0 },
-            ball: [0, 0]
-        }, () => {
-            // Back to menu callback
-            gameContainer.style.display = 'none';
-            showTemplate('menu');
-        });
-        gameScreen.display();
+        if (gameContainer) {
+            gameContainer.style.display = 'block';
+        }
     }
+
+    // Event Listener für Template-Wechsel
+    document.addEventListener('templateChange', (event) => {
+        if (event.detail && event.detail.template) {
+            showTemplate(event.detail.template, event.detail);
+        }
+    });
 
     // Initially show the signup template
     showTemplate("signup");

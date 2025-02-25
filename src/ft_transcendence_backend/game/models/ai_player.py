@@ -48,9 +48,9 @@ class AI:
         # Totzone - kleine Bewegungen ignorieren
         if abs(target_pos - paddle_pos) > 0.05:
             if target_pos > paddle_pos:
-                keys['ArrowDown'] = True
+                keys['ArrowLeft'] = True
             else:
-                keys['ArrowUp'] = True
+                keys['ArrowRight'] = True
                 
         return {
             "action": "key_update",
@@ -59,8 +59,8 @@ class AI:
     
     def get_empty_keys(self):
         return {
-            'w': False,
-            's': False,
-            'ArrowUp': False,
-            'ArrowDown': False
+            'a': False,
+            'd': False,
+            'ArrowRight': False,
+            'ArrowLeft': False
         } 

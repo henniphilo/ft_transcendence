@@ -7,8 +7,8 @@ class PlayerType(Enum):
     AI = "ai"
 
 class Controls(Enum):
-    WASD = {"up": "w", "down": "s"}
-    ARROWS = {"up": "ArrowUp", "down": "ArrowDown"}
+    WASD = {"left": "a", "right": "d"}  # Für horizontale Bewegung
+    ARROWS = {"left": "ArrowLeft", "right": "ArrowRight"}
 
 @dataclass
 class Player:

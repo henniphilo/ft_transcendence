@@ -1,47 +1,33 @@
 import { ThreeJSManager } from "./3dmanager.js";
 
 export class GameScreen {
-    constructor(gameState, onBackToMenu) {
+    constructor(gameData, onBackToMenu) {
         console.log("GameScreen loaded!");
-        this.gameId = gameState.game_id;  // Verwende die game_id vom Matchmaking!
 
-        // Initialisiere mit vollständiger Struktur
+        // Nur initiale Werte, werden vom Server überschrieben
         this.gameState = {
-            player1: {
-                name: gameState.player1.name,
-                score: gameState.player1.score,
-                paddle: {
-                    top: 0,
-                    bottom: 0,
-                    center: 0
-                }
-            },
-            player2: {
-                name: gameState.player2.name,
-                score: gameState.player2.score,
-                paddle: {
-                    top: 0,
-                    bottom: 0,
-                    center: 0
-                }
-            },
-            ball: [0, 0],
-            playerRole: gameState.playerRole
+            player1: { name: gameData.player1, score: 0 },
+            player2: { name: gameData.player2, score: 0 },
+            ball: [0, 0]
         };
-
+        this.playerRole = gameData.playerRole;  // "player1" oder "player2"
         this.onBackToMenu = onBackToMenu;
-        this.playerRole = gameState.playerRole;
-        //this.canvas = null;
-        //this.ctx = null;
+        this.gameId = gameData.game_id;
+        
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
-        this.gameMode = new URLSearchParams(window.location.search).get('mode') || 'pvp';
+        this.gameMode = 'online';  // Änderung hier: immer auf 'online' setzen
 
         this.threeJSManager = new ThreeJSManager();
 
-        this.setupWebSocket();
+        // Sende Inputs zum Server (60 mal pro Sekunde)
         this.setupControls();
+        
+        // Empfange Game State vom Server
+        this.setupWebSocket();
+        
+        // Rendere nur was wir vom Server bekommen
         this.setupThreeJS();
     }
 
@@ -58,7 +44,7 @@ export class GameScreen {
 
     startGameLoop() {
         const gameLoop = () => {
-            this.threeJSManager.updatePositions(this.gameState);
+            // Nur Rendering, keine Position-Updates!
             this.threeJSManager.render();
             requestAnimationFrame(gameLoop);
         };
@@ -66,25 +52,22 @@ export class GameScreen {
     }
 
     setupWebSocket() {
-        // Verwende die game_id vom Matchmaking
+        console.log("Connecting to game with ID:", this.gameId);
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
 
-        this.ws.onmessage = (event) => {
-            const newState = JSON.parse(event.data);
-            this.gameState = {
-                ...this.gameState,
-                ...newState
-            };
-            this.updateScoreBoard();
+        this.ws.onopen = () => {
+            console.log("WebSocket connection established for game:", this.gameId);
         };
 
-        this.ws.onopen = () => {
-            console.log("WebSocket connection established");
-            // Sende initiale Spieldaten
-            this.ws.send(JSON.stringify({
-                action: 'init_game',
-                settings: this.gameState
-            }));
+        this.ws.onmessage = (event) => {
+            this.gameState = JSON.parse(event.data);
+            this.updateScoreBoard();
+            this.threeJSManager.updatePositions(this.gameState);
+            this.threeJSManager.render();
+
+            if (this.gameState.winner) {
+                this.displayWinnerScreen();
+            }
         };
 
         this.ws.onerror = (error) => {
@@ -93,30 +76,35 @@ export class GameScreen {
     }
 
     setupControls() {
-        if (this.playerRole === 'player1') {
-            this.keyState = {
-                'w': false,
-                's': false
-            };
-        } else if (this.playerRole === 'player2') {
-            this.keyState = {
-                'ArrowUp': false,
-                'ArrowDown': false
-            };
-        }
+        this.keyState = {
+            'a': false,
+            'd': false,
+            'ArrowRight': false,
+            'ArrowLeft': false
+        };
 
+        // Sende Inputs zum Server (60 mal pro Sekunde)
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
-                    keys: this.keyState,
-                    playerRole: this.playerRole
+                    player_role: this.playerRole,
+                    keys: this.keyState
                 }));
             }
-        }, 16);
+        }, 16);  // ~60 FPS
 
         document.addEventListener('keydown', (e) => {
-            if (this.keyState.hasOwnProperty(e.key)) {
+            // Erlaube nur die Tasten für die entsprechende Rolle
+            if (this.playerRole === 'both') {
+                if (this.keyState.hasOwnProperty(e.key)) {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
+            } else if (this.playerRole === 'player1' && (e.key === 'a' || e.key === 'd')) {
+                e.preventDefault();
+                this.keyState[e.key] = true;
+            } else if (this.playerRole === 'player2' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
                 e.preventDefault();
                 this.keyState[e.key] = true;
             }
@@ -132,7 +120,6 @@ export class GameScreen {
 
     display() {
         console.log("Game wird angezeigt...");
-
         const container = document.getElementById('game-container');
 
         if (this.gameState.winner) {

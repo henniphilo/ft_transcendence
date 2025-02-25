@@ -1,4 +1,4 @@
-class LeaderboardDisplay {
+export class LeaderboardDisplay {
     constructor(menuDisplayInstance) {
         this.container = document.getElementById('menu-container');
         this.menuDisplay = menuDisplayInstance;
