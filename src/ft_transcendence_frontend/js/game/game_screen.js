@@ -53,10 +53,18 @@ export class GameScreen {
         };
 
         this.ws.onmessage = (event) => {
-            console.log("Received game state:", event.data); // Debug-Log
+   //         console.log("Received game state:", event.data); // Debug-Log
             this.gameState = JSON.parse(event.data);
             this.updateScoreBoard();
             this.threeJSManager.updatePositions(this.gameState);
+
+            if (this.gameState.action === "settings_updated") {
+                console.log("Settings-Update erhalten:", this.gameState.settings);
+            }
+
+            if (this.gameState.action === "settings_updated" && this.gameState.settings.paddle_size) {
+                this.threeJSManager.loadUbahnModel(this.gameState.settings.paddle_size);
+            }
 
             if (this.gameState.winner) {
                 this.displayWinnerScreen();
@@ -67,6 +75,8 @@ export class GameScreen {
             console.error("WebSocket error:", error);
         };
     }
+
+
 
     setupControls() {
         // Definiere die erlaubten Tasten für beide Spieler
@@ -80,7 +90,7 @@ export class GameScreen {
         // Kontinuierliches Senden, wenn Tasten gedrückt sind
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
-                console.log("Sending key state:", this.keyState); // Debug-Log
+   //             console.log("Sending key state:", this.keyState); // Debug-Log
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
                     keys: this.keyState
@@ -97,7 +107,7 @@ export class GameScreen {
             if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = true;
-                console.log("Key down:", e.key, this.keyState); // Debug-Log
+      //          console.log("Key down:", e.key, this.keyState); // Debug-Log
             }
         });
 
@@ -105,7 +115,7 @@ export class GameScreen {
             if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = false;
-                console.log("Key up:", e.key, this.keyState); // Debug-Log
+   //             console.log("Key up:", e.key, this.keyState); // Debug-Log
             }
         });
     }

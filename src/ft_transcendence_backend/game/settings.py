@@ -4,7 +4,7 @@ class GameSettings:
         self._ball_speed = 2
         self._paddle_speed = 5
         self._winning_score = 50000
-        self._paddle_size = "middle"
+        self._paddle_size = "medium"
         self._mode = "pvp"
         self._difficulty = "medium"
         self._ubahn_size = 1.0  # Standardgröße für das U-Bahn-Modell
@@ -68,8 +68,8 @@ class GameSettings:
         """Passt die U-Bahn-Größe basierend auf der Paddle-Größe an."""
         size_mapping = {
             "small": 0.8,  # Kleinere Skalierung
-            "middle": 1.0,  # Standardgröße
-            "big": 1.2  # Größere Skalierung
+            "medium": 1.0,  # Standardgröße
+            "large": 1.2  # Größere Skalierung
         }
         self._ubahn_size = size_mapping[self._paddle_size]
         print(f"U-Bahn size updated to: {self._ubahn_size}")

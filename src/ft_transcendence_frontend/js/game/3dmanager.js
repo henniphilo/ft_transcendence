@@ -8,12 +8,13 @@ export class ThreeJSManager {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        window.addEventListener('resize', () => this.onWindowResize());
-        window.addEventListener('keydown', (event) => this.preventArrowKeyScrolling(event));
+        window.addEventListener('resize', this.onWindowResize.bind(this));
+        window.addEventListener('keydown', this.preventArrowKeyScrolling.bind(this));
 
         this.loader = new GLTFLoader();
         this.fbxLoader = new FBXLoader(); // FBX Loader hinzufügen
         this.ubahnModels = [];
+        this.currentUbahnSize = null; // Speichert die aktuelle Größe
         this.humanModel = null;
         this.mixer = null; // Animation Mixer
         this.animations = []; // Animations Array
@@ -103,19 +104,46 @@ export class ThreeJSManager {
         }
     }
 
-
     async loadModels() {
         try {
-            // U-Bahn Modelle laden
-        this.controls.dampingFactor = 0.05;
-        this.controls.screenSpacePanning = false;
-        this.controls.maxPolarAngle = Math.PI / 2; // Begrenzung: Nicht unter das Spielfeld schauen
+                    // Warte, bis die WebSocket-Verbindung steht
+        if (!this.gameState || !this.gameState.settings || !this.gameState.settings.paddle_size) {
+            console.log("Warte auf WebSocket-Daten für das U-Bahn-Modell...");
+            return;  // Modell erst laden, wenn die Daten da sind
+        }
+            await this.loadUbahnModel(this.gameState.settings.paddle_size); // Standardmodell laden
+            await this.loadHumanModel(); // Menschliches Modell laden
+            console.log("Modelle geladen");
+        } catch (error) {
+            console.error("Fehler beim Laden der Modelle:", error);
+        }
+    }
 
-            const ubahnModel = await this.loadModel('looks/ubahn-bigbig.glb', {
-                targetSize: 3,
-                addAxesHelper: true
-            });
 
+    async loadUbahnModel(paddleSize) {
+    // Mapping der Backend-Werte auf die ThreeJS-Modelle
+        const sizeMapping = {
+            small: "small",
+            middle: "medium",  // Backend „middle“ -> ThreeJS „medium“
+            big: "large"        // Backend „big“ -> ThreeJS „large“
+        };
+
+        const mappedSize = sizeMapping[paddleSize] || "medium"; // Falls unbekannt, Standard „medium“
+
+        console.log(`Lade U-Bahn Modell für '${mappedSize}' (Backend-Wert: '${paddleSize}')`);
+
+        const modelPaths = {
+            small: "looks/ubahn-short1.glb",
+            medium: "looks/ubahn-bigbig.glb",
+            large: "looks/ubahn-bigbig.glb"
+        };
+        const modelPath = modelPaths[mappedSize];
+
+        if (this.currentUbahnSize === mappedSize) return; // Bereits geladen? Dann abbrechen.
+        this.currentUbahnSize = mappedSize;
+
+        try {
+            const ubahnModel = await this.loadModel(modelPath, { targetSize: 3 });
             this.ubahnModels = [ubahnModel.clone(), ubahnModel.clone()];
             this.ubahnModels[0].position.set(-4, 0, 0);
             this.ubahnModels[1].position.set(4, 0, 0);
@@ -124,20 +152,59 @@ export class ThreeJSManager {
             const boxHelper = new THREE.BoxHelper(this.ubahnModels[0], 0xff0000);
             this.scene.add(boxHelper);
 
-            // Annahme: 'looks/walking-woman4.fbx' ist dein Mixamo Modell im FBX Format
-            this.humanModel = await this.loadModel('looks/Texting_And_Walking.fbx', {
-                targetSize: 1,
-                addAxesHelper: false,
-            });
-            this.humanModel.position.set(0, 0, 0);
+            console.log(`U-Bahn Modell '${mappedSize}' erfolgreich geladen.`);
+        } catch (error) {
+            console.error("Fehler beim Laden des U-Bahn Modells:", error);
+        }
+        }
+
+
+            // // Neue U-Bahn Modelle laden
+            // const [model1, model2] = await Promise.all([
+            //     this.loadModel(settings.model),
+            //     this.loadModel(settings.model),
+            // ]);
+
+            // Alte Modelle aus der Szene entfernen
+            // if (this.ubahnModels.length === 2) {
+            //     this.scene.remove(this.ubahnModels[0], this.ubahnModels[1]);
+            // }
+
+            // // Neue Modelle hinzufügen
+            // model1.position.set(-4, 0, 0);
+            // model2.position.set(4, 0, 0);
+            // this.ubahnModels = [model1, model2];
+            // this.scene.add(model1, model2);
+
+
+    async loadHumanModel() {
+        try {
+            const modelPath = "looks/womanwalkturn-XXXX.fbx"; // Pfad zum Modell anpassen
+
+            // Modell laden
+            const human = await this.loadModel(modelPath, { targetSize: 0.7 });
+            human.position.set(0, 0, 0); // Startposition setzen
+
+            // Falls bereits ein Human-Modell existiert, altes Modell entfernen
+            if (this.humanModel) {
+                this.scene.remove(this.humanModel);
+            }
+            this.humanModel = human;
             this.scene.add(this.humanModel);
 
-            console.log("> Human geladen <");
+            // Animationen initialisieren, falls vorhanden
+            if (this.animations.length > 0) {
+                this.mixer = new THREE.AnimationMixer(this.humanModel);
+                const action = this.mixer.clipAction(this.animations[0]);
+                action.play();
+            }
 
+            console.log("> Human Model geladen & in Szene gesetzt <");
         } catch (error) {
-            console.error('Fehler beim Laden der Modelle:', error);
+            console.error("Fehler beim Laden des Human Model:", error);
         }
-    }
+}
+
 
     updatePositions(gameState) {
         if (!gameState || !this.humanModel || this.ubahnModels.length !== 2) return;
@@ -160,13 +227,6 @@ export class ThreeJSManager {
         const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * 3;
         this.ubahnModels[0].position.z = p1Z;
         this.ubahnModels[1].position.z = p2Z;
-
-        const scaleFactor = 0.03; // Anpassen je nach Spielfeldgröße
-        const paddleSize = (gameState.player1.paddle.top - gameState.player1.paddle.bottom) * scaleFactor;
-        this.ubahnModels[0].scale.set(0.01, 0.01, paddleSize); // Nur Z-Skalierung anpassen
-        this.ubahnModels[1].scale.set(0.01, 0.01, paddleSize);
-
-        console.log(gameState.player1.paddle.top, gameState.player1.paddle.bottom);
     }
 
     setupRenderer(container) {
@@ -180,7 +240,7 @@ export class ThreeJSManager {
     render() {
         this.controls.update();
         if (this.mixer) {
-            this.mixer.update(0.01); // Zeit in Sekunden seit dem letzten Frame
+            this.mixer.update(0.01);
         }
         this.renderer.render(this.scene, this.camera);
     }
@@ -252,7 +312,7 @@ export class ThreeJSManager {
                     resolve(object);
                 },
                 (xhr) => {
-                    console.log(`${(xhr.loaded / xhr.total) * 100}% geladen`);
+                 //   console.log(`${(xhr.loaded / xhr.total) * 100}% geladen`);
                 },
                 (error) => {
                     console.error('Fehler beim Laden des Modells:', error);
