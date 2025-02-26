@@ -7,6 +7,8 @@ class PlayerType(Enum):
     AI = "ai"
 
 class Controls(Enum):
+    WASD = {"right": "d", "left": "a"}
+    ARROWS = {"right": "ArrowRight", "left": "ArrowLeft"}
     WASD = {"left": "a", "right": "d"}  # Für horizontale Bewegung
     ARROWS = {"left": "ArrowLeft", "right": "ArrowRight"}
 
@@ -21,4 +23,4 @@ class Player:
 
     def __post_init__(self):
         if self.player_type == PlayerType.HUMAN and self.controls is None:
-            raise ValueError("Human players must have controls assigned") 
+            raise ValueError("Human players must have controls assigned")

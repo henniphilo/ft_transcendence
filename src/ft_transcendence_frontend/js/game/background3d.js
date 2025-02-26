@@ -47,7 +47,7 @@ function init() {
     // Load GLB model
     const loader = new GLTFLoader();
     loader.load(
-        '/looks/transform_u-station.glb',
+        'looks/transform_u-station.glb',
         (gltf) => {
             model = gltf.scene;
             scene.add(model);

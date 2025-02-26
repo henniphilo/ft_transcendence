@@ -60,6 +60,7 @@ export class GameScreen {
         };
 
         this.ws.onmessage = (event) => {
+  //          console.log("Received game state:", event.data); // Debug-Log
             this.gameState = JSON.parse(event.data);
             this.updateScoreBoard();
             this.threeJSManager.updatePositions(this.gameState);

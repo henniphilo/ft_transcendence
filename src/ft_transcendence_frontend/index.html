@@ -74,12 +74,16 @@
       "imports": {
         "three": "https://unpkg.com/three@latest/build/three.module.js",
         "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js",
-        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js"
+        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/loaders/FBXLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/FBXLoader.js"
       }
     }
   </script>
 
   <!-- Skripte (am Ende des Body platzieren) -->
+  <!-- AuthLib muss vor den anderen Skripten geladen werden -->
+
+  <script src="js/signup.js"></script>
   <script type="module" src="js/signup.js"></script>
   <script type="module" src="js/game/background3d.js"></script>
   <script type="module" src="js/game/3dmanager.js"></script>

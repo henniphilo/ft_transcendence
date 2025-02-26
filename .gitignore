@@ -1,1 +1,2 @@
 .env
+src/nginx/logs/access.log

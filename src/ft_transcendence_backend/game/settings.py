@@ -3,10 +3,13 @@ class GameSettings:
         print("Initializing GameSettings")
         self._ball_speed = 2
         self._paddle_speed = 5
-        self._winning_score = 50000
+        self._winning_score = 5
         self._paddle_size = "middle"
-        self._mode = "pvp"  # Standard: PvP
-        self._difficulty = "medium"  # Standard: Medium
+        self._mode = "pvp"
+        self._difficulty = "medium"
+        self._ubahn_size = 1.0  # Standardgröße für das U-Bahn-Modell
+
+        self.update_ubahn_size()  # Initiale Skalierung setzen
 
     @property
     def ball_speed(self):
@@ -57,8 +60,24 @@ class GameSettings:
         print(f"Setting paddle_size to: {value}")
         if value in ["small", "middle", "big"]:
             self._paddle_size = value
+            self.update_ubahn_size()  # U-Bahn-Größe automatisch aktualisieren
         else:
             raise ValueError("Paddle size must be 'small', 'middle', or 'big'")
+
+    def update_ubahn_size(self):
+        """Passt die U-Bahn-Größe basierend auf der Paddle-Größe an."""
+        size_mapping = {
+            "small": 0.8,  # Kleinere Skalierung
+            "middle": 1.0,  # Standardgröße
+            "big": 1.2  # Größere Skalierung
+        }
+        self._ubahn_size = size_mapping[self._paddle_size]
+        print(f"U-Bahn size updated to: {self._ubahn_size}")
+
+    @property
+    def ubahn_size(self):
+        print(f"Getting ubahn_size: {self._ubahn_size}")
+        return self._ubahn_size
 
     @property
     def mode(self):
@@ -94,29 +113,32 @@ class GameSettings:
             "winning_score": self._winning_score,
             "paddle_size": self._paddle_size,
             "mode": self._mode,
-            "difficulty": self._difficulty
+            "difficulty": self._difficulty,
+            "ubahn_size": self._ubahn_size  # U-Bahn-Größe mit ausgeben
         }
 
-    async def update_settings(self, settings_data):
-        print(f"Updating settings with data: {settings_data}")
-        try:
-            if "ball_speed" in settings_data:
-                self.ball_speed = int(settings_data["ball_speed"])
-            if "paddle_speed" in settings_data:
-                self.paddle_speed = int(settings_data["paddle_speed"])
-            if "winning_score" in settings_data:
-                self.winning_score = int(settings_data["winning_score"])
-            if "paddle_size" in settings_data:
-                self.paddle_size = settings_data["paddle_size"]
-            if "mode" in settings_data:
-                self.mode = settings_data["mode"]
-            if "difficulty" in settings_data:
-                self.difficulty = settings_data["difficulty"]
+async def update_settings(self, settings_data):
+    print(f"Updating settings with data: {settings_data}")
+    try:
+        if "ball_speed" in settings_data:
+            self.ball_speed = int(settings_data["ball_speed"])
+        if "paddle_speed" in settings_data:
+            self.paddle_speed = int(settings_data["paddle_speed"])
+        if "winning_score" in settings_data:
+            self.winning_score = int(settings_data["winning_score"])
+        if "paddle_size" in settings_data:
+            self.paddle_size = settings_data["paddle_size"]
+            self.update_ubahn_size()  # ✅ U-Bahn-Größe wird neu berechnet
+        if "mode" in settings_data:
+            self.mode = settings_data["mode"]
+        if "difficulty" in settings_data:
+            self.difficulty = settings_data["difficulty"]
 
-            updated_settings = self.get_settings()
-            print(f"Settings successfully updated to: {updated_settings}")
-            return {"action": "settings_updated", "settings": updated_settings}
+        updated_settings = self.get_settings()
+        print(f"Settings successfully updated to: {updated_settings}")
+        return {"action": "settings_updated", "settings": updated_settings}
 
-        except (ValueError, TypeError) as e:
-            print(f"Error updating settings: {str(e)}")
-            return {"action": "error", "message": str(e)}
+    except (ValueError, TypeError) as e:
+        print(f"Error updating settings: {str(e)}")
+        return {"action": "error", "message": str(e)}
+
