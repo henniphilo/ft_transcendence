@@ -79,3 +79,78 @@ First of all in the grafana dashboard, go to connections and datasources. Click 
 Next you can click on the explore button to start building queries.
 
  
+ ## The main Grafana image
+
+ The otel-lgtm image is good for development but it seems that it cannot work with redis?
+
+ When configuring a new Redis data source in Grafana, you need to use the service name and port as defined in your Docker Compose file. Since your Redis service is defined in Docker Compose and mapped to port 6380 on the host, you should use the internal Docker network address.
+
+### Redis Data Source Configuration in Grafana
+Use the following settings to configure the Redis data source in Grafana:
+
+- **Host**: `redis:6379`
+- **Password**: (if you have set a password for Redis, provide it here)
+
+### Steps to Add Redis Data Source in Grafana:
+1. **Access Grafana**:
+   Open your browser and go to `http://localhost:3000`. Log in with your credentials (default is `admin`/`admin`).
+
+2. **Add Redis Data Source**:
+   - Go to **Configuration** > **Data Sources**.
+   - Click **Add data source**.
+   - Select **Redis** from the list of available data sources.
+   - Configure the Redis data source with the following settings:
+     - **Host**: `redis:6379`
+     - **Password**: (if you have set a password for Redis, provide it here)
+
+3. **Save & Test**:
+   - Click **Save & Test** to ensure the data source is working correctly.
+
+### Example Configuration:
+```yaml
+services:
+  redis:
+    <<: *common
+    image: "redis:alpine"
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --save 60 1 --loglevel verbose
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    <<: *common
+    build: 
+      context: ./src/grafana
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./src/grafana:/etc/grafana/provisioning/datasources
+      - ./config/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./src/grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./src/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - redis
+      - loki
+      - tempo
+```
+
+By using `redis:6379` as the host in the Grafana Redis data source configuration, you should be able to connect to your Redis instance running in the Docker container.
+
+

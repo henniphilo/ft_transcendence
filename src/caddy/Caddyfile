@@ -1,40 +1,52 @@
+{
+	log {
+		output file /var/log/caddy/caddy_main.log {
+			roll_size 100MiB
+			roll_keep 5
+			roll_keep_for 100d
+		}
+		format json
+		level INFO
+	}
+}
+
 :80 {
-    log {
-        output file /var/log/caddy/access.log
-        format json
-    }
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
 
-    root * /usr/share/caddy
-    file_server
+	root * /usr/share/caddy
+	file_server
 
-    @static {
-        path /static/*
-    }
-    handle @static {
-        root * /usr/share/caddy/static
-        file_server
-    }
+	@static {
+		path /static/*
+	}
+	handle @static {
+		root * /usr/share/caddy/static
+		file_server
+	}
 
-    @api {
-        path /api/*
-    }
-    handle @api {
-        reverse_proxy backend:8000
-    }
+	@api {
+		path /api/*
+	}
+	handle @api {
+		reverse_proxy backend:8000
+	}
 
-    @ws {
-        path /ws/*
-    }
-    handle @ws {
-        reverse_proxy backend:8001
-    }
+	@ws {
+		path /ws/*
+	}
+	handle @ws {
+		reverse_proxy backend:8001
+	}
 
-    @media {
-        path /media/*
-    }
-    handle @media {
-        reverse_proxy backend:8000
-    }
+	@media {
+		path /media/*
+	}
+	handle @media {
+		reverse_proxy backend:8000
+	}
 }
 # localhost:443 {
 

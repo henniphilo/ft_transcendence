@@ -13,6 +13,9 @@ ENV OPENTELEMETRY_DISTRO_VERSION=0.51b0
 RUN pip install --no-cache-dir "opentelemetry-distro[otlp]==$OPENTELEMETRY_DISTRO_VERSION"
 RUN opentelemetry-bootstrap -a install
 
+# Install netcat
+RUN apt-get update && apt-get install -y netcat-openbsd
+
 # Kopiere den restlichen Code
 COPY . .
 
