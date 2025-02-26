@@ -9,8 +9,8 @@ class PlayerType(Enum):
 class Controls(Enum):
     WASD = {"right": "d", "left": "a"}
     ARROWS = {"right": "ArrowRight", "left": "ArrowLeft"}
-    WASD = {"left": "a", "right": "d"}  # Für horizontale Bewegung
-    ARROWS = {"left": "ArrowLeft", "right": "ArrowRight"}
+    # WASD = {"left": "a", "right": "d"}  # Für horizontale Bewegung
+    # ARROWS = {"left": "ArrowLeft", "right": "ArrowRight"}
 
 @dataclass
 class Player:
