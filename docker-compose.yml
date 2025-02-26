@@ -30,7 +30,7 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"] 
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -85,16 +85,16 @@ services:
       - ./src/nginx/logs:/var/log/nginx
 
   grafana:
-    <<: *common
-    build: ./src/grafana
-    image: grafana/otel-lgtm
-    ports:
-      - "3000:3000"
-      - "4317:4317"
-      - "4318:4318"
-    volumes:
-      - grafana_data:/var/lib/grafana
-     
+   <<: *common
+   build: ./src/grafana
+   image: grafana/otel-lgtm
+   ports:
+     - "3000:3000"
+     - "4317:4317"
+     - "4318:4318"
+   volumes:
+     - grafana_data:/var/lib/grafana
+
 #   portainer:
 #     <<: *common
 #     build: src/portainer

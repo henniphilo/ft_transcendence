@@ -55,7 +55,7 @@ export class MenuDisplay {
         const formData = new FormData();
         if (newBio) formData.append('bio', newBio);
         if (avatarFile) formData.append('avatar', avatarFile);
-            
+
         try {
             const updatedData = await updateProfile(formData);
             this.userProfile = updatedData;
@@ -75,7 +75,7 @@ export class MenuDisplay {
         if (this.elements.email) this.elements.email.textContent = profileData.email || '';
         if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
         if (this.elements.avatar) {
-            this.elements.avatar.src = profileData.avatar 
+            this.elements.avatar.src = profileData.avatar
                 ? profileData.avatar + '?t=' + new Date().getTime()
                 : '/assets/default-avatar.png';
         }
@@ -168,11 +168,11 @@ export class MenuDisplay {
         try {
             // Erst den User aus der Online-Liste entfernen
             await OnlineUsersHandler.removeUserFromOnline();
-            
+
             // Dann die Token entfernen
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            
+
             console.log('Logout erfolgreich');
             window.location.href = '/login';
         } catch (error) {
@@ -256,12 +256,12 @@ export class MenuDisplay {
 
     handleMenuAction(data) {
         console.log("Handling menu action:", data);
-        
+
         switch (data.action) {
             case 'searching_opponent':
                 this.displaySearchingScreen(data.message);
                 break;
-                
+
             case 'game_found':
                 console.log("Match found! Starting game...");
                 // Container für das Spiel anzeigen
@@ -271,16 +271,17 @@ export class MenuDisplay {
 
                 // Neues GameScreen-Objekt erstellen
                 const gameScreen = new GameScreen({
-                    player1: { 
-                        name: data.player1, 
-                        score: 0 
+                    player1: {
+                        name: data.player1,
+                        score: 0
                     },
-                    player2: { 
-                        name: data.player2, 
-                        score: 0 
+                    player2: {
+                        name: data.player2,
+                        score: 0
                     },
                     playerRole: data.playerRole,  // Wichtig für die Steuerung!
                     ball: [0, 0]
+                   // settings: data.settings
                 }, () => {
                     // Back to menu callback
                     gameContainer.style.display = 'none';
@@ -383,10 +384,10 @@ export class MenuDisplay {
 
     startGame(data) {
         console.log("startGame wurde aufgerufen:", data);
-        
+
         // Verstecke das Menü
         this.container.style.display = 'none';
-        
+
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
 

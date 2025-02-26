@@ -107,7 +107,7 @@ export class ThreeJSManager {
     async loadModels() {
         try {
                     // Warte, bis die WebSocket-Verbindung steht
-        if (!this.gameState || !this.gameState.settings || !this.gameState.settings.paddle_size) {
+        if (!this.gameState.settings.paddle_size) {
             console.log("Warte auf WebSocket-Daten für das U-Bahn-Modell...");
             return;  // Modell erst laden, wenn die Daten da sind
         }
@@ -124,8 +124,8 @@ export class ThreeJSManager {
     // Mapping der Backend-Werte auf die ThreeJS-Modelle
         const sizeMapping = {
             small: "small",
-            middle: "medium",  // Backend „middle“ -> ThreeJS „medium“
-            big: "large"        // Backend „big“ -> ThreeJS „large“
+            medium: "medium",
+            large: "large"
         };
 
         const mappedSize = sizeMapping[paddleSize] || "medium"; // Falls unbekannt, Standard „medium“
