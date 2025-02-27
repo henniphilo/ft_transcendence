@@ -80,8 +80,8 @@ export class GameScreen {
         this.keyState = {
             'a': false,
             'd': false,
-            'ArrowRight': false,
-            'ArrowLeft': false
+            'ArrowLeft': false,
+            'ArrowRight': false
         };
 
         // Sende Inputs zum Server (60 mal pro Sekunde)
@@ -89,26 +89,32 @@ export class GameScreen {
             if (Object.values(this.keyState).some(key => key)) {
                 this.ws.send(JSON.stringify({
                     action: 'key_update',
-                    player_role: this.playerRole,
                     keys: this.keyState
                 }));
             }
         }, 16);  // ~60 FPS
 
         document.addEventListener('keydown', (e) => {
-            // Erlaube nur die Tasten für die entsprechende Rolle
             if (this.playerRole === 'both') {
+                // Lokaler Modus: Erlaube alle Tasten
                 if (this.keyState.hasOwnProperty(e.key)) {
                     e.preventDefault();
                     this.keyState[e.key] = true;
                 }
-            } else if (this.playerRole === 'player1' && (e.key === 'a' || e.key === 'd')) {
-                e.preventDefault();
-                this.keyState[e.key] = true;
-            } else if (this.playerRole === 'player2' && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
-                e.preventDefault();
-                this.keyState[e.key] = true;
+            } else if (this.playerRole === 'player1') {
+                // Spieler 1: Nur A und D
+                if (e.key === 'a' || e.key === 'd') {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
+            } else if (this.playerRole === 'player2') {
+                // Spieler 2: Nur Pfeiltasten
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
             }
+            // Keine spezielle Behandlung für AI nötig, da die Steuerung vom Server kommt
         });
 
         document.addEventListener('keyup', (e) => {

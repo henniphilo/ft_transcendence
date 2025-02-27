@@ -124,6 +124,12 @@ class GameServer:
         game = self.active_games[game_id]
         while game_id in self.active_games:
             if game.game_active:
+                # Wenn es ein AI-Spiel ist, berechne den AI-Zug
+                if game_id in self.ai_players:
+                    ai = self.ai_players[game_id]
+                    ai_move = ai.calculate_move(game.get_game_state())
+                    self.handle_input(game, ai_move["keys"])
+
                 game_state = game.update_game_state()
                 for ws in self.game_websockets[game_id]:
                     try:
