@@ -60,6 +60,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const gameContainer = document.getElementById('game-container');
         if (gameContainer) {
             gameContainer.style.display = 'block';
+            window.gameScreen = new GameScreen(data, () => {
+                gameContainer.style.display = 'none';
+                showTemplate('menu', { userProfile: data.userProfile });
+            });
         }
     }
 

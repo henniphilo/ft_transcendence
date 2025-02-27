@@ -4,6 +4,9 @@ export class GameScreen {
     constructor(gameData, onBackToMenu) {
         console.log("GameScreen loaded!");
 
+        // Speichere das Benutzerprofil
+        this.userProfile = gameData.userProfile;  // Neu hinzugefügt
+
         // Nur initiale Werte, werden vom Server überschrieben
         this.gameState = {
             player1: { name: gameData.player1, score: 0 },
@@ -179,7 +182,14 @@ export class GameScreen {
         if (this.ws) {
             this.ws.close();
         }
-        this.onBackToMenu();
+        this.cleanup();
+        
+        // Template mit userProfile wechseln
+        window.showTemplate('menu', { userProfile: this.userProfile });
+
+        if (this.onBackToMenu) {
+            this.onBackToMenu();
+        }
     }
 
     cleanup() {
