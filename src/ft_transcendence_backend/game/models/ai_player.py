@@ -48,19 +48,23 @@ class AI:
         # Totzone - kleine Bewegungen ignorieren
         if abs(target_pos - paddle_pos) > 0.05:
             if target_pos > paddle_pos:
+                # Für Player 2 (AI) verwenden wir ArrowLeft
                 keys['ArrowLeft'] = True
             else:
-                keys['ArrowUp'] = True
+                # Für Player 2 (AI) verwenden wir ArrowRight
+                keys['ArrowRight'] = True
 
         return {
             "action": "key_update",
+            "player_role": "player2",  # Wichtig: Rolle angeben
             "keys": keys
         }
 
     def get_empty_keys(self):
+        """Gibt ein leeres Tastenstate zurück"""
         return {
-            'w': False,
-            's': False,
-            'ArrowUp': False,
-            'ArrowDown': False
+            'a': False,
+            'd': False,
+            'ArrowLeft': False,
+            'ArrowRight': False
         }
