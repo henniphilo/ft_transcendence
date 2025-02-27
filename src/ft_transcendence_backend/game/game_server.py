@@ -139,3 +139,18 @@ class GameServer:
                         if ws in self.game_websockets[game_id]:
                             self.game_websockets[game_id].remove(ws)
             await asyncio.sleep(self.UPDATE_RATE)
+
+    # import logging        
+    # logger = logging.getLogger(__name__)
+    
+    # logger.info("Application starting with OpenTelemetry logging enabled")
+    
+	# # Get logger for this module
+    # logger = logging.getLogger(__name__)
+    
+    # # Example log messages at different levels
+    # logger.debug("This is a debug message")
+
+    # logger.info("Application starting up...")
+    # logger.warning("This is a warning message")
+    # logger.error("This is an error message")
