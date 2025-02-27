@@ -298,17 +298,21 @@ export class MenuDisplay {
                     this.container.style.display = 'none';
                     gameContainer.style.display = 'block';
 
-                    // Neues GameScreen-Objekt erstellen
-                    window.gameScreen = new GameScreen({
+                    // Erstelle ein gameData Objekt mit allen notwendigen Informationen
+                    const gameData = {
                         player1: data.player1, 
                         player2: data.player2,
                         playerRole: data.playerRole,
-                        game_id: data.game_id,  // Wichtig: Verwende die ID vom Server
+                        game_id: data.game_id,
                         settings: {
                             ...data.settings,
-                            mode: "online"  // Explizit Online-Mode setzen
-                        }
-                    }, () => {
+                            mode: "online"
+                        },
+                        userProfile: this.userProfile
+                    };
+
+
+                    window.gameScreen = new GameScreen(gameData, () => {
                         gameContainer.style.display = 'none';
                         this.container.style.display = 'block';
                         this.requestMenuItems();
