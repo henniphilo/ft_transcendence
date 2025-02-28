@@ -4,6 +4,11 @@
 
 auth_enabled: false
 
+# Only log messages with the given severity or above. Valid levels: [debug,
+# info, warn, error]
+# CLI flag: -log.level
+log_level: "info"
+
 server:
   http_listen_port: 3100
 

@@ -201,6 +201,8 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = '587'
 
 # logging configuration
+# using logging.getLogger(__name__) in your modules
+# will give you a logger that is named after the module
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -218,9 +220,14 @@ LOGGING = {
             'level': 'DEBUG',  # Set the minimum log level for Django logs
             'propagate': True,
         },
-        'your_app_name': {  # Replace with your app's name
+        'game': {  # Replace with your app's name
             'handlers': ['file'],
             'level': 'DEBUG',  # Set the minimum log level for your app's logs
+            'propagate': True,
+        },
+		'game.pong_game': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # Set a more specific level for pong_game
             'propagate': True,
         },
     },

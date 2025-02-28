@@ -142,3 +142,35 @@ async def update_settings(self, settings_data):
         print(f"Error updating settings: {str(e)}")
         return {"action": "error", "message": str(e)}
 
+import logging.config
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # Set the minimum log level
+            'class': 'logging.FileHandler',
+            'filename': '/app/logs/game.log',  # Specify the log file path
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'uvicorn': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # Set the minimum log level for Uvicorn logs
+            'propagate': True,
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+}
+
+# Ensure the logs directory exists
+if not os.path.exists('/app/logs'):
+    os.makedirs('/app/logs')
