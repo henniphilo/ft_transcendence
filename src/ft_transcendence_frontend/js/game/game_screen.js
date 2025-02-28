@@ -16,7 +16,7 @@ export class GameScreen {
         this.playerRole = gameData.playerRole;  // "player1" oder "player2"
         this.onBackToMenu = onBackToMenu;
         this.gameId = gameData.game_id;
-        
+
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
@@ -26,10 +26,10 @@ export class GameScreen {
 
         // Sende Inputs zum Server (60 mal pro Sekunde)
         this.setupControls();
-        
+
         // Empfange Game State vom Server
         this.setupWebSocket();
-        
+
         // Rendere nur was wir vom Server bekommen
         this.setupThreeJS();
     }
@@ -145,6 +145,10 @@ export class GameScreen {
                             ${this.gameState.player2.name}: ${this.gameState.player2.score}
                         </div>
                     </div>
+                     <div id="controls-info" class="controls-info">
+                     <p>Player 1: Left = &#8592; Right = &#8594; </strong></p>
+                     <p>Player 2: Left = A Right = D </strong></p>
+                </div>
                     <div id="three-js-container"></div>
                 </div>
             `;
@@ -183,7 +187,7 @@ export class GameScreen {
             this.ws.close();
         }
         this.cleanup();
-        
+
         // Template mit userProfile wechseln
         window.showTemplate('menu', { userProfile: this.userProfile });
 
