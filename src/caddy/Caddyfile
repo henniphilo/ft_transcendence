@@ -1,7 +1,7 @@
 {
- 	servers {
-            metrics
-    }
+	servers {
+		metrics
+	}
 	log {
 		output file /var/log/caddy/caddy_main.log {
 			roll_size 100MiB
@@ -50,7 +50,13 @@
 	handle @media {
 		reverse_proxy backend:8000
 	}
+	metrics /metrics
 }
+
+
+
+
+
 # localhost:443 {
 
 #     tls internal
