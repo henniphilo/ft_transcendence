@@ -284,42 +284,23 @@ export class MenuDisplay {
                 console.log("Player2:", data.player2);
                 console.log("Your role:", data.playerRole);
 
-                // Erst Template wechseln über den globalen showTemplate
-                window.showTemplate('game');
+                const gameData = {
+                    player1: data.player1,
+                    player2: data.player2,
+                    playerRole: data.playerRole,
+                    game_id: data.game_id,
+                    settings: {
+                        ...data.settings,
+                        mode: "online"
+                    },
+                    userProfile: this.userProfile
+                };
 
-                // Kurz warten, bis das Template geladen ist
-                setTimeout(() => {
-                    const gameContainer = document.getElementById('game-container');
-                    if (!gameContainer) {
-                        console.error("Game container still not found after template switch!");
-                        return;
-                    }
+                // Wechsel zum GameScreen-Template und übergebe die gameData
+                showTemplate('game', gameData);
 
-                    this.container.style.display = 'none';
-                    gameContainer.style.display = 'block';
-
-                    // Erstelle ein gameData Objekt mit allen notwendigen Informationen
-                    const gameData = {
-                        player1: data.player1,
-                        player2: data.player2,
-                        playerRole: data.playerRole,
-                        game_id: data.game_id,
-                        settings: {
-                            ...data.settings,
-                            mode: "online"
-                        },
-                        userProfile: this.userProfile
-                    };
-
-
-                    window.gameScreen = new GameScreen(gameData, () => {
-                        gameContainer.style.display = 'none';
-                        this.container.style.display = 'block';
-                        this.requestMenuItems();
-                    });
-
-                    window.gameScreen.display();
-                }, 100);
+                // Container ausblenden
+                this.container.style.display = 'none';
                 break;
 
             case 'show_submenu':
@@ -339,7 +320,14 @@ export class MenuDisplay {
                 break;
             case 'start_game':
                 // Wechsel zum GameScreen-Template
-                showTemplate('game');
+                showTemplate('game', {
+                    player1: data.player1,
+                    player2: data.player2,
+                    playerRole: data.playerRole,
+                    game_id: data.game_id,
+                    settings: data.settings,
+                    userProfile: this.userProfile
+                });
                 this.startGame(data);
                 break;
             case 'show_settings':
