@@ -55,7 +55,7 @@ export class MenuDisplay {
         const formData = new FormData();
         if (newBio) formData.append('bio', newBio);
         if (avatarFile) formData.append('avatar', avatarFile);
-            
+
         try {
             const updatedData = await updateProfile(formData);
             this.userProfile = updatedData;
@@ -75,7 +75,7 @@ export class MenuDisplay {
         if (this.elements.email) this.elements.email.textContent = profileData.email || '';
         if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
         if (this.elements.avatar) {
-            this.elements.avatar.src = profileData.avatar 
+            this.elements.avatar.src = profileData.avatar
                 ? profileData.avatar + '?t=' + new Date().getTime()
                 : '/assets/default-avatar.png';
         }
@@ -88,7 +88,7 @@ export class MenuDisplay {
                     <div id="menu-options"></div>
                 </div>
                 <div class="profile-section">
-                    <h2 class="profile-username">Willkommen, ${this.userProfile.username}!</h2>
+                    <h2 class="profile-username">Willkommen ${this.userProfile.username}!</h2>
                     <div class="profile-info">
                         <img class="profile-avatar" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" alt="Avatar" />
                         <div class="profile-details">
@@ -168,11 +168,11 @@ export class MenuDisplay {
         try {
             // Erst den User aus der Online-Liste entfernen
             await OnlineUsersHandler.removeUserFromOnline();
-            
+
             // Dann die Token entfernen
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            
+
             console.log('Logout erfolgreich');
             window.location.href = '/login';
         } catch (error) {
@@ -238,7 +238,7 @@ export class MenuDisplay {
 
     handleMenuClick(itemId) {
         console.log("Menu click:", itemId); // Debug log
-        
+
         if (itemId === 'online') {
             this.displaySearchingScreen();
             // Wichtig: Sende dem Server die Information, dass wir suchen
@@ -265,7 +265,7 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-        
+
         switch (data.action) {
             case 'searching_opponent':
                 console.log("Started searching for opponent...");
@@ -277,16 +277,16 @@ export class MenuDisplay {
                     </div>
                 `;
                 break;
-                
+
             case 'game_found':
                 console.log("Match found! Game ID:", data.game_id);
                 console.log("Player1:", data.player1);
                 console.log("Player2:", data.player2);
                 console.log("Your role:", data.playerRole);
-                
+
                 // Erst Template wechseln über den globalen showTemplate
                 window.showTemplate('game');
-                
+
                 // Kurz warten, bis das Template geladen ist
                 setTimeout(() => {
                     const gameContainer = document.getElementById('game-container');
@@ -294,13 +294,13 @@ export class MenuDisplay {
                         console.error("Game container still not found after template switch!");
                         return;
                     }
-                    
+
                     this.container.style.display = 'none';
                     gameContainer.style.display = 'block';
 
                     // Erstelle ein gameData Objekt mit allen notwendigen Informationen
                     const gameData = {
-                        player1: data.player1, 
+                        player1: data.player1,
                         player2: data.player2,
                         playerRole: data.playerRole,
                         game_id: data.game_id,
@@ -413,10 +413,10 @@ export class MenuDisplay {
 
     startGame(data) {
         console.log("startGame wurde aufgerufen:", data);
-        
+
         // Verstecke das Menü
         this.container.style.display = 'none';
-        
+
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
 
