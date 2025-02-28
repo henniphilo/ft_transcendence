@@ -92,25 +92,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  # nginx:
-  #   <<: *common
-  #   build:
-  #     context: ./src/
-  #     dockerfile: nginx/Dockerfile
-  #   depends_on:
-  #     - backend
-  #   ports:
-  #     - "8080:80"
-  #   extra_hosts:
-  #     - "host.docker.internal:host-gateway"
-  #   volumes:
-  #     - ./src/nginx/logs:/var/log/nginx
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
-  #     interval: 30s
-  #     timeout: 30s
-  #     retries: 5
   
   grafana:
     <<: *common
@@ -167,31 +148,12 @@ services:
       - "3200:3200"   # tempo
       - "4317:4317"   # otlp grpc
       - "4318:4318"   # otlp http
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -f http://localhost:3200/metrics || exit 1"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 5
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3200/metrics || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-# No health check possible for the otel collector
-  # otel-collector:
-  #   <<: *common
-  #   build:
-  #     context: ./src/grafana
-  #     dockerfile: Dockerfile.otel-collector   
-  #   volumes:
-  #     - caddy_logs:/var/log/caddy
-  #   ports:
-  #     - "4319:4317"  # Changed from 4317 to avoid conflict
-  #     - "4320:4318"  # Changed from 4318 to avoid conflict
-  #     - 1888:1888 # pprof extension
-  #     - 8888:8888 # Prometheus metrics exposed by the Collector
-  #     - 8889:8889 # Prometheus exporter metrics
-  #     - 13133:13133 # health_check extension      
-  #     - 55679:55679 # zpages extension
-  #   depends_on:
-  #     - tempo
-  #     - loki
      
   portainer:
     <<: *common
@@ -246,6 +208,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - redis_logs:/var/log/redis
       - caddy_logs:/var/log/caddy
+      - django_logs:/app/logs
     ports:
     - "9080:9080" 
     depends_on:

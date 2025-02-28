@@ -10,10 +10,7 @@ def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
     
     logger = logging.getLogger(__name__)
-    logger.info("Application starting with OpenTelemetry logging enabled")
-    
-	# Get logger for this module
-    logger = logging.getLogger(__name__)
+    logger.info("Application starting with logging enabled")
     
     # Example log messages at different levels
     logger.debug("This is a debug message")
