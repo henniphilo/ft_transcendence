@@ -90,6 +90,7 @@ button:hover {
     background-color: #d7eb25;
 }
 
+
 /* .edit-profile-button {
   background-color: #8c9900;
   color: white;
@@ -99,24 +100,7 @@ button:hover {
   /* border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s, border 0.3s;
-} */
-
-
-.edit-profile-button:hover {
-  background-color: #d7eb25;
-  border-color: white;
-}
-
-/* .edit-profile-button {
-  background-color: #8c9900;
-  color: white;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s, border 0.3s;
-} */
+}  */
 
 /* .edit-profile-button:hover {
   background-color: #d7eb25;
@@ -129,7 +113,7 @@ button:hover {
   padding: 12px;
   font-size: 16px;
   border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
-  border-radius: 6px;
+  /* border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s, border 0.3s;
 } */
