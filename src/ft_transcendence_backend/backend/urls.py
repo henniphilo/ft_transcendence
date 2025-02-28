@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('api/users/', include('users.urls')),  # User-Routen
+    path('', include('django_prometheus.urls')),
 ]
 
 from django.conf import settings

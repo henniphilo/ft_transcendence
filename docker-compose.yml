@@ -171,24 +171,24 @@ services:
     #   retries: 5
 
 # No health check possible for the otel collector
-  otel-collector:
-    <<: *common
-    build:
-      context: ./src/grafana
-      dockerfile: Dockerfile.otel-collector   
-    volumes:
-      - caddy_logs:/var/log/caddy
-    ports:
-      - "4319:4317"  # Changed from 4317 to avoid conflict
-      - "4320:4318"  # Changed from 4318 to avoid conflict
-      - 1888:1888 # pprof extension
-      - 8888:8888 # Prometheus metrics exposed by the Collector
-      - 8889:8889 # Prometheus exporter metrics
-      - 13133:13133 # health_check extension      
-      - 55679:55679 # zpages extension
-    depends_on:
-      - tempo
-      - loki
+  # otel-collector:
+  #   <<: *common
+  #   build:
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.otel-collector   
+  #   volumes:
+  #     - caddy_logs:/var/log/caddy
+  #   ports:
+  #     - "4319:4317"  # Changed from 4317 to avoid conflict
+  #     - "4320:4318"  # Changed from 4318 to avoid conflict
+  #     - 1888:1888 # pprof extension
+  #     - 8888:8888 # Prometheus metrics exposed by the Collector
+  #     - 8889:8889 # Prometheus exporter metrics
+  #     - 13133:13133 # health_check extension      
+  #     - 55679:55679 # zpages extension
+  #   depends_on:
+  #     - tempo
+  #     - loki
      
   portainer:
     <<: *common
@@ -200,6 +200,7 @@ services:
       - caddy
     ports:
       - "9443:9443"
+    command: ["--metrics", "--metrics-address=:9443"]
     healthcheck:
       test: ["CMD-SHELL", "curl -f -k https://localhost:9443 || exit 1"]
       interval: 30s
@@ -215,13 +216,37 @@ services:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9090 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   node-exporter:
     <<: *common
     image: prom/node-exporter:latest
     ports:
       - "9100:9100"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9100 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
+  promtail:
+    <<: *common
+    build:
+      context: ./src/grafana
+      dockerfile: Dockerfile.promtail
+    volumes:
+      - promtail_logs:/app/logs
+    depends_on:
+      - loki
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:
@@ -231,6 +256,7 @@ volumes:
   loki-data:
   caddy_logs:
   prometheus_data:
+  promtail_logs:
 
 networks:
   transcendence_network:

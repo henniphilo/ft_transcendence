@@ -1,5 +1,6 @@
 FROM python:3.10
 
+RUN mkdir -p /app/logs
 WORKDIR /app
 
 # Kopiere requirements und installiere

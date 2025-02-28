@@ -28,10 +28,6 @@ scrape_configs:
     static_configs:
       - targets: ['backend:8000']
 
-  - job_name: 'game'
-    static_configs:
-      - targets: ['game:8001']
-
   - job_name: 'grafana'
     static_configs:
       - targets: ['grafana:3000']
@@ -44,10 +40,15 @@ scrape_configs:
     static_configs:
       - targets: ['tempo:3200']
 
-  - job_name: 'otel-collector'
+  - job_name: 'promtail'
     static_configs:
-      - targets: ['otel-collector:4317', 'otel-collector:4318']
+      - targets: ['promtail:9080']
 
-  - job_name: 'portainer'
-    static_configs:
-      - targets: ['portainer:9443']
+
+# not working yet but I dont need to monitor this one do i ?
+  # - job_name: 'portainer'
+  #   scheme: https
+  #   tls_config:
+  #     insecure_skip_verify: true
+  #   static_configs:
+  #     - targets: ['portainer:9443']

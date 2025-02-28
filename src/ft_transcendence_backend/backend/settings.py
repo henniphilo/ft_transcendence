@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'api',
     'users',
     'channels',
+	'django_prometheus',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -67,6 +68,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 🚀 Unsere neue Middleware für JWT-User in Redis
     'backend.middleware.JWTUserMiddleware',
+	'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    # All your other middlewares go here, including the default
+    # middlewares like SessionMiddleware, CommonMiddleware,
+    # CsrfViewmiddleware, SecurityMiddleware, etc.
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 # Redis-Konfiguration aus Docker-Compose nutzen
@@ -103,7 +109,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'  # Keep for traditional HTTP reque
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
         'NAME': 'transcendence',
         'USER': 'user',
         'PASSWORD': 'password',
@@ -115,7 +121,7 @@ DATABASES = {
 # Redis Configuration
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": "django_prometheus.cache.backends.redis.RedisCache",
         "LOCATION": f"redis://{os.environ.get('REDIS_HOST', 'redis')}:{os.environ.get('REDIS_PORT', 6379)}/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
@@ -193,3 +199,35 @@ EMAIL_HOST_USER = '849697001@smtp-brevo.com'
 EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
 EMAIL_USE_TLS = True
 EMAIL_PORT = '587'
+
+# logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # Set the minimum log level
+            'class': 'logging.FileHandler',
+            'filename': '/app/logs/django.log',  # Specify the log file path
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # Set the minimum log level for Django logs
+            'propagate': True,
+        },
+        'your_app_name': {  # Replace with your app's name
+            'handlers': ['file'],
+            'level': 'DEBUG',  # Set the minimum log level for your app's logs
+            'propagate': True,
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+}
