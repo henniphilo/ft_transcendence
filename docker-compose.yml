@@ -143,6 +143,7 @@ services:
     command: [ "-config.file=/etc/tempo.yml" ]
     volumes:
       - ./src/grafana/config/tempo.yml:/etc/tempo.yml
+      - tempo_data:/tmp/tempo/blocks
     ports:
       - "3200:3200"   # tempo
       - "4317:4317"   # otlp grpc
@@ -234,6 +235,7 @@ volumes:
   caddy_logs:
   prometheus_data:
   promtail_logs:
+  tempo_data:
 
 networks:
   transcendence_network:
