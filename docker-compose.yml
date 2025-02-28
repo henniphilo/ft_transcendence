@@ -49,12 +49,14 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - django_logs:/app/logs
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8000 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -218,7 +220,7 @@ services:
     volumes:
       - prometheus_data:/prometheus
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9090 || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9090; exit $?;'"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -229,7 +231,7 @@ services:
     ports:
       - "9100:9100"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9100 || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9100; exit $?;'"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -249,7 +251,7 @@ services:
     depends_on:
       - loki
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9080 || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -259,6 +261,7 @@ volumes:
   postgres_logs:
   redis_data:
   redis_logs:
+  django_logs:
   grafana_data:
   portainer-data:
   loki-data:

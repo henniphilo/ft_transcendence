@@ -20,13 +20,13 @@ scrape_configs:
     labels:
       job: redis
       __path__: /var/log/redis/redis-server.log
-# - job_name: django_logs
-#   static_configs:
-#   - targets:
-#       - localhost
-#     labels:
-#       job: django
-#       __path__: /app/logs/django.log
+- job_name: django_logs
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: django
+      __path__: /app/logs/django.log
 - job_name: caddy_logs
   static_configs:
   - targets:
