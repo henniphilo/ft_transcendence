@@ -1,5 +1,8 @@
 # src/grafana/config/otel-collector-config.yaml
 receivers:
+  filelog:
+    include: ["/var/log/caddy/*.log"]
+    start_at: beginning
   otlp:
     protocols:
       grpc:
@@ -16,6 +19,7 @@ exporters:
       insecure: true
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
+    
 
 service:
   pipelines:
@@ -28,6 +32,10 @@ service:
       processors: [batch]
       exporters: [otlp]
     logs:
-      receivers: [otlp]
+      receivers: [filelog]
       processors: [batch]
-      exporters: [otlp]
+      exporters: [loki]
+    # logs:
+    #   receivers: [otlp]
+    #   processors: [batch]
+    #   exporters: [otlp]
