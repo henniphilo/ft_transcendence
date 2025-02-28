@@ -26,12 +26,12 @@ services:
 # we could change to redis latest. we are not doing inception anymore
   redis:
     <<: *common
-    image: "redis:alpine"
+    build: src/redis
     ports:
       - "6380:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes  --save 60 1 --loglevel verbose
+      - redis_logs:/var/log/redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"] 
       interval: 10s
@@ -240,6 +240,9 @@ services:
       dockerfile: Dockerfile.promtail
     volumes:
       - promtail_logs:/app/logs
+      - postgres_data:/var/lib/postgresql/data
+      - redis_data:/var/lib/redis
+      - caddy_logs:/var/log/caddy
     depends_on:
       - loki
     healthcheck:
@@ -251,6 +254,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  redis_logs:
   grafana_data:
   portainer-data:
   loki-data:
