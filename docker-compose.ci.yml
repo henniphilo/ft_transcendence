@@ -47,7 +47,7 @@ services:
     <<: *common
     build: src/ft_transcendence_backend
     environment:
-      DATABASE_URL: "postgresql://$${{ secrets.POSTGRES_USER }}:$${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/$${{ secrets.POSTGRES_DB }}"
+      DATABASE_URL: postgresql://$${{ secrets.POSTGRES_USER }}:$${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/$${{ secrets.POSTGRES_DB }}
     depends_on:
       postgres:
         condition: service_healthy
