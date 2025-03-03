@@ -16,9 +16,6 @@ services:
     <<: *common
     build: src/postgres
     environment:
-      POSTGRES_USER: "dummy"
-      POSTGRES_PASSWORD: "dummy"
-      POSTGRES_DB: "dummy"
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       POSTGRES_DB_FILE: /run/secrets/postgres_db
