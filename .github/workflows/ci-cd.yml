@@ -26,23 +26,11 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
-          OTEL_LOGS_EXPORTER: "otlp"
           GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} # Add secret
           GF_DEFAULT_THEME: "dark"
           DATABASE_URL: "postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}"
           REDIS_HOST: "redis"
           REDIS_PORT: "6379"
-          OTEL_SERVICE_NAME: "django-app"
-          OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana:4317"
-          OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
-          OTEL_METRIC_EXPORT_INTERVAL: "500"
-          ENABLE_OTEL: "true"
-          OTEL_SERVICE_NAME: "transcendence-backend"
-          OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=development,service.version=1.0.0"
-          OTEL_TRACES_SAMPLER: "parentbased_always_on"
-          OTEL_METRICS_EXPORTER: "otlp"
-          OTEL_PYTHON_LOG_CORRELATION: "true"
           PORTAINER_VERSION: "2.14.2"
           PORTAINER_HOME: "/var/lib/portainer"
           KUBERNETES_SERVICE_HOST: ""
