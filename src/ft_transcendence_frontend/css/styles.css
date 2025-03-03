@@ -1,125 +1,244 @@
-/* Global Styles */
+/* General Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Arial', sans-serif;
-}
+  }
 
-body {
-    background-color: #f4f7fc;
+  /* Global Body Styles */
+  body {
+    background-color: #f4f7fc; /* Alternativ: #f4f4f4 – je nachdem, was dir besser gefällt */
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
 #signup-container {
-    background-color: #fff;
+    background-color: #b9a84cc0;
     padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 7px;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
     width: 100%;
-    max-width: 400px;
+    max-width: 300px;
     text-align: center;
 }
+
+#login-container {
+    background-color: #8e8658c0;
+    padding: 40px;
+    border-radius: 7px;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+
 
 h2 {
     font-size: 24px;
     margin-bottom: 30px;
     color: #333;
-}
+  }
 
-/* Form Styles */
-form {
+  /* Formular-Stile */
+  form {
     display: flex;
     flex-direction: column;
-}
+  }
 
-label {
+  label {
     text-align: left;
     margin-bottom: 8px;
     font-size: 14px;
     color: #333;
-}
+  }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="text"] {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
     padding: 12px;
     margin-bottom: 20px;
-    border: 1px solid #ddd;
+    border: 1px solid #fff9dedf;
     border-radius: 6px;
     font-size: 14px;
     width: 100%;
     box-sizing: border-box;
 }
 
-input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus {
-    border-color: #3b82f6;
+input:focus {
+    border-color: #d7eb25;
     outline: none;
 }
 
 /* Button Styles */
 button {
-    background-color: #3b82f6;
+    background-color: #8c9900;
     color: white;
     padding: 12px;
     font-size: 16px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    margin-top: 10px;
     transition: background-color 0.3s;
 }
 
 button:hover {
-    background-color: #2563eb;
+    background-color: #d7eb25;
 }
 
-/* 2FA Container Styles */
-#2fa-container {
+
+/* .edit-profile-button {
+  background-color: #8c9900;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
+  /* border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, border 0.3s;
+}  */
+
+/* .edit-profile-button:hover {
+  background-color: #d7eb25;
+  border-color: white;
+} */
+
+/* .logout-button {
+  background-color: #8c9900;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
+  /* border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, border 0.3s;
+} */
+
+/* .logout-button:hover {
+  background-color: #d7eb25;
+  border-color: white;
+} */
+
+/* 2FA Verification */
+#twofa-container {
     display: none;
-}
+  }
 
-#2fa-container h3 {
+  #twofa-container h3 {
     margin-bottom: 20px;
     font-size: 20px;
-    color: #333;
+    color: #000000;
 }
 
-#2fa-container label {
-    margin-bottom: 8px;
-}
-
-#2fa-container input {
+#twofa-container input {
     padding: 12px;
     margin-bottom: 20px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
     width: 100%;
-    box-sizing: border-box;
-}
+  }
 
-#2fa-container button {
-    background-color: #10b981;
+  #twofa-container button {
+    background-color: #78b910;
     color: white;
+  }
+
+  #twofa-container button:hover {
+    background-color: #4b9605;
 }
 
-#2fa-container button:hover {
-    background-color: #059669;
-}
-
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 480px) {
-    #signup-container {
+    #signup-container, #login-container {
         padding: 20px;
-        width: 90%;
+        width: 80%;
     }
 
     h2 {
-        font-size: 20px;
+      font-size: 20px;
     }
 
     input, button {
-        font-size: 14px;
+      font-size: 14px;
     }
+
+    /* Falls nötig, kann man hier auch den Body flex-direction anpassen */
+    body {
+      flex-direction: column;
+    }
+  }
+
+  .searching-container {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #9bdb34;
+    border-radius: 50%;
+    margin: 20px auto;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .searching-box {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 20px auto;
+  }
+
+  .searching-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .cancel-search {
+    margin-top: 20px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .cancel-search:hover {
+    background-color: #c0392b;
+  }
+
+.menu-profile-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.menu-section {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.profile-section {
+  flex: 1;
+  max-width: 300px;
+  background-color: #8e8658c0;
+  background-size: cover;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: #47473b;
 }

@@ -2,11 +2,29 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import logging
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+    # Setup OpenTelemetry and logging
+    from opentelemetry.logging_config import setup_telemetry_and_logging
+    setup_telemetry_and_logging()
+    
+    logger = logging.getLogger(__name__)
+    logger.info("Application starting with OpenTelemetry logging enabled")
+    
+	# Get logger for this module
+    logger = logging.getLogger(__name__)
+    
+    # Example log messages at different levels
+    logger.debug("This is a debug message")
+    logger.info("Application starting up...")
+    logger.warning("This is a warning message")
+    logger.error("This is an error message")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -27,40 +27,44 @@ class AI:
         current_time = time.time()
         ball_pos = game_state["ball"]
         paddle_pos = game_state["player2"]["paddle"]["center"]
-        
+
         # Zufällige Verzögerung basierend auf Schwierigkeit
         if current_time - self.last_move_time < (1 - self.speed) * 0.1:
             return {"action": "key_update", "keys": self.get_empty_keys()}
-            
+
         # Füge absichtliche Ungenauigkeit hinzu
         target_pos = ball_pos[1] + random.uniform(-self.error_margin, self.error_margin)
-        
+
         # Träge Bewegung - AI behält teilweise die alte Richtung bei
         if self.difficulty == "easy":
             target_pos = 0.7 * self.last_target + 0.3 * target_pos
-        
+
         self.last_target = target_pos
         self.last_move_time = current_time
-        
+
         # Erstelle ein simuliertes Tastenstate
         keys = self.get_empty_keys()
-        
+
         # Totzone - kleine Bewegungen ignorieren
         if abs(target_pos - paddle_pos) > 0.05:
             if target_pos > paddle_pos:
-                keys['ArrowDown'] = True
+                # Für Player 2 (AI) verwenden wir ArrowLeft
+                keys['ArrowLeft'] = True
             else:
-                keys['ArrowUp'] = True
-                
+                # Für Player 2 (AI) verwenden wir ArrowRight
+                keys['ArrowRight'] = True
+
         return {
             "action": "key_update",
+            "player_role": "player2",  # Wichtig: Rolle angeben
             "keys": keys
         }
-    
+
     def get_empty_keys(self):
+        """Gibt ein leeres Tastenstate zurück"""
         return {
-            'w': False,
-            's': False,
-            'ArrowUp': False,
-            'ArrowDown': False
-        } 
+            'a': False,
+            'd': False,
+            'ArrowLeft': False,
+            'ArrowRight': False
+        }

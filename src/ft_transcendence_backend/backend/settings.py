@@ -10,21 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-
-
 from pathlib import Path
-
 import os
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+#MEDIA_URL = "/media/"
+#MEDIA_ROOT = "/app/users/media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -35,12 +31,7 @@ SECRET_KEY = 'django-insecure-7891*hs6jd=fd_kacvcjx^_o=b1347g5&#8ho#dm^xuh-e+7do
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = []
-#ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "172.17.0.1"]
 ALLOWED_HOSTS = ["*"]  # Lässt alle Hosts zu (unsicher für Produktion!)
-
-
-
 
 # Application definition
 
@@ -55,23 +46,19 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'django_extensions',
+    'api',
+    'users',
+    'channels',
+    'gamestats',
 ]
-
-INSTALLED_APPS += ['api']
-INSTALLED_APPS += ['users']
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
 # Erlaubt Anfragen von allen Hosts (für Testing)
 CORS_ALLOW_ALL_ORIGINS = True
-# Alternativ, wenn du nur dein Frontend zulassen willst:
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:8080",
-# ]
-
 
 MIDDLEWARE = [
-     "corsheaders.middleware.CorsMiddleware",  # Muss ganz oben stehen!
+    "corsheaders.middleware.CorsMiddleware",  # Muss ganz oben stehen!
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -79,7 +66,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 🚀 Unsere neue Middleware für JWT-User in Redis
+    'backend.middleware.JWTUserMiddleware',
 ]
+
+# Redis-Konfiguration aus Docker-Compose nutzen
+REDIS_HOST = "redis"
+REDIS_PORT = 6379
+
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -99,11 +93,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
-
+# Use ASGI for WebSocket/async support while maintaining WSGI for regular HTTP
+# Keep both but prioritize ASGI
+ASGI_APPLICATION = 'backend.asgi.application'  # Required for WebSockets/Channels
+WSGI_APPLICATION = 'backend.wsgi.application'  # Keep for traditional HTTP requests
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
 
 DATABASES = {
     'default': {
@@ -116,6 +113,26 @@ DATABASES = {
     }
 }
 
+# Redis Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{os.environ.get('REDIS_HOST', 'redis')}:{os.environ.get('REDIS_PORT', 6379)}/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# Channel Layers (for WebSockets/Async)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(os.environ.get('REDIS_HOST', 'redis'), int(os.environ.get('REDIS_PORT', 6379)))],
+        },
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -135,7 +152,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -147,7 +163,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
@@ -158,52 +173,21 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-from datetime import timedelta
-
+# REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
 
+# JWT Configuration
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Token gültig für 1h
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh-Token gültig für 7 Tage
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# these settings are for the make tests. We need to find a way to distinguish which environment should load what.
-
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Nur für Entwicklung
-#EMAIL_HOST = 'smtp.example.com'
-#EMAIL_PORT = 587
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = 'deine_email@example.com'
-#EMAIL_HOST_PASSWORD = 'dein_passwort'
-
-#better way
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-#EMAIL_HOST_USER = '24e67ab734e89a'
-#EMAIL_HOST_PASSWORD = 'eae206d24f0b6c'
-#EMAIL_PORT = '2525'
-
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'live.smtp.mailtrap.io'
-#EMAIL_HOST_USER = 'api'
-#EMAIL_HOST_PASSWORD = 'e87fa22620962c71ff13ccea8f2c3165'
-#EMAIL_PORT = '587'
-
-
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'smtp.mandrillapp.com'
-#EMAIL_HOST_USER = 'ohoro@student.42berlin.de'
-#EMAIL_HOST_PASSWORD = 'md-2Nhzq490JIKqYkdsFfKbQw'
-#EMAIL_USE_TLS = True
-#EMAIL_PORT = '587'
-
-
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp-relay.brevo.com'
 EMAIL_HOST_USER = '849697001@smtp-brevo.com'

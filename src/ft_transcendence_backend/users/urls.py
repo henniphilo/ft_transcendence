@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import RegisterUserView, send_verification_code, verify_code  # 👈 Fehlende Funktionen importiert!
+from .views import RegisterUserView, send_verification_code, verify_code, get_leaderboard, get_current_user_stats  # 👈 Fehlende Funktionen importiert!
 
 urlpatterns = [
     path('register/', RegisterUserView.as_view(), name='register'),
@@ -17,4 +17,22 @@ from .views import user_profile
 
 urlpatterns += [
     path('profile/', user_profile, name='user_profile'),
+]
+
+urlpatterns += [
+    path('leaderboard/', get_leaderboard, name='leaderboard'),
+]
+
+urlpatterns += [
+    path('current-stats/', get_current_user_stats, name='current-user-stats'),
+]
+
+from .views import logout_view
+urlpatterns += [
+    path("logout/", logout_view, name="logout"),
+]
+
+from .views import get_online_users
+urlpatterns += [
+    path("online-users/", get_online_users, name="online_users"),
 ]

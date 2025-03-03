@@ -10,6 +10,7 @@ class CustomUser(AbstractUser):
     birth_date = models.DateField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)  # 2FA aktiviert?
     verification_code = models.CharField(max_length=6, blank=True, null=True)  # 6-stelliger Code
+    score = models.IntegerField(default=0)  # Neues Feld für den Score
 
     def __str__(self):
         return self.username

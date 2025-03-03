@@ -1,43 +1,93 @@
-class GameScreen {
-    constructor(gameState, onBackToMenu) {
-        this.gameState = gameState;
+import { ThreeJSManager } from "./3dmanager.js";
+
+export class GameScreen {
+    constructor(gameData, onBackToMenu) {
+        console.log("GameScreen loaded!");
+
+        // Speichere das Benutzerprofil
+        this.userProfile = gameData.userProfile;  // Neu hinzugefügt
+
+        // Nur initiale Werte, werden vom Server überschrieben
+        this.gameState = {
+            player1: { name: gameData.player1, score: 0 },
+            player2: { name: gameData.player2, score: 0 },
+            ball: [0, 0]
+        };
+        this.playerRole = gameData.playerRole;  // "player1" oder "player2"
         this.onBackToMenu = onBackToMenu;
-        this.canvas = null;
-        this.ctx = null;
-        this.gameId = null;
+        this.gameId = gameData.game_id;
+
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
-        this.gameMode = new URLSearchParams(window.location.search).get('mode') || 'pvp';
-        
-        this.setupWebSocket();
+        this.gameMode = 'online';  // Änderung hier: immer auf 'online' setzen
+
+        this.threeJSManager = new ThreeJSManager();
+
+        // Sende Inputs zum Server (60 mal pro Sekunde)
         this.setupControls();
+
+        // Empfange Game State vom Server
+        this.setupWebSocket();
+
+        // Rendere nur was wir vom Server bekommen
+        this.setupThreeJS();
+    }
+
+    async setupThreeJS() {
+        try {
+            await this.threeJSManager.loadModels();
+            this.display(); // Add this line
+            this.startGameLoop();
+        } catch (error) {
+            console.error('Failed to load 3D models:', error);
+        }
+    }
+
+
+    startGameLoop() {
+        const gameLoop = () => {
+            // Nur Rendering, keine Position-Updates!
+            this.threeJSManager.render();
+            requestAnimationFrame(gameLoop);
+        };
+        gameLoop();
     }
 
     setupWebSocket() {
-        this.gameId = crypto.randomUUID();
+        console.log("Connecting to game with ID:", this.gameId);
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
-        
+
+        this.ws.onopen = () => {
+            console.log("WebSocket connection established for game:", this.gameId);
+        };
+
         this.ws.onmessage = (event) => {
+  //          console.log("Received game state:", event.data); // Debug-Log
             this.gameState = JSON.parse(event.data);
-            this.updateScoreBoard();  // Update Score bei jedem neuen Spielzustand
-            this.draw();
-            
+            this.updateScoreBoard();
+            this.threeJSManager.updatePositions(this.gameState);
+            this.threeJSManager.render();
+
             if (this.gameState.winner) {
                 this.displayWinnerScreen();
             }
+        };
+
+        this.ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
         };
     }
 
     setupControls() {
         this.keyState = {
-            'w': false,
-            's': false,
-            'ArrowUp': false,
-            'ArrowDown': false
+            'a': false,
+            'd': false,
+            'ArrowLeft': false,
+            'ArrowRight': false
         };
 
-        // Kontinuierliches Senden, wenn Tasten gedrückt sind
+        // Sende Inputs zum Server (60 mal pro Sekunde)
         this.controlInterval = setInterval(() => {
             if (Object.values(this.keyState).some(key => key)) {
                 this.ws.send(JSON.stringify({
@@ -45,26 +95,33 @@ class GameScreen {
                     keys: this.keyState
                 }));
             }
-        }, 16);
+        }, 16);  // ~60 FPS
 
         document.addEventListener('keydown', (e) => {
-            // Nur WASD-Steuerung erlauben wenn gegen AI
-            if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-                return; // Ignoriere Pfeiltasten im AI-Modus
+            if (this.playerRole === 'both') {
+                // Lokaler Modus: Erlaube alle Tasten
+                if (this.keyState.hasOwnProperty(e.key)) {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
+            } else if (this.playerRole === 'player1') {
+                // Spieler 1: Nur A und D
+                if (e.key === 'a' || e.key === 'd') {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
+            } else if (this.playerRole === 'player2') {
+                // Spieler 2: Nur Pfeiltasten
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    this.keyState[e.key] = true;
+                }
             }
-            
-            if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                e.preventDefault();
-                this.keyState[e.key] = true;
-            }
+            // Keine spezielle Behandlung für AI nötig, da die Steuerung vom Server kommt
         });
 
         document.addEventListener('keyup', (e) => {
-            if (this.gameMode === 'ai' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-                return; // Ignoriere Pfeiltasten im AI-Modus
-            }
-            
-            if (e.key === 'w' || e.key === 's' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            if (this.keyState.hasOwnProperty(e.key)) {
                 e.preventDefault();
                 this.keyState[e.key] = false;
             }
@@ -72,8 +129,9 @@ class GameScreen {
     }
 
     display() {
+        console.log("Game wird angezeigt...");
         const container = document.getElementById('game-container');
-        
+
         if (this.gameState.winner) {
             this.displayWinnerScreen();
         } else {
@@ -87,65 +145,29 @@ class GameScreen {
                             ${this.gameState.player2.name}: ${this.gameState.player2.score}
                         </div>
                     </div>
-                    <canvas id="game-canvas"></canvas>
+                     <div id="controls-info" class="controls-info">
+                     <p>Player 1: Left = &#8592; Right = &#8594; </strong></p>
+                     <p>Player 2: Left = A Right = D </strong></p>
+                </div>
+                    <div id="three-js-container"></div>
                 </div>
             `;
-            this.initCanvas();
             this.scoreBoard = document.getElementById('score-board');
-            this.draw();
+            this.threeJSManager.setupRenderer(document.getElementById('three-js-container'));
         }
     }
 
+
     updateScoreBoard() {
         if (!this.scoreBoard) return;
-        
+
         const player1Score = this.scoreBoard.querySelector('#player1-score');
         const player2Score = this.scoreBoard.querySelector('#player2-score');
-        
+
         if (player1Score && player2Score) {
             player1Score.textContent = `${this.gameState.player1.name}: ${this.gameState.player1.score}`;
             player2Score.textContent = `${this.gameState.player2.name}: ${this.gameState.player2.score}`;
         }
-    }
-
-    draw() {
-        if (!this.ctx) return;
-
-        // Hintergrund
-        this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Mittellinie
-        this.ctx.strokeStyle = '#fff';
-        this.ctx.setLineDash([5, 15]);
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.canvas.width / 2, 0);
-        this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
-
-        // Ball
-        const ballX = (this.gameState.ball[0] + 1) * this.canvas.width / 2;
-        const ballY = (this.gameState.ball[1] + 1) * this.canvas.height / 2;
-        this.ctx.fillStyle = '#fff';
-        this.ctx.beginPath();
-        this.ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        // Paddle Dimensionen
-        const paddleWidth = 10;
-
-        // Player 1 Paddle - Verwende die exakten Koordinaten vom Backend
-        const p1Top = (this.gameState.player1.paddle.top + 1) * this.canvas.height / 2;
-        const p1Bottom = (this.gameState.player1.paddle.bottom + 1) * this.canvas.height / 2;
-        const p1Height = p1Bottom - p1Top;
-        this.ctx.fillRect(0, p1Top, paddleWidth, p1Height);
-
-        // Player 2 Paddle - Verwende die exakten Koordinaten vom Backend
-        const p2Top = (this.gameState.player2.paddle.top + 1) * this.canvas.height / 2;
-        const p2Bottom = (this.gameState.player2.paddle.bottom + 1) * this.canvas.height / 2;
-        const p2Height = p2Bottom - p2Top;
-        this.ctx.fillRect(this.canvas.width - paddleWidth, p2Top, paddleWidth, p2Height);
     }
 
     displayWinnerScreen() {
@@ -164,16 +186,14 @@ class GameScreen {
         if (this.ws) {
             this.ws.close();
         }
-        this.onBackToMenu();
-    }
+        this.cleanup();
 
-    initCanvas() {
-        this.canvas = document.getElementById('game-canvas');
-        this.ctx = this.canvas.getContext('2d');
-        
-        // Setze eine feste Größe für das Spielfeld
-        this.canvas.width = 800;
-        this.canvas.height = 600;  // Höher für bessere Proportionen
+        // Template mit userProfile wechseln
+        window.showTemplate('menu', { userProfile: this.userProfile });
+
+        if (this.onBackToMenu) {
+            this.onBackToMenu();
+        }
     }
 
     cleanup() {
@@ -184,5 +204,6 @@ class GameScreen {
         if (this.controlInterval) {
             clearInterval(this.controlInterval);
         }
+        this.threeJSManager.cleanup();
     }
-} 
+}

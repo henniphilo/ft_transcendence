@@ -8,6 +8,12 @@ app = FastAPI()
 menu = Menu()
 game_server = GameServer()
 
+# Füge eine Basic-Route hinzu
+@app.get("/")
+async def root():
+    print("health check received")
+    return {"status": "Game Server running"}
+
 @app.websocket("/ws/menu")
 async def websocket_menu(websocket: WebSocket):
     await websocket.accept()

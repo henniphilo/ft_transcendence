@@ -1,10 +1,22 @@
-class MenuDisplay {
-    constructor() {
-        this.menuContainer = document.getElementById('menu-container');
+import { GameScreen } from "./game_screen.js";
+import { ProfileHandler } from '../profileHandler.js';
+import { OnlineUsersHandler } from '../onlineUsers.js';
+import { LeaderboardDisplay } from './displayLeaderboard.js';
+import { updateProfile, logoutUser, getProfile } from '../authLib.js';
+import { fillProfileFields } from '../profileHandler.js';
+
+export class MenuDisplay {
+    constructor(userProfile) {
+        console.log("MenuDisplay loaded!");
+
+        this.container = document.getElementById('menu-container');
         this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
+        this.leaderboardDisplay = null;
+        this.userProfile = userProfile; // Speichere Benutzerprofil
+        this.elements = {};  // Für DOM-Element-Referenzen
         this.initWebSocket();
     }
 
@@ -31,21 +43,151 @@ class MenuDisplay {
         this.ws.send(JSON.stringify({ action: 'get_menu_items' }));
     }
 
+    async editProfile() {
+        const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
+        const avatarFile = this.elements.avatarInput?.files[0];
+
+        if (!newBio && !avatarFile) {
+            alert('Es wurden keine Änderungen vorgenommen.');
+            return;
+        }
+
+        const formData = new FormData();
+        if (newBio) formData.append('bio', newBio);
+        if (avatarFile) formData.append('avatar', avatarFile);
+
+        try {
+            const updatedData = await updateProfile(formData);
+            this.userProfile = updatedData;
+            this.updateProfileDisplay(updatedData);
+            if (this.elements.avatarInput) {
+                this.elements.avatarInput.value = "";
+            }
+            console.log('Profil erfolgreich aktualisiert!');
+        } catch (error) {
+            console.error('Fehler beim Aktualisieren:', error);
+            alert('Profil-Update fehlgeschlagen: ' + error);
+        }
+    }
+
+    updateProfileDisplay(profileData) {
+        if (this.elements.bio) this.elements.bio.textContent = profileData.bio || '';
+        if (this.elements.email) this.elements.email.textContent = profileData.email || '';
+        if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
+        if (this.elements.avatar) {
+            this.elements.avatar.src = profileData.avatar
+                ? profileData.avatar + '?t=' + new Date().getTime()
+                : '/assets/default-avatar.png';
+        }
+    }
+
     displayMenuItems(menuItems) {
-        this.menuContainer.innerHTML = '';
+        this.container.innerHTML = `
+            <div class="menu-profile-container">
+                <div class="menu-section">
+                    <div id="menu-options"></div>
+                </div>
+                <div class="profile-section">
+                    <h2 class="profile-username">Willkommen ${this.userProfile.username}!</h2>
+                    <div class="profile-info">
+                        <img class="profile-avatar" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" alt="Avatar" />
+                        <div class="profile-details">
+                            <p><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
+                            <p><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
+                            <p><strong>Geburtstag:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
+                        </div>
+                    </div>
+                    <form class="profile-form">
+                        <label for="avatar-input">Avatar ändern:</label>
+                        <input class="avatar-input" type="file" accept="image/*" />
+                    </form>
+                    <button class="edit-profile-button">Profil bearbeiten</button>
+                    <button class="logout-button">Logout</button>
+                </div>
+                <div class="online-users-section">
+                    <h3>Online Spieler</h3>
+                    <ul id="online-users-list"></ul>
+                </div>
+            </div>
+        `;
+
+        // DOM-Elemente nach dem Rendern speichern
+        this.elements = {
+            bio: this.container.querySelector('.profile-bio'),
+            email: this.container.querySelector('.profile-email'),
+            birthDate: this.container.querySelector('.profile-birth-date'),
+            avatar: this.container.querySelector('.profile-avatar'),
+            avatarInput: this.container.querySelector('.avatar-input'),
+            editButton: this.container.querySelector('.edit-profile-button'),
+            logoutButton: this.container.querySelector('.logout-button')
+        };
+
+        // Event-Listener hinzufügen
+        if (this.elements.editButton) {
+            this.elements.editButton.addEventListener('click', () => this.editProfile());
+        }
+        if (this.elements.logoutButton) {
+            this.elements.logoutButton.addEventListener('click', () => this.logout());
+        }
+        if (this.elements.avatarInput) {
+            this.elements.avatarInput.addEventListener('change', (e) => this.handleAvatarChange(e));
+        }
+
         menuItems.forEach(item => {
             const button = document.createElement('button');
             button.className = 'menu-item';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
-            this.menuContainer.appendChild(button);
+            this.container.querySelector('#menu-options').appendChild(button);
         });
+
+        // Starte das Polling für Online-User
+        OnlineUsersHandler.startPolling();
+    }
+
+    async handleAvatarChange(e) {
+        const avatarFile = e.target.files[0];
+        if (!avatarFile) return;
+
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+
+        try {
+            const updatedData = await updateProfile(formData);
+            this.userProfile = updatedData;
+            this.updateProfileDisplay(updatedData);
+            e.target.value = "";
+            console.log('Avatar erfolgreich aktualisiert!');
+        } catch (err) {
+            console.error('Fehler beim Avatar-Update:', err);
+            alert('Avatar-Update fehlgeschlagen: ' + err);
+        }
+    }
+
+    async logout() {
+        try {
+            // Erst den User aus der Online-Liste entfernen
+            await OnlineUsersHandler.removeUserFromOnline();
+
+            // Dann die Token entfernen
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+
+            console.log('Logout erfolgreich');
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('Fehler beim Logout:', error);
+            // Trotzdem die Token entfernen und zur Login-Seite weiterleiten
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login';
+        }
     }
 
     displaySettings(settings) {
         const currentSettings = this.currentSettings || settings;
-        
-        this.menuContainer.innerHTML = `
+
+        this.container.innerHTML = `
             <div class="settings-container">
                 <h2>Settings</h2>
                 <div class="setting-item">
@@ -82,9 +224,9 @@ class MenuDisplay {
                 winning_score: parseInt(document.getElementById('winning-score').value),
                 paddle_size: document.getElementById('paddle-size').value
             };
-            
+
             console.log('Sending settings:', settings);
-            
+
             await this.ws.send(JSON.stringify({
                 action: "update_settings",
                 settings: settings
@@ -95,6 +237,24 @@ class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
+        console.log("Menu click:", itemId); // Debug log
+
+        if (itemId === 'online') {
+            this.displaySearchingScreen();
+            // Wichtig: Sende dem Server die Information, dass wir suchen
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'online'
+            }));
+            return;
+        }
+        if (itemId === 'back' && this.container.querySelector('.searching-container')) {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_game'
+            }));
+            return;
+        }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
@@ -102,23 +262,84 @@ class MenuDisplay {
     }
 
     handleMenuAction(data) {
-        if (data.is_tournament) {
-            this.currentSettings = { ...this.currentSettings, tournament: true };
-        }
-        
+        console.log("\n=== Menu Action Received ===");
+        console.log("Action:", data.action);
+        console.log("Full data:", data);
+
         switch (data.action) {
-            case 'show_submenu':
-                this.displayMenuItems(data.menu_items);
+            case 'searching_opponent':
+                console.log("Started searching for opponent...");
+                // Zeige Wartebild an
+                this.container.innerHTML = `
+                    <div class="searching-screen">
+                        <h2>Searching for opponent...</h2>
+                        <button class="cancel-button" onclick="menuDisplay.cancelSearch()">Cancel</button>
+                    </div>
+                `;
                 break;
-            
+
+            case 'game_found':
+                console.log("Match found! Game ID:", data.game_id);
+                console.log("Player1:", data.player1);
+                console.log("Player2:", data.player2);
+                console.log("Your role:", data.playerRole);
+
+                // Erst Template wechseln über den globalen showTemplate
+                window.showTemplate('game');
+
+                // Kurz warten, bis das Template geladen ist
+                setTimeout(() => {
+                    const gameContainer = document.getElementById('game-container');
+                    if (!gameContainer) {
+                        console.error("Game container still not found after template switch!");
+                        return;
+                    }
+
+                    this.container.style.display = 'none';
+                    gameContainer.style.display = 'block';
+
+                    // Erstelle ein gameData Objekt mit allen notwendigen Informationen
+                    const gameData = {
+                        player1: data.player1,
+                        player2: data.player2,
+                        playerRole: data.playerRole,
+                        game_id: data.game_id,
+                        settings: {
+                            ...data.settings,
+                            mode: "online"
+                        },
+                        userProfile: this.userProfile
+                    };
+
+
+                    window.gameScreen = new GameScreen(gameData, () => {
+                        gameContainer.style.display = 'none';
+                        this.container.style.display = 'block';
+                        this.requestMenuItems();
+                    });
+
+                    window.gameScreen.display();
+                }, 100);
+                break;
+
+            case 'show_submenu':
+                if (data.menu_items === this.online_mode_items) {
+                    this.displaySearchingScreen();
+                } else {
+                    this.displayMenuItems(data.menu_items);
+                }
+                break;
+
             case 'show_player_names':
                 this.displayPlayerNamesInput(data.num_players, this.currentSettings?.tournament);
                 break;
-            
+
             case 'show_main_menu':
                 this.displayMenuItems(data.menu_items);
                 break;
             case 'start_game':
+                // Wechsel zum GameScreen-Template
+                showTemplate('game');
                 this.startGame(data);
                 break;
             case 'show_settings':
@@ -134,7 +355,11 @@ class MenuDisplay {
                 alert(data.message);
                 break;
             case 'show_leaderboard':
-                console.log('Showing leaderboard...');
+                if (this.leaderboardDisplay) {
+                    this.leaderboardDisplay.cleanup();
+                }
+                this.leaderboardDisplay = new LeaderboardDisplay(this);
+                this.leaderboardDisplay.display();
                 break;
             case 'exit_game':
                 console.log('Exiting game...');
@@ -143,14 +368,14 @@ class MenuDisplay {
     }
 
     displayPlayerNamesInput(numPlayers, isTournament) {
-        this.menuContainer.innerHTML = `
+        this.container.innerHTML = `
             <div class="settings-container">
                 <h2>${isTournament ? 'Tournament' : 'Game'} Players</h2>
                 <form id="player-names-form">
                     ${Array.from({length: numPlayers}, (_, i) => `
                         <div class="setting-item">
                             <label for="player-${i+1}">Player ${i+1} Name:</label>
-                            <input type="text" id="player-${i+1}" 
+                            <input type="text" id="player-${i+1}"
                                    value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
                                    ${this.isAIPlayer(i) ? 'readonly' : ''}>
                         </div>
@@ -163,7 +388,7 @@ class MenuDisplay {
 
         document.getElementById('player-names-form').onsubmit = (e) => {
             e.preventDefault();
-            const playerNames = Array.from({length: numPlayers}, (_, i) => 
+            const playerNames = Array.from({length: numPlayers}, (_, i) =>
                 document.getElementById(`player-${i+1}`).value
             );
             this.startGameWithPlayers(playerNames, isTournament);
@@ -179,7 +404,7 @@ class MenuDisplay {
         const gameSettings = this.currentSettings || {};
         gameSettings.playerNames = playerNames;
         gameSettings.isTournament = isTournament;
-        
+
         this.ws.send(JSON.stringify({
             action: 'start_game',
             settings: gameSettings
@@ -187,30 +412,88 @@ class MenuDisplay {
     }
 
     startGame(data) {
+        console.log("startGame wurde aufgerufen:", data);
+
         // Verstecke das Menü
-        this.menuContainer.style.display = 'none';
-        
-        // Erstelle und starte das Spiel
+        this.container.style.display = 'none';
+
         const gameContainer = document.getElementById('game-container');
         gameContainer.style.display = 'block';
-        
+
         const onBackToMenu = () => {
             gameContainer.style.display = 'none';
-            this.menuContainer.style.display = 'block';
+            this.container.style.display = 'block';
             this.requestMenuItems();
         };
 
-        window.gameScreen = new GameScreen({
-            player1: { name: "Player 1", score: 0, paddle: 0 },
-            player2: { name: "Player 2", score: 0, paddle: 0 },
-            ball: [0, 0]
-        }, onBackToMenu);
-        
+        window.gameScreen = new GameScreen(onBackToMenu);
         window.gameScreen.display();
+    }
+
+    displaySearchingScreen(message) {
+        this.container.innerHTML = `
+            <div class="searching-box">
+                <div class="searching-container">
+                    <h2>${message || 'Searching for opponent...'}</h2>
+                    <div class="loading-spinner"></div>
+                    <button class="menu-item cancel-search">
+                        Cancel Search
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Event Listener direkt hinzufügen statt onclick im HTML
+        const cancelButton = this.container.querySelector('.cancel-search');
+        cancelButton.addEventListener('click', () => {
+            this.cancelSearch();
+        });
+    }
+
+    cancelSearch() {
+        console.log("Canceling search...");
+        this.ws.send(JSON.stringify({
+            action: "menu_selection",
+            selection: "cancel_search"
+        }));
+    }
+
+    display() {
+        this.container.innerHTML = `
+            <div class="menu">
+                <h1>Pong Game</h1>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('play')">Spielen</button>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
+                <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
+            </div>
+        `;
+    }
+
+    displaySearchingScreen() {
+        this.container.innerHTML = `
+            <div class="searching-container">
+                <h2>Searching for Players</h2>
+                <div class="loading-spinner"></div>
+                <p>Please wait while we find an opponent...</p>
+                <button class="menu-item" id="cancel-button">Cancel</button>
+            </div>
+        `;
+
+        // Event Listener nach dem Hinzufügen zum DOM
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            this.handleMenuClick('back');
+        });
     }
 }
 
 let menuDisplay;
 document.addEventListener('DOMContentLoaded', () => {
-    menuDisplay = new MenuDisplay();
-}); 
+    const userProfile = {
+        username: "Benutzername",
+        avatar: "path/to/avatar.jpg",
+        email: "benutzer@example.com",
+        bio: "Kurze Bio",
+        birth_date: "01.01.1990"
+    };
+    menuDisplay = new MenuDisplay(userProfile);
+});
