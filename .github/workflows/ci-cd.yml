@@ -21,7 +21,7 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-          docker compose up -d --build
+          docker compose -f docker-compose.ci.yml up -d --build
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}

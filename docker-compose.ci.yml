@@ -1,0 +1,251 @@
+name: ft_transcendence
+
+# these are common to all containers
+x-common: &common
+  env_file:
+    - .env
+  restart: always
+  networks:
+    - transcendence_network
+  init: true
+  tty: true
+  stdin_open: true
+
+services:
+  postgres:
+    <<: *common
+    build: src/postgres
+    environment:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/log/postgresql/data/log
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# we could change to redis latest. we are not doing inception anymore
+  redis:
+    <<: *common
+    build: src/redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+      - redis_logs:/var/log/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"] 
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    <<: *common
+    build: src/ft_transcendence_backend
+    environment:
+      DATABASE_URL: "postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - django_logs:/app/logs
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  game:
+    <<: *common
+    build: src/ft_transcendence_backend/game
+    command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  caddy:
+    <<: *common
+    build:
+      context: ./src/
+      dockerfile: caddy/Dockerfile
+    ports:
+      - "8080:80"  
+      - "8444:443"  
+    depends_on:
+      - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - caddy_logs:/var/log/caddy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  
+  grafana:
+    <<: *common
+    build: 
+      context: ./src/grafana
+      dockerfile: Dockerfile.grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - ENABLE_LOGS_GRAFANA=true
+      # - GF_SECURITY_ADMIN_USER=admin
+      # - GF_SECURITY_ADMIN_PASSWORD=... add secret
+    #   - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_admin_password
+      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - grafana_logs:/var/log/grafana
+    depends_on:
+      - redis
+      - loki
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  loki:
+    <<: *common
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: ["-config.file=/etc/loki/local-config.yml"]
+    volumes:
+      - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
+      - ./src/grafana/config/loki_data:/tmp/loki 
+      - loki_logs:/var/log/loki
+      - loki_chunks:/tmp/loki/chunks 
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
+      interval: 60s
+      timeout: 660s
+      retries: 5
+
+  tempo:
+    <<: *common
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yml" ]
+    volumes:
+      - ./src/grafana/config/tempo.yml:/etc/tempo.yml
+      - tempo_data:/tmp/tempo/blocks
+    ports:
+      - "3200:3200"   # tempo
+      - "4317:4317"   # otlp grpc
+      - "4318:4318"   # otlp http
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3200/metrics || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+     
+  portainer:
+    <<: *common
+    build: src/portainer
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - portainer-data:/data
+    depends_on:
+      - caddy
+    ports:
+      - "9443:9443"
+    command: ["--metrics", "--metrics-address=:9443"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -k https://localhost:9443 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  prometheus:
+    <<: *common
+    build: 
+      context: ./src/grafana
+      dockerfile: Dockerfile.prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9090; exit $?;'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  node-exporter:
+    <<: *common
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9100; exit $?;'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  promtail:
+    <<: *common
+    build:
+      context: ./src/grafana
+      dockerfile: Dockerfile.promtail
+    volumes:
+      - promtail_logs:/app/logs
+      - postgres_data:/var/lib/postgresql/data
+      - redis_logs:/var/log/redis
+      - caddy_logs:/var/log/caddy
+      - django_logs:/app/logs
+      - grafana_logs:/var/log/grafana
+    ports:
+    - "9080:9080" 
+    depends_on:
+      - loki
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+  postgres_logs:
+  redis_data:
+  redis_logs:
+  django_logs:
+  grafana_data:
+  grafana_logs:
+  loki_logs:
+  loki_chunks:
+  portainer-data:
+  loki-data:
+  caddy_logs:
+  prometheus_data:
+  promtail_logs:
+  tempo_data:
+
+networks:
+  transcendence_network:
+    name: transcendence_network
+    driver: bridge
