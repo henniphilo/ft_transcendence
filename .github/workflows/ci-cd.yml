@@ -15,12 +15,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+  
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3 
       - name: Log in to Docker Hub
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Set up Docker Compose
-        uses: docker/setup-buildx-action@v3
-
       - name: Build and run Docker Compose
         run: docker compose -f docker-compose.ci.yml up -d --build
       - name: Check PostgreSQL Logs
