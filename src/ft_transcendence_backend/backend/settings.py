@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'api',
     'users',
     'channels',
+    'gamestats',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
