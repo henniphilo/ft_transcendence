@@ -1,0 +1,8 @@
+# Dockerfile.otel-collector
+FROM otel/opentelemetry-collector-contrib:0.120.0
+
+# Copy the configuration file
+COPY ./config/otel-collector-config.yaml /etc/otel-collector-config.yaml
+
+# Set the command to run the OpenTelemetry Collector
+CMD ["--config=/etc/otel-collector-config.yaml"]
