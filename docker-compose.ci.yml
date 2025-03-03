@@ -3,7 +3,7 @@ name: ft_transcendence
 # these are common to all containers
 x-common: &common
   env_file:
-    - .env
+    - .env.ci
   restart: always
   networks:
     - transcendence_network
@@ -15,6 +15,10 @@ services:
   postgres:
     <<: *common
     build: src/postgres
+    environment:
+      POSTGRES_USER: $${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: $${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: $${{ secrets.POSTGRES_DB }}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_logs:/var/log/postgresql/data/log
@@ -42,6 +46,8 @@ services:
   backend:
     <<: *common
     build: src/ft_transcendence_backend
+    environment:
+      DATABASE_URL: "postgresql://$${{ secrets.POSTGRES_USER }}:$${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/$${{ secrets.POSTGRES_DB }}"
     depends_on:
       postgres:
         condition: service_healthy
