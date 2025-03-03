@@ -171,6 +171,8 @@ LOGGING = {
     },
 }
 
+import os
+
 # Ensure the logs directory exists
 if not os.path.exists('/app/logs'):
     os.makedirs('/app/logs')
