@@ -3,7 +3,7 @@ name: ft_transcendence
 # these are common to all containers
 x-common: &common
   env_file:
-    - .env
+    - .env.cy
   restart: always
   networks:
     - transcendence_network
