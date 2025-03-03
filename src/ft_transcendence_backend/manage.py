@@ -8,16 +8,9 @@ import logging
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
-
-    # Setup OpenTelemetry and logging
-    from opentelemetry.logging_config import setup_telemetry_and_logging
-    setup_telemetry_and_logging()
     
     logger = logging.getLogger(__name__)
-    logger.info("Application starting with OpenTelemetry logging enabled")
-    
-	# Get logger for this module
-    logger = logging.getLogger(__name__)
+    logger.info("Application starting with logging enabled")
     
     # Example log messages at different levels
     logger.debug("This is a debug message")

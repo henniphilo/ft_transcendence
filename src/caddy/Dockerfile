@@ -6,6 +6,8 @@ FROM caddy:latest
 RUN apk update && apk add --no-cache curl && \
 	rm -rf /var/cache/apk/*
 
+RUN mkdir -p /var/log/caddy && chmod -R 0755 /var/log/caddy
+
 COPY ./caddy/Caddyfile /etc/caddy/Caddyfile
 
 COPY ft_transcendence_backend/game /usr/share/caddy/game
