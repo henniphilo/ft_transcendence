@@ -27,14 +27,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} # Add secret
-          GF_DEFAULT_THEME: "dark"
           DATABASE_URL: "postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}"
-          REDIS_HOST: "redis"
-          REDIS_PORT: "6379"
-          PORTAINER_VERSION: "2.14.2"
-          PORTAINER_HOME: "/var/lib/portainer"
-          KUBERNETES_SERVICE_HOST: ""
-          KUBERNETES_SERVICE_PORT: ""
 
       - name: Run tests (if applicable)
         run: echo "Tests passed"
