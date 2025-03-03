@@ -15,14 +15,6 @@ services:
   postgres:
     <<: *common
     build: src/postgres
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_DB_FILE: /run/secrets/postgres_db
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_logs:/var/log/postgresql/data/log
@@ -50,8 +42,6 @@ services:
   backend:
     <<: *common
     build: src/ft_transcendence_backend
-    environment:
-      DATABASE_URL: postgresql://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@postgres:5432/$(cat /run/secrets/postgres_db)
     depends_on:
       postgres:
         condition: service_healthy
@@ -248,18 +238,6 @@ volumes:
   prometheus_data:
   promtail_logs:
   tempo_data:
-
-secrets:
-  postgres_user:
-    file: ./secrets/postgres_user.txt
-  postgres_password:
-    file: ./secrets/postgres_password.txt
-  postgres_db:
-    file: secrets/postgres_db.txt
-#   redis_password:
-#     file: secrets/redis_password.txt
-  grafana_admin_password:
-    file: secrets/grafana_admin_password.txt
 
 networks:
   transcendence_network:
