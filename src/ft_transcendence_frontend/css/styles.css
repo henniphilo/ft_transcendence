@@ -82,12 +82,46 @@ button {
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    margin-top: 10px;
     transition: background-color 0.3s;
 }
 
 button:hover {
     background-color: #d7eb25;
 }
+
+
+/* .edit-profile-button {
+  background-color: #8c9900;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
+  /* border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, border 0.3s;
+}  */
+
+/* .edit-profile-button:hover {
+  background-color: #d7eb25;
+  border-color: white;
+} */
+
+/* .logout-button {
+  background-color: #8c9900;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
+  /* border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, border 0.3s;
+} */
+
+/* .logout-button:hover {
+  background-color: #d7eb25;
+  border-color: white;
+} */
 
 /* 2FA Verification */
 #twofa-container {
@@ -199,6 +233,12 @@ button:hover {
 }
 
 .profile-section {
-    flex: 1;
-    max-width: 300px;
+  flex: 1;
+  max-width: 300px;
+  background-color: #8e8658c0;
+  background-size: cover;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: #47473b;
 }

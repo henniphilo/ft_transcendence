@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'users',
     'channels',
 	'django_prometheus',
+    'gamestats',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'

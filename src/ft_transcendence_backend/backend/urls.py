@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('api/users/', include('users.urls')),  # User-Routen
     path('', include('django_prometheus.urls')),
+    path('api/', include('gamestats.urls')),
 ]
 
 from django.conf import settings
@@ -30,3 +31,4 @@ from django.conf.urls.static import static
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
