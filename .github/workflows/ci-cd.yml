@@ -15,15 +15,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-  
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3 
       - name: Log in to Docker Hub
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and run Docker Compose
-        run: docker compose -f docker-compose.ci.yml up -d --build
+        run: |
+          docker compose -f docker-compose.ci.yml up -d --build
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} # Add secret
+          DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+
       - name: Check PostgreSQL Logs
-        run: docker logs ft_transcendence-postgres-1 
+        run: docker logs ft_transcendence-postgres-1
+
       - name: Run tests (if applicable)
         run: echo "Tests passed"
 
