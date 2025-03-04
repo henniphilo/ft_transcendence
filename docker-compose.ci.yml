@@ -170,7 +170,7 @@ services:
     init: true
     tty: true
     stdin_open: true
-    image: grafana/loki:latest
+    image: grafana/loki:3.4.0 
     ports:
       - 3100:3100
     command:
