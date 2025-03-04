@@ -1,4 +1,4 @@
-FROM redis:alpine
+FROM redis:7.4.2-alpine
 
 # Create the log directory and set permissions
 RUN mkdir -p /var/log/redis && chmod -R 0777 /var/log/redis

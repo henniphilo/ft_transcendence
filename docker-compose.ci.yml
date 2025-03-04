@@ -259,10 +259,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - |-
-          bash -c 'printf "GET / HTTP/1.1
-
-          " > /dev/tcp/127.0.0.1/9090; exit $?;'
+        - curl -f http://localhost:9090/-/healthy || exit 1
       interval: 30s
       timeout: 10s
       retries: 5

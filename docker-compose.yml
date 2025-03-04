@@ -24,7 +24,6 @@ services:
       timeout: 5s
       retries: 5
 
-# we could change to redis latest. we are not doing inception anymore
   redis:
     <<: *common
     build: src/redis
