@@ -12,13 +12,9 @@ x-common: &common
   stdin_open: true
 
 services:
-  postgres:
+   postgres:
     <<: *common
     build: src/postgres
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: transcendence
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_logs:/var/log/postgresql/data/log
@@ -26,7 +22,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U user -d transcendence -p 5432"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 5 
 
 # we could change to redis latest. we are not doing inception anymore
   redis:
