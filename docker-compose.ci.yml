@@ -11,18 +11,16 @@ x-common:
   stdin_open: true
 services:
   postgres:
-    env_file:
-      - .env.ci
-    restart: always
-    networks:
-      - transcendence_network
-    init: true
-    tty: true
-    stdin_open: true
+    <<: *common
     build: src/postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_logs:/var/log/postgresql/data/log
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 30s
+      timeout: 30s
+      retries: 10
   redis:
     env_file:
       - .env.ci
