@@ -29,10 +29,23 @@ log_directory = '/var/log/postgresql'		# directory where log files are written,
 log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
 ```
 
-My docker-compose file looks like this:
 
-```yaml
+## check if the conf has been copied correctly
+Check PostgreSQL's Logging Configuration:
 
+Inside the Container:
+Once you're in the container's shell, you can use psql to query PostgreSQL's configuration settings.
+Connect to the database:
+```bash
+psql -U <your_user> -d <your_database>
+```
+Then, use the following SQL commands to check the logging settings:
+```sql
+SHOW log_destination;
+SHOW logging_collector;
+SHOW log_directory;
+SHOW log_filename;
+```
 
 ## links
 

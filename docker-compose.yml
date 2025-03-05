@@ -30,10 +30,12 @@ services:
 
   postgres:
     <<: *common
-    image: "postgres:16"
+    # image: "postgres:16"
+    build: src/postgres
+    command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      # - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - postgres_logs:/var/log/postgresql
     environment:
       PGDATA: /var/lib/postgresql/data
