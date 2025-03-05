@@ -155,7 +155,7 @@ body {
 }
 
 .leaderboard-table th {
-    background-color: #4a90e2;
+    background-color: #acb737;
     color: white;
 }
 
@@ -168,6 +168,11 @@ body {
 }
 
 .searching-container {
+    background-color: #8e8658c0;
+    background-size: cover;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     background-color: #333;
     padding: 20px;
     border-radius: 10px;
