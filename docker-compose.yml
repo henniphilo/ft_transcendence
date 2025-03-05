@@ -12,30 +12,13 @@ x-common: &common
   stdin_open: true
 
 services:
-  # postgres:
-  #   <<: *common
-  #   build: src/postgres
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #     - postgres_logs:/var/log/postgresql/data/log
-  #   environment:
-  #     - POSTGRES_USER=${POSTGRES_USER}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U user -d transcendence -p 5432"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5 
-
   postgres:
     <<: *common
-    # image: "postgres:16"
-    build: src/postgres
+    image: "postgres:16"
     command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - postgres_logs:/var/log/postgresql
     environment:
       PGDATA: /var/lib/postgresql/data

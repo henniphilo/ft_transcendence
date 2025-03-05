@@ -47,6 +47,14 @@ SHOW log_directory;
 SHOW log_filename;
 ```
 
+## the tricky part
+
+Postgres needs this line when starting it will look for this config file instead of the default one
+```
+command: -c config_file=/etc/postgresql/postgresql.conf
+```
+
+
 ## links
 
 https://betterstack.com/community/guides/logging/how-to-start-logging-with-postgresql/#setting-up-a-sample-database
