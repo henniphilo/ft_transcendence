@@ -273,9 +273,12 @@ export class MenuDisplay {
                 this.container.innerHTML = `
                     <div class="searching-screen">
                         <h2>Searching for opponent...</h2>
-                        <button class="cancel-button" onclick="menuDisplay.cancelSearch()">Cancel</button>
+                        <button class="cancel-button">Cancel</button>
                     </div>
                 `;
+
+                // Event-Listener hinzufügen
+                this.container.querySelector('.cancel-button').addEventListener('click', () => this.cancelSearch());
                 break;
 
             case 'game_found':
@@ -455,22 +458,6 @@ export class MenuDisplay {
                 <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
             </div>
         `;
-    }
-
-    displaySearchingScreen() {
-        this.container.innerHTML = `
-            <div class="searching-container">
-                <h2>Searching for Players</h2>
-                <div class="loading-spinner"></div>
-                <p>Please wait while we find an opponent...</p>
-                <button class="menu-item" id="cancel-button">Cancel</button>
-            </div>
-        `;
-
-        // Event Listener nach dem Hinzufügen zum DOM
-        document.getElementById('cancel-button').addEventListener('click', () => {
-            this.handleMenuClick('back');
-        });
     }
 }
 
