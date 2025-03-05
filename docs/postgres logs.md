@@ -59,4 +59,5 @@ command: -c config_file=/etc/postgresql/postgresql.conf
 
 https://betterstack.com/community/guides/logging/how-to-start-logging-with-postgresql/#setting-up-a-sample-database
 
-https://www.postgresql.org/docs/current/runtime-config-logging.html
+https://www.postgresql.org/docs/current/runtime-config-logging.html  
+https://stackoverflow.com/questions/30848670/how-to-customize-the-configuration-file-of-the-official-postgresql-docker-image
