@@ -211,7 +211,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - curl -f http://localhost:3200/metrics || exit 1
+        - wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
@@ -261,7 +261,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - curl -f http://localhost:9090/-/healthy || exit 1
+        - wget -q -O- http://localhost:9090/metrics >/dev/null 2>&1 || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
@@ -280,10 +280,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - |-
-          bash -c 'printf "GET / HTTP/1.1
-
-          " > /dev/tcp/127.0.0.1/9100; exit $?;'
+        - wget -q -O- http://localhost:9100/metrics >/dev/null 2>&1 || exit 1
       interval: 30s
       timeout: 10s
       retries: 5

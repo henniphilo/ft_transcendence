@@ -150,7 +150,7 @@ services:
       - "4317:4317"   # otlp grpc
       - "4318:4318"   # otlp http
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3200/metrics || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
