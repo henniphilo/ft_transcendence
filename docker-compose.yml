@@ -226,21 +226,21 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
-  postgres_logs:
-  redis_data:
-  redis_logs:
-  django_logs:
-  grafana_data:
-  grafana_logs:
-  loki_logs:
-  loki_chunks:
-  portainer-data:
-  loki-data:
-  caddy_logs:
-  prometheus_data:
-  promtail_logs:
-  tempo_data:
+  postgres_data: null
+  postgres_logs: null
+  redis_data: null
+  redis_logs: null
+  django_logs: null
+  grafana_data: null
+  grafana_logs: null
+  loki_logs: null
+  loki_chunks: null
+  portainer-data: null
+  loki-data: null
+  caddy_logs: null
+  prometheus_data: null
+  promtail_logs: null
+  tempo_data: null
 
 networks:
   transcendence_network:
