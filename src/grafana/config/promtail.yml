@@ -39,6 +39,7 @@ scrape_configs:
       job: caddy
       __path__: /var/log/caddy/*log
       agent: caddy-promtail
+
 - job_name: grafana_logs
   static_configs:
   - targets:

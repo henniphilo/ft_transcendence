@@ -135,8 +135,7 @@ services:
     volumes:
       - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
       - ./src/grafana/config/loki_data:/tmp/loki 
-      - loki_logs:/var/log/loki
-      - loki_chunks:/tmp/loki/chunks 
+      - loki_logs:/var/log/loki 
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
       interval: 60s
@@ -234,7 +233,6 @@ volumes:
   grafana_data: null
   grafana_logs: null
   loki_logs: null
-  loki_chunks: null
   portainer-data: null
   loki-data: null
   caddy_logs: null
