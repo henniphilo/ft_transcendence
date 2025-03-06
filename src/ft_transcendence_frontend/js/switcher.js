@@ -59,6 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupGameScreen(data) {
         const gameContainer = document.getElementById('game-container');
         if (gameContainer) {
+            // Cleanup falls ein Spiel läuft
+            if (window.gameScreen) {
+                window.gameScreen.cleanup();
+                window.gameScreen = null;
+            }
+            
             gameContainer.style.display = 'block';
             window.gameScreen = new GameScreen(data, () => {
                 gameContainer.style.display = 'none';

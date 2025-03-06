@@ -7,7 +7,7 @@ export class LeaderboardDisplay {
     display() {
         console.log("Displaying leaderboard...");
         this.container.innerHTML = '';
-        
+
         const leaderboardHtml = `
             <div class="leaderboard-container">
                 <h2>Top 10 Spieler</h2>
@@ -15,9 +15,9 @@ export class LeaderboardDisplay {
                     <table class="leaderboard-table">
                         <thead>
                             <tr>
-                                <th>Rang</th>
-                                <th>Spieler</th>
-                                <th>Punkte</th>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Score</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboard-body">
@@ -28,17 +28,17 @@ export class LeaderboardDisplay {
                     </table>
                 </div>
                 <div id="current-user-stats" class="current-user-stats">
-                    <h3>Deine Position</h3>
+                    <h3>Your Position</h3>
                     <div id="current-user-container">
                         <!-- Wird dynamisch gefüllt -->
                     </div>
                 </div>
                 <button class="menu-item" id="back-button">
-                    Zurück zum Menü
+                    Back to Menue
                 </button>
             </div>
         `;
-        
+
         this.container.innerHTML = leaderboardHtml;
         this.loadLeaderboardData();
 
@@ -52,7 +52,7 @@ export class LeaderboardDisplay {
         try {
             // Hole den Access Token aus dem localStorage
             const accessToken = localStorage.getItem('accessToken');
-            
+
             // Request Headers mit Authorization Token
             const headers = {
                 'Authorization': 'Bearer ' + accessToken,
@@ -81,7 +81,7 @@ export class LeaderboardDisplay {
                     method: 'GET',
                     headers: headers  // Hier wird der Token mitgeschickt
                 });
-                
+
                 if (currentUserResponse.status === 401) {
                     // Token abgelaufen oder ungültig
                     document.getElementById('current-user-container').innerHTML = `
@@ -127,4 +127,4 @@ export class LeaderboardDisplay {
     cleanup() {
         // Aufräumen wenn nötig
     }
-} 
+}
