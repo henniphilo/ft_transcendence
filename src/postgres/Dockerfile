@@ -1,4 +1,4 @@
 FROM postgres:16
 
-# this config file will enable logging
+# Copy the custom configuration file
 COPY postgresql.conf /etc/postgresql/postgresql.conf
