@@ -83,13 +83,13 @@ button {
     border-radius: 6px;
     cursor: pointer;
     margin-top: 10px;
+    margin-top: 10px;
     transition: background-color 0.3s;
 }
 
 button:hover {
     background-color: #d7eb25;
 }
-
 
 /* .edit-profile-button {
   background-color: #8c9900;
@@ -100,7 +100,24 @@ button:hover {
   /* border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s, border 0.3s;
-}  */
+} */
+
+
+.edit-profile-button:hover {
+  background-color: #d7eb25;
+  border-color: white;
+}
+
+/* .edit-profile-button {
+  background-color: #8c9900;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
+  /* border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, border 0.3s;
+} */ */
 
 /* .edit-profile-button:hover {
   background-color: #d7eb25;
@@ -116,7 +133,7 @@ button:hover {
   /* border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s, border 0.3s;
-} */
+} */ */
 
 /* .logout-button:hover {
   background-color: #d7eb25;
@@ -177,7 +194,7 @@ button:hover {
     text-align: center;
     padding: 20px;
   }
-
+/*
   .loading-spinner {
     width: 50px;
     height: 50px;
@@ -186,7 +203,7 @@ button:hover {
     border-radius: 50%;
     margin: 20px auto;
     animation: spin 1s linear infinite;
-  }
+  } */
 
   @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -209,7 +226,7 @@ button:hover {
 
   .cancel-search {
     margin-top: 20px;
-    background-color: #e74c3c;
+    background-color: #dce73c;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -219,7 +236,7 @@ button:hover {
   }
 
   .cancel-search:hover {
-    background-color: #c0392b;
+    background-color: #c0782b;
   }
 
 .menu-profile-container {
@@ -231,6 +248,43 @@ button:hover {
     flex: 1;
     margin-right: 20px;
 }
+
+.controls-info {
+  background: #222;
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  width: 220px;  /* Kleinere Breite */
+  font-size: 12px;  /* Kleinere Schrift */
+  text-align: center;
+  margin: 10px auto;
+  font-family: Arial, sans-serif;
+}
+
+.controls-info h2, .controls-info h3 {
+  margin: 5px 0;
+  font-size: 14px; /* Kleiner, aber noch gut lesbar */
+  color: #ffcc00;
+}
+
+.control-section {
+  margin: 3px 0;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.key {
+  background: #444;
+  color: #ffcc00;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+
 
 .profile-section {
   flex: 1;

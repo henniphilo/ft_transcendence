@@ -276,7 +276,7 @@ export class MenuDisplay {
                         <button class="cancel-button">Cancel</button>
                     </div>
                 `;
-                
+
                 // Event-Listener hinzufügen
                 this.container.querySelector('.cancel-button').addEventListener('click', () => this.cancelSearch());
                 break;
@@ -286,9 +286,9 @@ export class MenuDisplay {
                 console.log("Player1:", data.player1);
                 console.log("Player2:", data.player2);
                 console.log("Your role:", data.playerRole);
-                
+
                 const gameData = {
-                    player1: data.player1, 
+                    player1: data.player1,
                     player2: data.player2,
                     playerRole: data.playerRole,
                     game_id: data.game_id,
@@ -301,7 +301,7 @@ export class MenuDisplay {
 
                 // Wechsel zum GameScreen-Template und übergebe die gameData
                 showTemplate('game', gameData);
-                
+
                 // Container ausblenden
                 this.container.style.display = 'none';
                 break;

@@ -136,21 +136,40 @@ export class GameScreen {
             this.displayWinnerScreen();
         } else {
             container.innerHTML = `
-                <div class="game-screen">
-                    <div id="score-board" class="score-board">
-                        <div id="player1-score" class="player-score">
-                            ${this.gameState.player1.name}: ${this.gameState.player1.score}
-                        </div>
-                        <div id="player2-score" class="player-score">
-                            ${this.gameState.player2.name}: ${this.gameState.player2.score}
-                        </div>
+            <div class="game-screen">
+                <div id="score-board" class="score-board">
+                    <div class="player-score">
+                        <strong>${this.gameState.player1.name}:</strong> ${this.gameState.player1.score}
                     </div>
-                     <div id="controls-info" class="controls-info">
-                     <p>Player 1: Left = &#8592; Right = &#8594; </strong></p>
-                     <p>Player 2: Left = A Right = D </strong></p>
+                    <div class="player-score">
+                        <strong>${this.gameState.player2.name}:</strong> ${this.gameState.player2.score}
+                    </div>
                 </div>
-                    <div id="three-js-container"></div>
+
+                <div id="controls-info" class="controls-info">
+                    <h2>Controls</h2>
+                    <div class="control-section">
+                        <strong>Player 1:</strong>
+                        <span class="key">←</span> Left | <span class="key">→</span> Right
+                    </div>
+                    <div class="control-section">
+                        <strong>Player 2:</strong>
+                        <span class="key">A</span> Left | <span class="key">D</span> Right
+                    </div>
+                    <h3>Change Perspective</h3>
+                    <div class="control-section">
+                        <span class="key">1</span> Player 1 View
+                    </div>
+                    <div class="control-section">
+                        <span class="key">2</span> Player 2 View
+                    </div>
+                    <div class="control-section">
+                        <span class="key">3</span> Top View
+                    </div>
                 </div>
+
+                <div id="three-js-container"></div>
+            </div>
             `;
             this.scoreBoard = document.getElementById('score-board');
             this.threeJSManager.setupRenderer(document.getElementById('three-js-container'));
@@ -187,7 +206,7 @@ export class GameScreen {
             this.ws.close();
         }
         this.cleanup();
-        
+
         // Template mit userProfile wechseln
         window.showTemplate('menu', { userProfile: this.userProfile });
 

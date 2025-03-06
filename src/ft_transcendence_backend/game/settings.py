@@ -3,7 +3,7 @@ class GameSettings:
         print("Initializing GameSettings")
         self._ball_speed = 2
         self._paddle_speed = 5
-        self._winning_score = 2
+        self._winning_score = 200
         self._paddle_size = "middle"
         self._mode = "pvp"
         self._difficulty = "medium"
