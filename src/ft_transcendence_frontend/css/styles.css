@@ -249,6 +249,43 @@ button:hover {
     margin-right: 20px;
 }
 
+.controls-info {
+  background: #222;
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  width: 220px;  /* Kleinere Breite */
+  font-size: 12px;  /* Kleinere Schrift */
+  text-align: center;
+  margin: 10px auto;
+  font-family: Arial, sans-serif;
+}
+
+.controls-info h2, .controls-info h3 {
+  margin: 5px 0;
+  font-size: 14px; /* Kleiner, aber noch gut lesbar */
+  color: #ffcc00;
+}
+
+.control-section {
+  margin: 3px 0;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.key {
+  background: #444;
+  color: #ffcc00;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+
+
 .profile-section {
   flex: 1;
   max-width: 300px;

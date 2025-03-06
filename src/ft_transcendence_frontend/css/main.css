@@ -103,8 +103,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 5px;  /* Weniger Abstand zwischen Elementen */
+    max-width: 500px;  /* Begrenzung der Breite */
+    padding: 10px;  /* Weniger Innenabstand */
+    border-radius: 8px;
 }
+
 
 #game-container {
     display: none;  /* Initially hidden */
