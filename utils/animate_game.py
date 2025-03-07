@@ -197,6 +197,6 @@ def update_animation(frame):
     return ball, left_paddle, right_paddle, score_text
 
 # Animationsintervall auf 30 ms gesetzt für schnellere Abläufe
-ani = animation.FuncAnimation(fig, update_animation, interval=30, blit=False)
+ani = animation.FuncAnimation(fig, update_animation, frames=len(states), interval=30, blit=False)
 
 plt.show()
