@@ -137,34 +137,32 @@ export class GameScreen {
         } else {
             container.innerHTML = `
             <div class="game-screen">
-                <div id="score-board" class="score-board">
-                    <div class="player-score">
-                        <strong>${this.gameState.player1.name}:</strong> ${this.gameState.player1.score}
+                <div class="game-header">
+                    <div id="score-board" class="score-board">
+                        <div id="player1-score" class="player-score">
+                            <strong>${this.gameState.player1.name}:</strong> ${this.gameState.player1.score}
+                        </div>
+                        <div id="player2-score" class="player-score">
+                            <strong>${this.gameState.player2.name}:</strong> ${this.gameState.player2.score}
+                        </div>
                     </div>
-                    <div class="player-score">
-                        <strong>${this.gameState.player2.name}:</strong> ${this.gameState.player2.score}
-                    </div>
-                </div>
 
-                <div id="controls-info" class="controls-info">
-                    <h2>Controls</h2>
-                    <div class="control-section">
-                        <strong>Player 1:</strong>
-                        <span class="key">←</span> Left | <span class="key">→</span> Right
-                    </div>
-                    <div class="control-section">
-                        <strong>Player 2:</strong>
-                        <span class="key">A</span> Left | <span class="key">D</span> Right
-                    </div>
-                    <h3>Change Perspective</h3>
-                    <div class="control-section">
-                        <span class="key">1</span> Player 1 View
-                    </div>
-                    <div class="control-section">
-                        <span class="key">2</span> Player 2 View
-                    </div>
-                    <div class="control-section">
-                        <span class="key">3</span> Top View
+                    <div id="controls-info" class="controls-info">
+                        <h2>Controls</h2>
+                        <div class="control-section">
+                            <strong>Player 1:</strong>
+                            <span class="key">A</span> Left | <span class="key">D</span> Right
+                        </div>
+                        <div class="control-section">
+                            <strong>Player 2:</strong>
+                            <span class="key">←</span> Left | <span class="key">→</span> Right
+                        </div>
+                        <h3>Change Perspective</h3>
+                        <div class="control-section">
+                            <span class="key">1</span> Player 1 View |
+                            <span class="key">2</span> Player 2 View |
+                            <span class="key">3</span> Top View
+                        </div>
                     </div>
                 </div>
 

@@ -75,27 +75,78 @@ body {
     color: #ee8821;
     margin-bottom: 20px;
 }
+
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 10px;
+}
+
 .score-board {
     display: flex;
-    justify-content: space-around;
-    padding: 10px;
-    background-color: #333;
-    margin-bottom: 20px;
+    justify-content: center;
+    gap: 30px;
+    font-size: 24px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
 }
+
 .player-score {
     font-size: 24px;
     color: #fff;
+    padding: 5px 15px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
 }
+
+.controls-info {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    max-width: 300px;
+}
+
+.controls-info h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.controls-info h3 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.control-section {
+    margin-bottom: 8px;
+}
+
+.key {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin: 0 3px;
+}
+
 #game-canvas {
     border: 2px solid #f8edab;
     background-color: #497041;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-    body {
-        flex-direction: column;
-    }
+#three-js-container {
+    width: 100%;
+    height: 70vh;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .game-screen {
@@ -103,21 +154,28 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;  /* Weniger Abstand zwischen Elementen */
-    max-width: 500px;  /* Begrenzung der Breite */
-    padding: 10px;  /* Weniger Innenabstand */
-    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+    .game-header {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .controls-info {
+        max-width: 100%;
+        margin-top: 10px;
+    }
+}
 
-#game-container {
-    display: none;  /* Initially hidden */
-    width: 100%;
-    height: 100vh;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: #8c9900;
+@media (max-width: 480px) {
+    body {
+        flex-direction: column;
+    }
 }
 
 .setting-item select {
