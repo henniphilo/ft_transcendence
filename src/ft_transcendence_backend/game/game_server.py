@@ -14,6 +14,7 @@ class GameServer:
         self.game_websockets = {}  # game_id -> list of websockets
         self.game_loops = {}  # game_id -> game loop task
         self.ai_players = {}
+        self.game_user_profiles = {}  # game_id -> {player_role: user_profile}
         self.UPDATE_RATE = 1/60  # 60 FPS
 
     def print_active_games(self):
@@ -33,12 +34,16 @@ class GameServer:
         print("====================\n")
         
         is_ai_mode = settings.get("mode") == "ai"
-        is_online_mode = settings.get("mode") == "pvp"
+        is_online_mode = settings.get("mode") == "online"
         
         print(f"\n=== New Game Connection ===")
         print(f"Game ID: {game_id}")
         print(f"Mode: {'Online' if is_online_mode else 'AI' if is_ai_mode else 'Local'}")
         print(f"Player Role: {settings.get('player_role')}")  # Debug
+        
+        # Speichere Benutzerprofile für dieses Spiel
+        if game_id not in self.game_user_profiles:
+            self.game_user_profiles[game_id] = {}
         
         if is_online_mode:
             if game_id in self.active_games:
@@ -86,8 +91,30 @@ class GameServer:
         try:
             while True:
                 data = await websocket.receive_json()
-                if data["action"] == "key_update":
+                
+                # Verarbeite Benutzerprofilinformationen
+                if data["action"] == "player_info":
+                    player_role = data.get("player_role")
+                    user_profile = data.get("user_profile")
+                    
+                    if player_role and user_profile:
+                        self.game_user_profiles[game_id][player_role] = user_profile
+                        print(f"Received user profile for {player_role} in game {game_id}")
+                        
+                        # Aktualisiere Spielernamen, wenn das Spiel bereits existiert
+                        if game_id in self.active_games:
+                            game = self.active_games[game_id]
+                            if player_role == "player1" and hasattr(game, "player1"):
+                                game.player1.name = user_profile.get("username", game.player1.name)
+                            elif player_role == "player2" and hasattr(game, "player2"):
+                                game.player2.name = user_profile.get("username", game.player2.name)
+                
+                # Verarbeite Tasteneingaben
+                elif data["action"] == "key_update":
                     self.handle_input(game, data["keys"])
+                
+                # Weitere Aktionen können hier hinzugefügt werden
+                
         except Exception as e:
             print(f"\nError in game {game_id}: {e}")
             if game_id in self.game_websockets:

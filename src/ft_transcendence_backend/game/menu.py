@@ -223,12 +223,15 @@ class Menu:
             game_id = str(uuid.uuid4())
             game_settings = self.game_settings.get_settings()
             game_settings.update({
-                "mode": "online",
+                "mode": "online",  # Hier wird "online" gesetzt
                 "online_type": "host",  # Wichtig für die Spielsynchronisation
                 "player1_name": player1_name,
                 "player2_name": player2_name,
                 "game_id": game_id  # Füge die game_id zu den Settings hinzu
             })
+            
+            # WICHTIG: Aktualisiere die aktuellen Spieleinstellungen
+            self.current_game_settings = game_settings.copy()
 
             try:
                 # Beide Spieler bekommen die GLEICHE game_id
