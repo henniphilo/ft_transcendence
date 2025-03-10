@@ -28,3 +28,5 @@ opentelemetry-instrumentation-fastapi
 opentelemetry-exporter-otlp-proto-grpc 
 python-logging-loki==0.3.1
 django-prometheus==2.3.1
+pytest==8.3.5
+requests==2.32.3
