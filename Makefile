@@ -62,5 +62,4 @@ logs-nginx:
 
 animate-game:
 	docker cp ft_transcendence-game-1:/app/game.log ./game.log
-	pip install matplotlib
 	python3 utils/animate_game.py
