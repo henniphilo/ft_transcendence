@@ -63,7 +63,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install -r backend/requirements.txt pytest
+        run: pip install -r src/ft_transcendence_backend/requirements.txt pytest
 
       - name: Run Unit Tests
         run: pytest backend/tests/unit/ -v
