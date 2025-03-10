@@ -31,11 +31,29 @@ jobs:
           GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} # Add secret
           DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
 
-      - name: Check PostgreSQL Logs
-        run: docker logs ft_transcendence-postgres-1
+      - name: Check container health
+        run: docker compose ps --services --filter "health=healthy" --filter "status=running" | while read service; do docker compose logs $service; done
 
-      - name: Run tests (if applicable)
-        run: echo "Tests passed"
+      - name: Run Integration Tests
+        run: |
+          docker compose exec backend pytest /app/backend/tests/integration/ -v
 
       - name: Stop Docker Compose
         run: docker compose down
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt pytest
+
+      - name: Run Unit Tests
+        run: pytest backend/tests/unit/ -v
