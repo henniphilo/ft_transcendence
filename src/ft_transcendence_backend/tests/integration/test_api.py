@@ -4,7 +4,7 @@ import requests
 import os
 
 # Assuming your Django app runs on port 8000
-BASE_URL = "http://backend:8000" #backend is the service name of your django service in the docker-compose.ci.yml file.
+# BASE_URL = "http://backend:8000" #backend is the service name of your django service in the docker-compose.ci.yml file.
 
 # def test_api_health():
 #     response = requests.get(f"{BASE_URL}/health/")  # Replace /health/ with your actual endpoint
