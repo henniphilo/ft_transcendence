@@ -40,6 +40,8 @@ jobs:
       - name: Check container health
         run: docker compose ps --services --filter "health=healthy" --filter "status=running" | while read service; do docker compose logs $service; done
 
+      - name: Run Unit Tests inside container
+        run: docker compose exec backend pytest /app/backend/tests/unit/ -v
 
       - name: Run Integration Tests
         run: |
@@ -48,19 +50,3 @@ jobs:
       - name: Stop Docker Compose
         run: docker compose down
 
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: pip install -r src/ft_transcendence_backend/requirements.txt pytest
-
-      - name: Run Unit Tests
-        run: pytest src/ft_transcendence_backend/tests/unit/ -v
