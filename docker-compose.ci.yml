@@ -316,6 +316,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      
 volumes:
   postgres_data: null
   postgres_logs: null
@@ -332,6 +333,7 @@ volumes:
   prometheus_data: null
   promtail_logs: null
   tempo_data: null
+
 networks:
   transcendence_network:
     name: transcendence_network
