@@ -33,6 +33,7 @@ jobs:
               echo "POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}"
               echo "POSTGRES_DB: ${{ secrets.POSTGRES_DB }}"
               echo "GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}"
+    
       - name: Build and run Docker Compose
         run: |
           docker compose -f docker-compose.ci.yml up -d --build

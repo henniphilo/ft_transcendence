@@ -1,6 +1,7 @@
 import os
 import shutil
-import pytest_
+import pytest
+
 
 # Assuming your app directory is at the root of your project
 MEDIA_DIR = "app/media"
