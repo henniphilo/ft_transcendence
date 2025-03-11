@@ -39,7 +39,7 @@ jobs:
           docker compose -f docker-compose.ci.yml up -d --build
 
       - name: Run Unit Tests inside container
-        run: docker compose exec backend pytest /app/backend/tests/unit/ -v
+        run: docker compose exec backend pytest tests/unit/ -v
 
       - name: Run Integration Tests
         run: |
