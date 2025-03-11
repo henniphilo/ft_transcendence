@@ -37,9 +37,6 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml up -d --build
 
-      - name: Check container health
-        run: docker compose ps --services --filter "health=healthy" --filter "status=running" | while read service; do docker compose logs $service; done
-
       - name: Run Unit Tests inside container
         run: docker compose exec backend pytest /app/backend/tests/unit/ -v
 

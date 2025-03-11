@@ -81,6 +81,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+
   game:
     env_file:
       - .env.ci
@@ -101,6 +102,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   caddy:
     env_file:
       - .env.ci
@@ -129,6 +131,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   grafana:
     env_file:
       - .env.ci
@@ -163,6 +166,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   loki:
     env_file:
       - .env.ci
@@ -189,6 +193,7 @@ services:
       interval: 60s
       timeout: 660s
       retries: 5
+
   tempo:
     env_file:
       - .env.ci
@@ -215,6 +220,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   portainer:
     env_file:
       - .env.ci
@@ -242,6 +248,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   prometheus:
     env_file:
       - .env.ci
@@ -265,6 +272,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  
   node-exporter:
     env_file:
       - .env.ci
@@ -284,6 +293,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  
   promtail:
     env_file:
       - .env.ci
@@ -317,6 +327,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
 volumes:
   postgres_data: null
   postgres_logs: null
@@ -333,6 +344,7 @@ volumes:
   prometheus_data: null
   promtail_logs: null
   tempo_data: null
+
 networks:
   transcendence_network:
     name: transcendence_network

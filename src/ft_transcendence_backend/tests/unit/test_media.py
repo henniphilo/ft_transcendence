@@ -1,12 +1,18 @@
-# backend/tests/unit/test_media.py
-import pytest
-from ft_transcendence_backend import media 
+import os
+import shutil
+import pytest_
 
-def test_some_function():
-    result = 3  
-    assert result == 3  
+# Assuming your app directory is at the root of your project
+MEDIA_DIR = "app/media"
+TEST_MEDIA_DIR = "app/test_media" # A test media directory to not touch the real media dir.
 
-def test_another_function():
-    # result = media.another_function("hello")
-    result = "HELLO"
-    assert "HELLO" in result
+@pytest.fixture(autouse=True)
+def setup_teardown():
+	if not os.path.exists(TEST_MEDIA_DIR):
+		os.makedirs(TEST_MEDIA_DIR)
+
+		yield # run tests
+	
+	# teardown
+	if os.path.exists(TEST_MEDIA_DIR):
+		shutil.rmtree(TEST_MEDIA_DIR)
