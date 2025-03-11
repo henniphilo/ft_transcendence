@@ -40,9 +40,6 @@ jobs:
       - name: Check container health
         run: docker compose ps --services --filter "health=healthy" --filter "status=running" | while read service; do docker compose logs $service; done
 
-      - name: Stop Docker Compose
-        if: always()
-        run: docker compose down
 
       - name: Run Integration Tests
         run: |
