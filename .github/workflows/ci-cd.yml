@@ -43,7 +43,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          docker compose exec backend pytest /app/backend/tests/integration/ -v
+          docker compose exec backend pytest tests/integration/ -v
 
       - name: Stop Docker Compose
         run: docker compose down
