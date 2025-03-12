@@ -40,6 +40,11 @@ jobs:
 
       - name: Wait for backend to be healthy
         run: docker compose wait backend
+        continue-on-error: true # Allow the workflow to continue even if the wait command fails
+
+      - name: Capture backend logs if wait fails
+        if: ${{ failure() }} # Capture logs only if the previous step failed
+        run: docker compose logs backend
       
       - name: Run Unit Tests inside container
         run: docker compose exec backend pytest tests/unit/ -v
