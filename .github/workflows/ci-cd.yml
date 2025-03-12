@@ -41,12 +41,7 @@ jobs:
       - name: Add a delay before waiting for backend
         run: sleep 15 # Add a 15-second delay
       
-      - name: Wait for backend to be healthy
-        run: docker compose wait backend
-        continue-on-error: true # Allow the workflow to continue even if the wait command fails
-
-      - name: Capture backend logs if wait fails
-        if: ${{ failure() }} # Capture logs only if the previous step failed
+      - name: Capture backend logs 
         run: docker compose logs backend
       
       - name: Run Unit Tests inside container
