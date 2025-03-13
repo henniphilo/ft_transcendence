@@ -60,6 +60,28 @@ make
 
 This will build the Docker image and run the application. The application will be available at `http://localhost:8080`.
 
+## node exporter
+This container will expose a Prometheus exporter for the host machine. It will be available at `http://localhost:9100/metrics`.
+
+## grafana
+This container will run a Grafana instance. It will be available at `http://localhost:3000`.
+
+## prometheus
+This container will run a Prometheus instance. It will be available at `http://localhost:9090`.
+
+## redis
+This container will run a Redis instance. It will avalaible on the port 6379 via the redis protocol.
+
+## postgres
+This container will run a Postgres instance. It will run on the port 5432 and the backend will be able to connect to it. 
+There is a grafana dashboard connected to this datasource.
+
+## backend
+This container will run the backend of the application. It will be available at `http://localhost:8080`.
+
+## tempo
+This container will run a Tempo instance.
+
 ## modules
 
 - [Setup](README_Omio.md)
