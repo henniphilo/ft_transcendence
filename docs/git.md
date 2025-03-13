@@ -38,8 +38,78 @@ Yes, your general idea of reverting to a previous commit is correct, but there a
 * **Auditing:** It allows you to track the changes that were reverted.
 * **Safety:** It's less likely to cause conflicts with other developers' work.
 
-**In summary:**
+## working across forks and branches
+Alright, let's break down how to merge a branch from Henni's repository into your fork's `dev` branch on GitHub. Here's a step-by-step guide:
 
-* For shared `dev` branches, `git revert` or a revert pull request are the best options.
-* `git reset --hard` and force pushing should be avoided unless absolutely necessary and with clear communication.
-* Always communicate with your team before making significant changes to a shared branch.
+**Prerequisites:**
+
+* You have Git installed on your local machine.
+* You have cloned your fork of Henni's repository to your local machine.
+* You have added Henni's repository as a remote to your local clone.
+
+**Steps:**
+
+1.  **Add Henni's Repository as a Remote (If You Haven't Already):**
+
+    * Open your terminal or command prompt.
+    * Navigate to the directory of your local clone of your fork.
+    * Use the following command to add Henni's repository as a remote (replace `henni` with the actual username and `repo-name` with the repository's name):
+
+    ```bash
+    git remote add upstream https://github.com/henni/repo-name.git
+    ```
+
+    * Verify that the remote was added correctly:
+
+    ```bash
+    git remote -v
+    ```
+
+    * You should see `upstream` listed along with your `origin` remote.
+
+2.  **Fetch Changes from Henni's Repository:**
+
+    * Fetch the latest changes from Henni's repository:
+
+    ```bash
+    git fetch upstream
+    ```
+
+    * This will download all the branches and commits from Henni's repository without merging them into your local branches.
+
+3.  **Identify the Branch You Want to Merge:**
+
+    * List the branches in Henni's repository to find the branch you need (replace `branch-name` with the actual branch name):
+
+    ```bash
+    git branch -r
+    ```
+    * The branches from henni's repo will be listed as upstream/branch-name
+
+4.  **Merge the Branch into Your `dev` Branch:**
+
+    * Switch to your `dev` branch:
+
+    ```bash
+    git checkout dev
+    ```
+
+    * Merge the branch from Henni's repository into your `dev` branch:
+
+    ```bash
+    git merge upstream/branch-name
+    ```
+
+    * If there are merge conflicts, you'll need to resolve them manually. Git will guide you through this process.
+    * If you want to create a new merge commit even when the merge could be a fast forward, use:
+        ```bash
+        git merge --no-ff upstream/branch-name
+        ```
+
+5.  **Push the Changes to Your Fork:**
+
+    * Push the merged `dev` branch to your fork:
+
+    ```bash
+    git push origin dev
+    ```

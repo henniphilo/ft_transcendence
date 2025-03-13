@@ -8,3 +8,4 @@ secrets/postgres_password.txt
 .gitignore
 .gitignore
 secrets/postgres_user.txt
+.env
