@@ -5,6 +5,7 @@ WORKDIR /app
 
 # Kopiere requirements und installiere
 COPY requirements.txt .
+
 # Upgrade pip first
 RUN python -m pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt

@@ -5,7 +5,7 @@ class GameSettings:
         self._paddle_speed = 5
         self._winning_score = 2
         self._paddle_size = "middle"
-        self._mode = "pvp"
+        self._mode = "online"
         self._difficulty = "medium"
         self._ubahn_size = 1.0  # Standardgröße für das U-Bahn-Modell
 
@@ -87,10 +87,10 @@ class GameSettings:
     @mode.setter
     def mode(self, value: str):
         print(f"Setting mode to: {value}")
-        if value in ["pvp", "ai"]:
+        if value in ["online", "ai", "local"]:
             self._mode = value
         else:
-            raise ValueError("Mode must be 'pvp' or 'ai'")
+            raise ValueError("Mode must be 'online', 'ai', or 'local'")
 
     @property
     def difficulty(self):

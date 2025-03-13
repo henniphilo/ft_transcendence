@@ -3,9 +3,10 @@ import { ThreeJSManager } from "./3dmanager.js";
 export class GameScreen {
     constructor(gameData, onBackToMenu) {
         console.log("GameScreen loaded!");
+        console.log("Game Data:", gameData);  // Debug-Ausgabe der gesamten gameData
 
         // Speichere das Benutzerprofil
-        this.userProfile = gameData.userProfile;  // Neu hinzugefügt
+        this.userProfile = gameData.userProfile;
 
         // Nur initiale Werte, werden vom Server überschrieben
         this.gameState = {
@@ -13,14 +14,27 @@ export class GameScreen {
             player2: { name: gameData.player2, score: 0 },
             ball: [0, 0]
         };
-        this.playerRole = gameData.playerRole;  // "player1" oder "player2"
+        this.playerRole = gameData.playerRole;
         this.onBackToMenu = onBackToMenu;
         this.gameId = gameData.game_id;
 
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
-        this.gameMode = 'online';  // Änderung hier: immer auf 'online' setzen
+        
+        // Setze den Spielmodus basierend auf der Spielerrolle und den Spielernamen
+        if (this.playerRole === 'both') {
+            this.gameMode = 'local';
+        } else if (gameData.player2 === 'AI Player') {
+            this.gameMode = 'ai';
+        } else {
+            this.gameMode = 'online';
+        }
+        
+        console.log("Spielmodus basierend auf Spielerrolle und Namen:", this.gameMode);
+
+        console.log("Finaler Spielmodus:", this.gameMode);
+        console.log("Spielerrolle:", this.playerRole);
 
         this.threeJSManager = new ThreeJSManager();
 
@@ -60,6 +74,15 @@ export class GameScreen {
 
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);
+            
+            // Sende Benutzerprofilinformationen nach der Verbindung
+            if (this.userProfile) {
+                this.ws.send(JSON.stringify({
+                    action: 'player_info',
+                    player_role: this.playerRole,
+                    user_profile: this.userProfile
+                }));
+            }
         };
 
         this.ws.onmessage = (event) => {
@@ -132,25 +155,67 @@ export class GameScreen {
         console.log("Game wird angezeigt...");
         const container = document.getElementById('game-container');
 
+        // Bestimme die Spielernamen basierend auf dem Spielmodus
+        let player1Name = this.gameState.player1.name;
+        let player2Name = this.gameState.player2.name;
+
+        // Wenn wir ein Benutzerprofil haben, passen wir die Namen an
+        if (this.userProfile) {
+            if (this.gameMode === 'ai') {
+                // Im AI-Modus: Benutzername vs. AI Player
+                if (this.playerRole === 'player1') {
+                    player1Name = this.userProfile.username;
+                    player2Name = "AI Player";
+                }
+            } else if (this.gameMode === 'local') {
+                // Im Local-Modus: Benutzername vs. Local Player
+                if (this.playerRole === 'player1') {
+                    player1Name = this.userProfile.username;
+                    player2Name = "Local Player";
+                } else {
+                    player1Name = "Local Player";
+                    player2Name = this.userProfile.username;
+                }
+            }
+            // Im Online-Modus werden die Namen vom Server gesetzt
+        }
+
         if (this.gameState.winner) {
             this.displayWinnerScreen();
         } else {
             container.innerHTML = `
-                <div class="game-screen">
+            <div class="game-screen">
+                <div class="game-header">
                     <div id="score-board" class="score-board">
                         <div id="player1-score" class="player-score">
-                            ${this.gameState.player1.name}: ${this.gameState.player1.score}
+                            <strong>${player1Name}:</strong> ${this.gameState.player1.score}
                         </div>
                         <div id="player2-score" class="player-score">
-                            ${this.gameState.player2.name}: ${this.gameState.player2.score}
+                            <strong>${player2Name}:</strong> ${this.gameState.player2.score}
                         </div>
                     </div>
-                     <div id="controls-info" class="controls-info">
-                     <p>Player 1: Left = &#8592; Right = &#8594; </strong></p>
-                     <p>Player 2: Left = A Right = D </strong></p>
+
+                    <div id="controls-info" class="controls-info">
+                        <h2>Controls</h2>
+                        <div class="control-section">
+                            <strong>Player 1:</strong>
+                            <span class="key">A</span> Left | <span class="key">D</span> Right
+                        </div>
+                        <div class="control-section">
+                            <strong>Player 2:</strong>
+                            <span class="key">←</span> Left | <span class="key">→</span> Right
+                        </div>
+                        <h3>Change Perspective</h3>
+                        <div class="control-section">
+                            <span class="key">1</span> Player 1 View |
+                            <span class="key">2</span> Player 2 View |
+                            <span class="key">3</span> Top View
+                        </div>
+                    </div>
                 </div>
-                    <div id="three-js-container"></div>
-                </div>
+
+                <div id="three-js-container"></div>
+            </div>
             `;
             this.scoreBoard = document.getElementById('score-board');
             this.threeJSManager.setupRenderer(document.getElementById('three-js-container'));
@@ -159,14 +224,54 @@ export class GameScreen {
 
 
     updateScoreBoard() {
-        if (!this.scoreBoard) return;
+        if (!this.scoreBoard) {
+            console.log("Scoreboard nicht gefunden!");
+            return;
+        }
 
         const player1Score = this.scoreBoard.querySelector('#player1-score');
         const player2Score = this.scoreBoard.querySelector('#player2-score');
+        
+        console.log("Scoreboard-Elemente:", player1Score, player2Score);
+
+        // Bestimme die Spielernamen basierend auf dem Spielmodus
+        let player1Name = this.gameState.player1.name;
+        let player2Name = this.gameState.player2.name;
+
+        console.log("Ursprüngliche Namen:", player1Name, player2Name);
+        console.log("Spielmodus:", this.gameMode);
+        console.log("Spielerrolle:", this.playerRole);
+        console.log("Benutzerprofil:", this.userProfile);
+
+        // Wenn wir ein Benutzerprofil haben, passen wir die Namen an
+        if (this.userProfile) {
+            if (this.gameMode === 'ai') {
+                // Im AI-Modus: Benutzername vs. AI Player
+                if (this.playerRole === 'player1') {
+                    player1Name = this.userProfile.username;
+                    player2Name = "AI Player";
+                }
+            } else if (this.gameMode === 'local') {
+                // Im Local-Modus: Benutzername vs. Local Player
+                if (this.playerRole === 'player1') {
+                    player1Name = this.userProfile.username;
+                    player2Name = "Local Player";
+                } else {
+                    player1Name = "Local Player";
+                    player2Name = this.userProfile.username;
+                }
+            }
+            // Im Online-Modus werden die Namen vom Server gesetzt
+        }
+
+        console.log("Angepasste Namen:", player1Name, player2Name);
 
         if (player1Score && player2Score) {
-            player1Score.textContent = `${this.gameState.player1.name}: ${this.gameState.player1.score}`;
-            player2Score.textContent = `${this.gameState.player2.name}: ${this.gameState.player2.score}`;
+            console.log("Aktualisiere Scoreboard-Elemente");
+            player1Score.innerHTML = `<strong>${player1Name}:</strong> ${this.gameState.player1.score}`;
+            player2Score.innerHTML = `<strong>${player2Name}:</strong> ${this.gameState.player2.score}`;
+        } else {
+            console.log("Scoreboard-Elemente nicht gefunden!");
         }
     }
 

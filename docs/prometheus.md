@@ -16,6 +16,76 @@ operating system metrics from your host machine.
 It provides metrics like CPU usage, memory usage, disk I/O, network statistics, and more.
 
 
+* **Access Node Exporter Metrics:**
+    * First, make sure Node Exporter is running correctly and exposing metrics.
+    * If you're using Docker Compose, find the Node Exporter service's port mapping (usually `9100`).
+    * Open your web browser and navigate to `http://<node-exporter-container-IP or localhost>:9100/metrics`.
+    * You should see a large amount of text-based metrics data. If you don't, there's a problem with your Node Exporter container.
+
+**2. Configure Prometheus to Scrape Node Exporter Metrics:**
+
+* **Prometheus Configuration:**
+    * Prometheus is the tool that will collect the metrics from Node Exporter.
+    * You need to add a scrape job to your Prometheus configuration file (`prometheus.yml`).
+    * If you are using docker compose and linking your prometheus container to the node exporter container, you can use the container name as the hostname.
+* **Example `prometheus.yml` Snippet:**
+
+```yaml
+scrape_configs:
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"] #use the container name and the port
+```
+
+* **Explanation:**
+    * `job_name`: A label to identify this scrape job.
+    * `static_configs`: Defines the target(s) to scrape.
+    * `targets`: The Node Exporter's address and port.
+
+**3. Restart Prometheus:**
+
+* **Apply Changes:**
+    * After modifying `prometheus.yml`, you need to restart your Prometheus container to apply the changes.
+    * If you are using docker-compose.
+        * `docker-compose restart prometheus`
+
+**4. Verify Prometheus is Scrapping Node Exporter:**
+
+* **Prometheus Web UI:**
+    * Open the Prometheus web UI in your browser (usually `http://localhost:9090`).
+    * Go to "Status" -> "Targets."
+    * You should see your Node Exporter target listed, and its state should be "UP."
+    * If the state is down, check the prometheus logs for errors.
+
+**5. Add a Prometheus Data Source to Grafana:**
+
+* **Grafana UI:**
+    * Open your Grafana web UI (usually `http://localhost:3000`).
+    * Go to "Configuration" -> "Data Sources."
+    * Click "Add data source."
+    * Select "Prometheus."
+* **Prometheus URL:**
+    * Enter the URL of your Prometheus server (e.g., `http://prometheus:9090` if you're using Docker Compose and linking containers).
+    * Click "Save & test."
+
+**6. Create a Grafana Dashboard:**
+
+* **New Dashboard:**
+	* add the data source to grafana
+    * In Grafana, you can also click on the + sign and add by number id. There is a premade dashboard with id 13978 for node exporter.
+* **Query Metrics:**
+    * In the panel's query editor, start typing metric names from Node Exporter (e.g., `node_cpu_seconds_total`).
+    * Grafana will suggest metrics as you type.
+    * Use Prometheus Query Language (PromQL) to create graphs and visualizations.
+* **Example Query:**
+    * To get CPU utilization: `100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)`
+
+
+Once the Node Exporter Container is running, you can access its metrics by visiting the following URL in your web browser: 
+
+Then Prometheus will scrape the metrics from the Node Exporter and store them in its time-series database. Check if everything is ok here:
+http://localhost:9090/targets
+
 ## did you know
 in docker compose you can inline a docker file
 ```yaml
@@ -28,3 +98,5 @@ dockerfile_inline: |
 https://prometheus.io/docs/prometheus/latest/getting_started/  
 
 https://github.com/prometheus/prometheus/tree/main?tab=readme-ov-file  
+https://grafana.com/grafana/dashboards/13978-node-exporter-quickstart-and-dashboard/  
+

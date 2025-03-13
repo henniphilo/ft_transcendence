@@ -333,6 +333,8 @@ export class ThreeJSManager {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         window.addEventListener('resize', () => this.onWindowResize());
         window.addEventListener('keydown', (event) => this.preventArrowKeyScrolling(event));
+        window.addEventListener('keydown', (event) => this.changeCameraPerspective(event));
+
         this.loader = new GLTFLoader();
         this.fbxLoader = new FBXLoader();
 
@@ -356,7 +358,7 @@ export class ThreeJSManager {
         this.scene.background = bgTexture;
 
         // Kamera Setup
-        this.camera.position.set(-1, 3, -10);
+        this.camera.position.set(-1, 3, -15); //ausgangs perspektive
         this.camera.lookAt(0, 0, 0);
 
         // Beleuchtung
@@ -404,6 +406,21 @@ export class ThreeJSManager {
         this.scene.add(bottomBorder);
     }
 
+    changeCameraPerspective(event) {
+        switch (event.key) {
+            case '1': // Spieler 1 Perspektive
+                this.camera.position.set(8, 3, 2);
+                break;
+            case '2': // Spieler 2 Perspektive
+                this.camera.position.set(-8, 3, 2);
+                break;
+            case '3': // Vogelperspektive
+                this.camera.position.set(0, 8, 0);
+                break;
+        }
+        this.camera.lookAt(0, 0, 0);
+    }
+
     onWindowResize() {
         this.camera.aspect = window.innerWidth / window.innerHeight;
         this.camera.updateProjectionMatrix();
@@ -419,6 +436,9 @@ export class ThreeJSManager {
 
     async loadModels() {
         try {
+            this.controls.dampingFactor = 0.05;
+            this.controls.screenSpacePanning = false;
+            this.controls.maxPolarAngle = Math.PI / 2;
             // Lade Modelle und Paddles
             this.createPaddleModels();
             // Zusätzliche Modell-Initialisierung, wenn nötig
