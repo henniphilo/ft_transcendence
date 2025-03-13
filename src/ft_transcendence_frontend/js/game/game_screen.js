@@ -139,10 +139,10 @@ export class GameScreen {
             <div class="game-screen">
                 <div id="score-board" class="score-board">
                     <div class="player-score">
-                        <strong>${this.gameState.player1.name}:</strong> ${this.gameState.player1.score}
+                        <strong>${this.gameState.player1.name}: </strong> ${this.gameState.player1.score}
                     </div>
                     <div class="player-score">
-                        <strong>${this.gameState.player2.name}:</strong> ${this.gameState.player2.score}
+                        <strong>${this.gameState.player2.name}: </strong> ${this.gameState.player2.score}
                     </div>
                 </div>
 

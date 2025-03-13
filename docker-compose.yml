@@ -33,7 +33,7 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes  --save 60 1 --loglevel verbose
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"] 
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -69,6 +69,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  cloudflared:
+    <<: *common
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - transcendence_network
+    env_file:
+      - .env
 
   caddy:
     <<: *common
@@ -106,10 +117,10 @@ services:
   #     interval: 30s
   #     timeout: 30s
   #     retries: 5
-  
+
   grafana:
     <<: *common
-    build: 
+    build:
       context: ./src/grafana
       dockerfile: Dockerfile
     ports:
@@ -145,7 +156,7 @@ services:
     command: ["-config.file=/etc/loki/local-config.yml"]
     volumes:
       - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
-      - ./src/grafana/config/loki_data:/tmp/loki 
+      - ./src/grafana/config/loki_data:/tmp/loki
     networks:
       - transcendence_network
     healthcheck:
@@ -187,7 +198,7 @@ services:
     depends_on:
       - tempo
       - loki
-     
+
   portainer:
     <<: *common
     build: src/portainer

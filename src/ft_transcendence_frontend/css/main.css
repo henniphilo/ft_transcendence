@@ -7,28 +7,32 @@ body {
     min-height: 100vh;
     flex-direction: column;
     color: #fff;
+    overflow: hidden; /* Verhindert Scrollbalken */
 }
 
 /* Game Area */
 #game-container {
-    display: none;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
     height: 100vh;
     position: absolute;
     top: 0;
     left: 0;
     background-color: #b5bd5d;
-    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
 }
 
 #background-canvas {
-    background-color: #f0e47de2;
+    background-color: #c8f07de2;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
+    object-fit: cover; /* Sorgt dafür, dass das Bild den gesamten Bereich füllt */
 }
 #menu-container {
     text-align: center;
@@ -75,49 +79,71 @@ body {
     color: #ee8821;
     margin-bottom: 20px;
 }
+/* Scoreboard oben fixieren */
 .score-board {
     display: flex;
-    justify-content: space-around;
-    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px; /* Fixierte Breite */
     background-color: #333;
-    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 10;
 }
+/* Spieler-Punkte */
 .player-score {
     font-size: 24px;
     color: #fff;
+    margin: 0 20px;
 }
+/* Spielfeld */
 #game-canvas {
     border: 2px solid #f8edab;
-    background-color: #497041;
+    background-color: #70416e;
+    aspect-ratio: 4 / 3; /* Stellt sicher, dass es die richtige Proportion behält */
 }
 
-/* Responsive */
+/* Responsivität */
 @media (max-width: 480px) {
-    body {
+    .score-board {
         flex-direction: column;
+        text-align: center;
+    }
+
+    #controls {
+        top: 70px;
     }
 }
 
+/* Spiel Info background*/
 .game-screen {
     background-color: #8c9900;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;  /* Weniger Abstand zwischen Elementen */
-    max-width: 500px;  /* Begrenzung der Breite */
-    padding: 10px;  /* Weniger Innenabstand */
-    border-radius: 8px;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 3px;
+    margin-top: 80px; /* Platz unter der fixierten Score-Leiste */
 }
 
 
 #game-container {
-    display: none;  /* Initially hidden */
+    display: none;
     width: 100%;
     height: 100vh;
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #8c9900;
+    background-color: #aebc10;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .setting-item select {
