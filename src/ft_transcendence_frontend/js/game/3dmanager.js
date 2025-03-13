@@ -439,8 +439,29 @@ export class ThreeJSManager {
             this.controls.dampingFactor = 0.05;
             this.controls.screenSpacePanning = false;
             this.controls.maxPolarAngle = Math.PI / 2;
+
+           // U-Bahn Modell laden
+           const ubahnModel = await this.loadModel('looks/ubahn-bigbig.glb', {
+               targetSize: 1, // Initiale Skalierung
+               addAxesHelper: false
+           });
+
+           // Bounding Box für das Modell berechnen
+           const box = new THREE.Box3().setFromObject(ubahnModel);
+           const size = new THREE.Vector3();
+           box.getSize(size);
+        //   const originalHeight = size.z; // Ursprüngliche Höhe des Modells
+           console.log("size of ubahn: ", size);
+
+            // U-Bahn-Modelle als Paddles klonen und positionieren
+            this.paddleModels = [ubahnModel.clone(), ubahnModel.clone()];
+            this.paddleModels[0].position.set(-4, 0, 0);
+            this.paddleModels[1].position.set(4, 0, 0);
+
+            this.scene.add(this.paddleModels[0], this.paddleModels[1]);
+
             // Lade Modelle und Paddles
-            this.createPaddleModels();
+   //         this.createPaddleModels();
             // Zusätzliche Modell-Initialisierung, wenn nötig
             this.humanModel = await this.loadModel('looks/womanwalkturn-XXXX.fbx', {
                 targetSize: 0.7,
@@ -507,16 +528,16 @@ export class ThreeJSManager {
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * (fieldHeight / 2);
         const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * (fieldHeight / 2);
 
-        // Dynamische Paddelgröße basierend auf Spielfeld-Höhe
-        const p1Height = (Math.abs(gameState.player1.paddle.bottom - gameState.player1.paddle.top) * fieldHeight) / 2;
-        this.paddleModels[0].geometry.dispose();
-        this.paddleModels[0].geometry = new THREE.BoxGeometry(0.2, 0.2, p1Height,);
-        this.paddleModels[0].position.set(-4, 0, p1Z);
+        // // Dynamische Paddelgröße basierend auf Spielfeld-Höhe
+        // const p1Height = (Math.abs(gameState.player1.paddle.bottom - gameState.player1.paddle.top) * fieldHeight) / 2;
+        // this.paddleModels[0].geometry.dispose();
+        // this.paddleModels[0].geometry = new THREE.BoxGeometry(0.2, 0.2, p1Height,);
+        // this.paddleModels[0].position.set(-4, 0, p1Z);
 
-        const p2Height = (Math.abs(gameState.player2.paddle.bottom - gameState.player2.paddle.top) * fieldHeight) / 2;
-        this.paddleModels[1].geometry.dispose();
-        this.paddleModels[1].geometry = new THREE.BoxGeometry(0.2, 0.2, p2Height);
-        this.paddleModels[1].position.set(4, 0, p2Z);
+        // const p2Height = (Math.abs(gameState.player2.paddle.bottom - gameState.player2.paddle.top) * fieldHeight) / 2;
+        // this.paddleModels[1].geometry.dispose();
+        // this.paddleModels[1].geometry = new THREE.BoxGeometry(0.2, 0.2, p2Height);
+        // this.paddleModels[1].position.set(4, 0, p2Z);
     }
 
 
