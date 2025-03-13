@@ -10,9 +10,12 @@ services:
     init: true
     tty: true
     stdin_open: true
-    image: postgres:16
+    image: "postgres:16"
+    command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - postgres_logs:/var/log/postgresql
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -170,7 +173,7 @@ services:
     init: true
     tty: true
     stdin_open: true
-    image: grafana/loki:3.4.0 
+    image: grafana/loki:latest
     ports:
       - 3100:3100
     command:
@@ -209,10 +212,11 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - curl -f http://localhost:3200/metrics || exit 1
+        - wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
+
   portainer:
     env_file:
       - .env.ci
@@ -259,13 +263,12 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - |-
-          bash -c 'printf "GET / HTTP/1.1
-
-          " > /dev/tcp/127.0.0.1/9090; exit $?;'
+        - wget -q -O- http://localhost:9090/metrics >/dev/null 2>&1 || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
+
+  
   node-exporter:
     env_file:
       - .env.ci
@@ -281,13 +284,11 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - |-
-          bash -c 'printf "GET / HTTP/1.1
-
-          " > /dev/tcp/127.0.0.1/9100; exit $?;'
+        - wget -q -O- http://localhost:9100/metrics >/dev/null 2>&1 || exit 1
       interval: 30s
       timeout: 10s
       retries: 5
+  
   promtail:
     env_file:
       - .env.ci
@@ -321,6 +322,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      
 volumes:
   postgres_data: null
   postgres_logs: null
@@ -337,6 +339,7 @@ volumes:
   prometheus_data: null
   promtail_logs: null
   tempo_data: null
+
 networks:
   transcendence_network:
     name: transcendence_network

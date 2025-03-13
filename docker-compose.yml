@@ -31,10 +31,15 @@ services:
   postgres:
     <<: *common
     image: "postgres:16"
+    # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - postgres_logs:/var/log/postgresql
+    environment:
+      PGDATA: /var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5432"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -145,8 +150,7 @@ services:
     volumes:
       - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
       - ./src/grafana/config/loki_data:/tmp/loki 
-      - loki_logs:/var/log/loki
-      - loki_chunks:/tmp/loki/chunks 
+      - loki_logs:/var/log/loki 
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
       interval: 60s
@@ -159,15 +163,14 @@ services:
     command: [ "-config.file=/etc/tempo.yml" ]
     volumes:
       - ./src/grafana/config/tempo.yml:/etc/tempo.yml
-      - tempo_data:/tmp/tempo/blocks
     ports:
       - "3200:3200"   # tempo
       - "4317:4317"   # otlp grpc
       - "4318:4318"   # otlp http
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3200/metrics || exit 1"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
+      interval: 60s
+      timeout: 30s
       retries: 5
 
      
@@ -198,7 +201,7 @@ services:
     volumes:
       - prometheus_data:/prometheus
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9090; exit $?;'"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -209,7 +212,7 @@ services:
     ports:
       - "9101:9100"
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9100; exit $?;'"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9100/-/healthy || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -221,7 +224,7 @@ services:
       dockerfile: Dockerfile.promtail
     volumes:
       - promtail_logs:/app/logs
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/log/postgresql
       - redis_logs:/var/log/redis
       - caddy_logs:/var/log/caddy
       - django_logs:/app/logs
@@ -237,21 +240,20 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
-  postgres_logs:
-  redis_data:
-  redis_logs:
-  django_logs:
-  grafana_data:
-  grafana_logs:
-  loki_logs:
-  loki_chunks:
-  portainer-data:
-  loki-data:
-  caddy_logs:
-  prometheus_data:
-  promtail_logs:
-  tempo_data:
+  postgres_data: null
+  postgres_logs: null
+  redis_data: null
+  redis_logs: null
+  django_logs: null
+  grafana_data: null
+  grafana_logs: null
+  loki_logs: null
+  portainer-data: null
+  loki-data: null
+  caddy_logs: null
+  prometheus_data: null
+  promtail_logs: null
+  tempo_data: null
 
 networks:
   transcendence_network:

@@ -12,6 +12,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env: 
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} 
+      DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,21 +27,30 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-buildx-action@v3
 
+      - name: Debug secrets
+        run: |
+              echo "POSTGRES_USER: ${{ secrets.POSTGRES_USER }}"
+              echo "POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}"
+              echo "POSTGRES_DB: ${{ secrets.POSTGRES_DB }}"
+              echo "GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}"
+    
       - name: Build and run Docker Compose
         run: |
           docker compose -f docker-compose.ci.yml up -d --build
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} # Add secret
-          DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+      
+      - name: Add a delay before waiting for backend
+        run: sleep 15 # Add a 15-second delay
+      
+      - name: Capture backend logs 
+        run: docker compose logs backend
+      
+      - name: Run Unit Tests inside container
+        run: docker compose exec backend pytest tests/unit/ -v
 
-      - name: Check PostgreSQL Logs
-        run: docker logs ft_transcendence-postgres-1
-
-      - name: Run tests (if applicable)
-        run: echo "Tests passed"
+      - name: Run Integration Tests
+        run: |
+          docker compose exec backend pytest tests/integration/ -v
 
       - name: Stop Docker Compose
         run: docker compose down
+
