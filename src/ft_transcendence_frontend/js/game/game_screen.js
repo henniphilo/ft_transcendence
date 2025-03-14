@@ -70,7 +70,15 @@ export class GameScreen {
 
     setupWebSocket() {
         console.log("Connecting to game with ID:", this.gameId);
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
+        //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsHost = window.location.hostname;
+        
+        // Keine Port-Angabe in der URL - lass den Reverse Proxy das handhaben
+        const wsUrl = `${wsProtocol}${wsHost}/ws/game`;
+        console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
+
+        this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);
