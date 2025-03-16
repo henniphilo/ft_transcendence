@@ -10,7 +10,23 @@ export class MenuDisplay {
         console.log("MenuDisplay loaded!");
 
         this.container = document.getElementById('menu-container');
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
+        //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
+
+
+        // const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        // const wsHost = window.location.hostname; // Nur der Hostname (ohne Port)
+        // const wsPort = "8001"; // Falls der Port sich ändern soll, könnte dies auch dynamisch gesetzt werden
+        // this.ws = new WebSocket(`${wsProtocol}${wsHost}:${wsPort}/ws/menu`);
+
+        
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsHost = window.location.hostname;
+        
+        // Keine Port-Angabe in der URL - lass den Reverse Proxy das handhaben
+        const wsUrl = `${wsProtocol}${wsHost}/ws/menu`;
+        console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
+        
+        this.ws = new WebSocket(wsUrl);
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
@@ -240,7 +256,7 @@ export class MenuDisplay {
         console.log("Menu click:", itemId); // Debug log
 
         if (itemId === 'online') {
-            this.displaySearchingScreen();
+            //this.displaySearchingScreen();
             // Wichtig: Sende dem Server die Information, dass wir suchen
             this.ws.send(JSON.stringify({
                 action: 'menu_selection',
@@ -265,22 +281,14 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-
+        
         switch (data.action) {
             case 'searching_opponent':
                 console.log("Started searching for opponent...");
-                // Zeige Wartebild an
-                this.container.innerHTML = `
-                    <div class="searching-screen">
-                        <h2>Searching for opponent...</h2>
-                        <button class="cancel-button">Cancel</button>
-                    </div>
-                `;
-
-                // Event-Listener hinzufügen
-                this.container.querySelector('.cancel-button').addEventListener('click', () => this.cancelSearch());
+                // Hier sollte der Suchbildschirm angezeigt werden
+                this.displaySearchingScreen(data.message || "Searching for opponent...");
                 break;
-
+            
             case 'game_found':
                 console.log("Match found! Game ID:", data.game_id);
                 console.log("Player1:", data.player1);
@@ -422,21 +430,23 @@ export class MenuDisplay {
     }
 
     displaySearchingScreen(message) {
+        console.log("Displaying search screen with message:", message);
+        
+        // Vollständig neues HTML für den Container
         this.container.innerHTML = `
-            <div class="searching-box">
-                <div class="searching-container">
+            <div class="searching-container">
+                <div class="searching-box">
                     <h2>${message || 'Searching for opponent...'}</h2>
                     <div class="loading-spinner"></div>
-                    <button class="menu-item cancel-search">
-                        Cancel Search
-                    </button>
+                    <button class="cancel-button">Cancel Search</button>
                 </div>
             </div>
         `;
 
-        // Event Listener direkt hinzufügen statt onclick im HTML
-        const cancelButton = this.container.querySelector('.cancel-search');
+        // Event-Listener für den Cancel-Button
+        const cancelButton = this.container.querySelector('.cancel-button');
         cancelButton.addEventListener('click', () => {
+            console.log("Cancel search clicked");
             this.cancelSearch();
         });
     }

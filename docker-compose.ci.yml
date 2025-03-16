@@ -1,6 +1,20 @@
 ---
 name: ft_transcendence
 services:
+  
+  cloudflared:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - transcendence_network
+    init: true
+    tty: true
+    stdin_open: true
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
   postgres:
     env_file:
       - .env.ci

@@ -12,6 +12,13 @@ x-common: &common
   stdin_open: true
 
 services:
+
+  cloudflared:
+      <<: *common
+      image: cloudflare/cloudflared:latest
+      container_name: cloudflared
+      command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+  
   # postgres:
   #   <<: *common
   #   build: src/postgres
@@ -238,6 +245,17 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  cloudflared:
+    <<: *common
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - transcendence_network
+    env_file:
+      - .env
 
 volumes:
   postgres_data: null
