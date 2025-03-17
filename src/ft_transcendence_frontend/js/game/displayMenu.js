@@ -10,7 +10,23 @@ export class MenuDisplay {
         console.log("MenuDisplay loaded!");
 
         this.container = document.getElementById('menu-container');
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
+        //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
+
+
+        // const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        // const wsHost = window.location.hostname; // Nur der Hostname (ohne Port)
+        // const wsPort = "8001"; // Falls der Port sich ändern soll, könnte dies auch dynamisch gesetzt werden
+        // this.ws = new WebSocket(`${wsProtocol}${wsHost}:${wsPort}/ws/menu`);
+
+        
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsHost = window.location.hostname;
+        
+        // Keine Port-Angabe in der URL - lass den Reverse Proxy das handhaben
+        const wsUrl = `${wsProtocol}${wsHost}/ws/menu`;
+        console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
+        
+        this.ws = new WebSocket(wsUrl);
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen
