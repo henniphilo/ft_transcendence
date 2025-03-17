@@ -75,7 +75,7 @@ export class GameScreen {
         const wsHost = window.location.hostname;
 
         // Keine Port-Angabe in der URL - lass den Reverse Proxy das handhaben
-        const wsUrl = `${wsProtocol}${wsHost}/ws/game`;
+        const wsUrl = `${wsProtocol}${wsHost}/ws/game/${this.gameId}`;
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
 
         this.ws = new WebSocket(wsUrl);

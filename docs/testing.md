@@ -1,5 +1,6 @@
 # testing
 
+(from gemini or copilot)
 Lets create a testing strategy and CI/CD pipeline for our Docker Compose project.  
 We can break this down into multiple parts.
 

@@ -294,7 +294,6 @@ export class MenuDisplay {
                 console.log("Player1:", data.player1);
                 console.log("Player2:", data.player2);
                 console.log("Your role:", data.playerRole);
-
                 const gameData = {
                     player1: data.player1,
                     player2: data.player2,
@@ -307,11 +306,11 @@ export class MenuDisplay {
                     userProfile: this.userProfile
                 };
 
-                // Wechsel zum GameScreen-Template und übergebe die gameData
-                showTemplate('game', gameData);
+                // Erst Template wechseln über den globalen showTemplate
+                window.showTemplate('game');
 
-                // Container ausblenden
-                this.container.style.display = 'none';
+                    this.container.style.display = 'none';
+
                 break;
 
             case 'show_submenu':
