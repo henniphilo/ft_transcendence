@@ -3,6 +3,17 @@ from menu import Menu
 from game_server import GameServer
 import uuid
 from fastapi import WebSocketDisconnect
+import logging
+from settings import LOGGING
+# Configure logging
+logging.config.dictConfig(LOGGING)
+# test logging
+logger = logging.getLogger('game')
+# Example log messages at different levels
+logger.debug("GAME! This is a test debug message")
+logger.info("GAME! test Game application starting up...")
+logger.warning("GAME! test This is a warning message")
+logger.error("GAME! test This is an error message")
 
 app = FastAPI()
 menu = Menu()

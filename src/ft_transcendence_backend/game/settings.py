@@ -3,9 +3,9 @@ class GameSettings:
         print("Initializing GameSettings")
         self._ball_speed = 2
         self._paddle_speed = 5
-        self._winning_score = 200
+        self._winning_score = 2
         self._paddle_size = "middle"
-        self._mode = "pvp"
+        self._mode = "online"
         self._difficulty = "medium"
         self._ubahn_size = 1.0  # Standardgröße für das U-Bahn-Modell
 
@@ -87,10 +87,10 @@ class GameSettings:
     @mode.setter
     def mode(self, value: str):
         print(f"Setting mode to: {value}")
-        if value in ["pvp", "ai"]:
+        if value in ["online", "ai", "local"]:
             self._mode = value
         else:
-            raise ValueError("Mode must be 'pvp' or 'ai'")
+            raise ValueError("Mode must be 'online', 'ai', or 'local'")
 
     @property
     def difficulty(self):
@@ -142,3 +142,37 @@ async def update_settings(self, settings_data):
         print(f"Error updating settings: {str(e)}")
         return {"action": "error", "message": str(e)}
 
+import logging.config
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # Set the minimum log level
+            'class': 'logging.FileHandler',
+            'filename': '/app/logs/game.log',  # Specify the log file path
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'uvicorn': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # Set the minimum log level for Uvicorn logs
+            'propagate': True,
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+}
+
+import os
+
+# Ensure the logs directory exists
+if not os.path.exists('/app/logs'):
+    os.makedirs('/app/logs')
