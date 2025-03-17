@@ -21,12 +21,13 @@ export class MenuDisplay {
         
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
-        
-        // Keine Port-Angabe in der URL - lass den Reverse Proxy das handhaben
-        const wsUrl = `${wsProtocol}${wsHost}/ws/menu`;
+        const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
+
+        const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
-        
+
         this.ws = new WebSocket(wsUrl);
+
         this.gameMode = null;
         this.playMode = null;
         this.currentSettings = null;  // Speichere aktuelle Einstellungen

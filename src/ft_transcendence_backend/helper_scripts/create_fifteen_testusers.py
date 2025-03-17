@@ -15,6 +15,7 @@ for i in range(1, 16):
     username = f'testuser{i}'
     email = f'testuser{i}@example.com'
     password = 'testuser'  # Gleiche Passwort wie im create_testuser.py
+    avatar = f'avatars/avatar_{i}.png'  # Path relative to MEDIA_ROOT
     
     # Zufälligen Score zwischen 0 und 1000 generieren
     random_score = random.randint(0, 1000)
@@ -24,7 +25,8 @@ for i in range(1, 16):
         email=email,
         password=password,  # create_user verschlüsselt das Passwort automatisch
         is_active=True,
-        score=random_score
+        score=random_score,
+        avatar=avatar
     )
     
     # 2FA Verifizierung setzen
