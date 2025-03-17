@@ -87,16 +87,16 @@ services:
       timeout: 10s
       retries: 5
 
-  cloudflared:
-    <<: *common
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    networks:
-      - transcendence_network
-    env_file:
-      - .env
+  # cloudflared:
+  #   <<: *common
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: cloudflared
+  #   restart: unless-stopped
+  #   command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+  #   networks:
+  #     - transcendence_network
+  #   env_file:
+  #     - .env
 
   caddy:
     <<: *common
@@ -245,13 +245,13 @@ services:
       - tempo
       - loki
 
-  portainer:
-      - "9101:9100"
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9100; exit $?;'"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+  # portainer:
+  #     - "9101:9100"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9100; exit $?;'"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
 
   promtail:
     <<: *common
