@@ -159,10 +159,10 @@ export class MenuDisplay {
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card mb-4">
-                            <div class="card-header" style="background-color: #8c9900; color: white;">
+                            <div class="card-header profile-header">
                                 <h2 class="mb-0">Menu</h2>
                             </div>
-                            <div class="card-body" style="background-color: #b9a84cc0;">
+                            <div class="card-body profile-card">
                                 <div id="menu-options" class="d-grid gap-3"></div>
                             </div>
                         </div>
@@ -171,10 +171,10 @@ export class MenuDisplay {
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="card mb-4">
-                                    <div class="card-header" style="background-color: #8c9900; color: white;">
+                                    <div class="card-header profile-header">
                                         <h3 class="mb-0">Profile</h3>
                                     </div>
-                                    <div class="card-body" style="background-color: #b9a84cc0;">
+                                    <div class="card-body profile-card">
                                         <div class="row">
                                             <div class="col-md-4 text-center">
                                                 <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" 
@@ -193,7 +193,7 @@ export class MenuDisplay {
                                                     <p class="mb-2"><strong>Tournament Name:</strong> <span class="profile-tournament-name">${this.userProfile.tournament_name || ''}</span></p>
                                                 </div>
                                                 <div class="d-grid gap-2">
-                                                    <button class="edit-profile-button btn" style="background-color: #8c9900; color: white;">Edit Profile</button>
+                                                    <button class="edit-profile-button btn btn-primary-custom">Edit Profile</button>
                                                     <button class="logout-button btn btn-danger">Logout</button>
                                                 </div>
                                             </div>
@@ -203,10 +203,10 @@ export class MenuDisplay {
                             </div>
                             <div class="col-md-4">
                                 <div class="card">
-                                    <div class="card-header" style="background-color: #8c9900; color: white;">
+                                    <div class="card-header online-players-header">
                                         <h3 class="mb-0">Online Players</h3>
                                     </div>
-                                    <div class="card-body" style="background-color: #b9a84cc0; max-height: 300px; overflow-y: auto;">
+                                    <div class="card-body profile-card online-players-list">
                                         <ul id="online-users-list" class="list-group"></ul>
                                     </div>
                                 </div>
@@ -302,10 +302,10 @@ export class MenuDisplay {
         this.container.innerHTML = `
             <div class="container py-4">
                 <div class="card">
-                    <div class="card-header" style="background-color: #8c9900; color: white;">
+                    <div class="card-header profile-header">
                         <h2 class="mb-0">Settings</h2>
                     </div>
-                    <div class="card-body" style="background-color: #b9a84cc0;">
+                    <div class="card-body profile-card">
                         <div class="mb-3">
                             <label for="ball-speed" class="form-label">Ball Speed (1-10):</label>
                             <input type="number" id="ball-speed" class="form-control" min="1" max="10" value="${currentSettings.ball_speed}">
@@ -327,7 +327,7 @@ export class MenuDisplay {
                             </select>
                         </div>
                         <div class="d-grid gap-2">
-                            <button class="btn" style="background-color: #8c9900; color: white;" onclick="menuDisplay.saveSettings()">Save</button>
+                            <button class="btn btn-primary-custom" onclick="menuDisplay.saveSettings()">Save</button>
                             <button class="btn btn-secondary" onclick="menuDisplay.handleMenuClick('back')">Back</button>
                         </div>
                     </div>
@@ -474,10 +474,10 @@ export class MenuDisplay {
         this.container.innerHTML = `
             <div class="container py-4">
                 <div class="card">
-                    <div class="card-header" style="background-color: #8c9900; color: white;">
+                    <div class="card-header profile-header">
                         <h2 class="mb-0">${isTournament ? 'Tournament' : 'Game'} Players</h2>
                     </div>
-                    <div class="card-body" style="background-color: #b9a84cc0;">
+                    <div class="card-body profile-card">
                         <form id="player-names-form">
                             ${Array.from({length: numPlayers}, (_, i) => `
                                 <div class="mb-3">
@@ -488,7 +488,7 @@ export class MenuDisplay {
                                 </div>
                             `).join('')}
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn" style="background-color: #8c9900; color: white;">Start ${isTournament ? 'Tournament' : 'Game'}</button>
+                                <button type="submit" class="btn btn-primary-custom">${isTournament ? 'Start Tournament' : 'Start Game'}</button>
                                 <button type="button" class="btn btn-secondary" onclick="menuDisplay.handleMenuClick('back')">Back</button>
                             </div>
                         </form>
@@ -547,12 +547,12 @@ export class MenuDisplay {
         this.container.innerHTML = `
             <div class="container py-5">
                 <div class="card text-center">
-                    <div class="card-header" style="background-color: #8c9900; color: white;">
+                    <div class="card-header profile-header">
                         <h2 class="mb-0">Searching for Opponent</h2>
                     </div>
-                    <div class="card-body py-5" style="background-color: #b9a84cc0;">
+                    <div class="card-body profile-card py-5">
                         <h3 class="mb-4">${message || 'Searching for opponent...'}</h3>
-                        <div class="spinner-border mx-auto mb-4" style="width: 3rem; height: 3rem; color: #8c9900;" role="status">
+                        <div class="spinner-border mx-auto mb-4" style="width: 3rem; height: 3rem; color: var(--primary-color);" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <div class="d-grid gap-2 col-6 mx-auto">
@@ -582,11 +582,11 @@ export class MenuDisplay {
     display() {
         this.container.innerHTML = `
             <div class="container text-center py-5">
-                <h1 class="display-4 mb-4" style="color: #8c9900;">Pong Game</h1>
+                <h1 class="display-4 mb-4 menu-title">Pong Game</h1>
                 <div class="d-grid gap-3 col-md-6 mx-auto">
-                    <button class="btn btn-lg" style="background-color: #8c9900; color: white;" onclick="menuDisplay.handleMenuClick('play')">Play</button>
-                    <button class="btn btn-lg" style="background-color: #8c9900; color: white;" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
-                    <button class="btn btn-danger btn-lg" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
+                    <button class="btn-primary-custom" onclick="menuDisplay.handleMenuClick('play')">Play</button>
+                    <button class="btn-primary-custom" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
+                    <button class="btn-danger" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
                 </div>
             </div>
         `;
