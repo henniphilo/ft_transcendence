@@ -11,6 +11,7 @@ class CustomUser(AbstractUser):
     verification_code = models.CharField(max_length=6, blank=True, null=True)  # 6-stelliger Code
     score = models.IntegerField(default=0)  # Neues Feld für den Score
     tournament_name = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    friends = models.ManyToManyField("self", blank=True)
 
     def __str__(self):
         return self.username
@@ -33,3 +34,17 @@ class CustomUser(AbstractUser):
         if not self.tournament_name:
             self.tournament_name = self.generate_tournament_name()
         super().save(*args, **kwargs)
+
+    def add_friend(self, user):
+        """Fügt einen Freund hinzu (bidirektional)"""
+        self.friends.add(user)
+        user.friends.add(self)  # Gegenseitiges Hinzufügen
+
+    def remove_friend(self, user):
+        """Entfernt eine Freundschaft"""
+        self.friends.remove(user)
+        user.friends.remove(self)
+
+    def is_friend(self, user):
+        """Überprüft, ob zwei User befreundet sind"""
+        return user in self.friends.all()
