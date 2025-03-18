@@ -60,37 +60,92 @@ export class MenuDisplay {
         this.ws.send(JSON.stringify({ action: 'get_menu_items' }));
     }
 
-    async editProfile() {
-        const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
-        const avatarFile = this.elements.avatarInput?.files[0];
+    editProfile() {
+        const modalContent = `
+            <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color: #8c9900; color: white;">
+                            <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" style="background-color: #b9a84cc0;">
+                            <form id="edit-profile-form">
+                                <div class="mb-3">
+                                    <label for="edit-bio" class="form-label">Bio:</label>
+                                    <textarea id="edit-bio" class="form-control">${this.userProfile.bio || ''}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-birth-date" class="form-label">Birthday:</label>
+                                    <input type="date" id="edit-birth-date" class="form-control" value="${this.userProfile.birth_date || ''}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-tournament-name" class="form-label">Tournament Name:</label>
+                                    <input type="text" id="edit-tournament-name" class="form-control" value="${this.userProfile.tournament_name || ''}">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn" style="background-color: #8c9900; color: white;" id="save-profile">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
 
-        if (!newBio && !avatarFile) {
-            alert('Es wurden keine Änderungen vorgenommen.');
-            return;
-        }
+        // Füge das Modal zum DOM hinzu
+        const modalElement = document.createElement('div');
+        modalElement.innerHTML = modalContent;
+        document.body.appendChild(modalElement);
 
-        const formData = new FormData();
-        if (newBio) formData.append('bio', newBio);
-        if (avatarFile) formData.append('avatar', avatarFile);
+        // Zeige das Modal an
+        const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+        modal.show();
 
-        try {
-            const updatedData = await updateProfile(formData);
-            this.userProfile = updatedData;
-            this.updateProfileDisplay(updatedData);
-            if (this.elements.avatarInput) {
-                this.elements.avatarInput.value = "";
+        // Event-Listener für den Save-Button
+        document.getElementById('save-profile').addEventListener('click', async () => {
+            const bio = document.getElementById('edit-bio').value;
+            const birthDate = document.getElementById('edit-birth-date').value;
+            const tournamentName = document.getElementById('edit-tournament-name').value;
+
+            try {
+                const formData = new FormData();
+                formData.append('bio', bio);
+                formData.append('birth_date', birthDate);
+                formData.append('tournament_name', tournamentName);
+
+                const result = await ProfileHandler.updateProfile(formData);
+                
+                // Aktualisiere die lokalen Daten
+                this.userProfile.bio = bio;
+                this.userProfile.birth_date = birthDate;
+                this.userProfile.tournament_name = tournamentName;
+                
+                // Aktualisiere die Anzeige
+                if (this.elements.bio) this.elements.bio.textContent = bio;
+                if (this.elements.birthDate) this.elements.birthDate.textContent = birthDate;
+                if (this.elements.tournamentName) this.elements.tournamentName.textContent = tournamentName;
+                
+                modal.hide();
+                
+                // Entferne das Modal aus dem DOM nach dem Schließen
+                document.getElementById('editProfileModal').addEventListener('hidden.bs.modal', function () {
+                    document.body.removeChild(modalElement);
+                });
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile. Please try again.');
             }
-            console.log('Profil erfolgreich aktualisiert!');
-        } catch (error) {
-            console.error('Fehler beim Aktualisieren:', error);
-            alert('Profil-Update fehlgeschlagen: ' + error);
-        }
+        });
     }
 
     updateProfileDisplay(profileData) {
         if (this.elements.bio) this.elements.bio.textContent = profileData.bio || '';
         if (this.elements.email) this.elements.email.textContent = profileData.email || '';
         if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
+        if (this.elements.tournamentName) this.elements.tournamentName.textContent = profileData.tournament_name || '';
         if (this.elements.avatar) {
             this.elements.avatar.src = profileData.avatar
                 ? profileData.avatar + '?t=' + new Date().getTime()
@@ -100,30 +155,64 @@ export class MenuDisplay {
 
     displayMenuItems(menuItems) {
         this.container.innerHTML = `
-            <div class="menu-profile-container">
-                <div class="menu-section">
-                    <div id="menu-options"></div>
-                </div>
-                <div class="profile-section">
-                    <h2 class="profile-username">Willkommen ${this.userProfile.username}!</h2>
-                    <div class="profile-info">
-                        <img class="profile-avatar" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" alt="Avatar" />
-                        <div class="profile-details">
-                            <p><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
-                            <p><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
-                            <p><strong>Geburtstag:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
+            <div class="container py-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header profile-header">
+                                <h2 class="mb-0">Menu</h2>
+                            </div>
+                            <div class="card-body profile-card">
+                                <div id="menu-options" class="d-grid gap-3"></div>
+                            </div>
                         </div>
                     </div>
-                    <form class="profile-form">
-                        <label for="avatar-input">Avatar ändern:</label>
-                        <input class="avatar-input" type="file" accept="image/*" />
-                    </form>
-                    <button class="edit-profile-button">Profil bearbeiten</button>
-                    <button class="logout-button">Logout</button>
-                </div>
-                <div class="online-users-section">
-                    <h3>Online Spieler</h3>
-                    <ul id="online-users-list"></ul>
+                    <div class="col-md-6">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card mb-4">
+                                    <div class="card-header profile-header">
+                                        <h3 class="mb-0">Profile</h3>
+                                    </div>
+                                    <div class="card-body profile-card">
+                                        <div class="row">
+                                            <div class="col-md-4 text-center">
+                                                <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" 
+                                                     alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
+                                                <div class="mb-3">
+                                                    <label for="avatar-input" class="form-label">Change Avatar:</label>
+                                                    <input class="avatar-input form-control form-control-sm" type="file" accept="image/*" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <h4 class="profile-username mb-3">Welcome ${this.userProfile.username}!</h4>
+                                                <div class="profile-details mb-3">
+                                                    <p class="mb-2"><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
+                                                    <p class="mb-2"><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
+                                                    <p class="mb-2"><strong>Birthday:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
+                                                    <p class="mb-2"><strong>Tournament Name:</strong> <span class="profile-tournament-name">${this.userProfile.tournament_name || ''}</span></p>
+                                                </div>
+                                                <div class="d-grid gap-2">
+                                                    <button class="edit-profile-button btn btn-primary-custom">Edit Profile</button>
+                                                    <button class="logout-button btn btn-danger">Logout</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header online-players-header">
+                                        <h3 class="mb-0">Online Players</h3>
+                                    </div>
+                                    <div class="card-body profile-card online-players-list">
+                                        <ul id="online-users-list" class="list-group"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -133,6 +222,7 @@ export class MenuDisplay {
             bio: this.container.querySelector('.profile-bio'),
             email: this.container.querySelector('.profile-email'),
             birthDate: this.container.querySelector('.profile-birth-date'),
+            tournamentName: this.container.querySelector('.profile-tournament-name'),
             avatar: this.container.querySelector('.profile-avatar'),
             avatarInput: this.container.querySelector('.avatar-input'),
             editButton: this.container.querySelector('.edit-profile-button'),
@@ -152,7 +242,10 @@ export class MenuDisplay {
 
         menuItems.forEach(item => {
             const button = document.createElement('button');
-            button.className = 'menu-item';
+            button.className = 'btn w-100';
+            button.style.backgroundColor = '#8c9900';
+            button.style.color = 'white';
+            button.style.marginBottom = '10px';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
             this.container.querySelector('#menu-options').appendChild(button);
@@ -191,13 +284,15 @@ export class MenuDisplay {
             localStorage.removeItem('refreshToken');
 
             console.log('Logout erfolgreich');
-            window.location.href = '/login';
+            
+            // Statt zu /login weiterzuleiten, zeigen wir das Signup-Template an
+            showTemplate('signup');
         } catch (error) {
             console.error('Fehler beim Logout:', error);
-            // Trotzdem die Token entfernen und zur Login-Seite weiterleiten
+            // Trotzdem die Token entfernen und zum Signup-Template weiterleiten
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
-            window.location.href = '/login';
+            showTemplate('signup');
         }
     }
 
@@ -205,30 +300,38 @@ export class MenuDisplay {
         const currentSettings = this.currentSettings || settings;
 
         this.container.innerHTML = `
-            <div class="settings-container">
-                <h2>Settings</h2>
-                <div class="setting-item">
-                    <label for="ball-speed">Ball Speed (1-10):</label>
-                    <input type="number" id="ball-speed" min="1" max="10" value="${currentSettings.ball_speed}">
+            <div class="container py-4">
+                <div class="card">
+                    <div class="card-header profile-header">
+                        <h2 class="mb-0">Settings</h2>
+                    </div>
+                    <div class="card-body profile-card">
+                        <div class="mb-3">
+                            <label for="ball-speed" class="form-label">Ball Speed (1-10):</label>
+                            <input type="number" id="ball-speed" class="form-control" min="1" max="10" value="${currentSettings.ball_speed}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="paddle-speed" class="form-label">Paddle Speed (1-10):</label>
+                            <input type="number" id="paddle-speed" class="form-control" min="1" max="10" value="${currentSettings.paddle_speed}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="winning-score" class="form-label">Winning Score:</label>
+                            <input type="number" id="winning-score" class="form-control" min="1" max="20" value="${currentSettings.winning_score}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="paddle-size" class="form-label">Paddle Size:</label>
+                            <select id="paddle-size" class="form-select">
+                                <option value="small" ${currentSettings.paddle_size === "small" ? "selected" : ""}>Small</option>
+                                <option value="middle" ${currentSettings.paddle_size === "middle" ? "selected" : ""}>Middle</option>
+                                <option value="big" ${currentSettings.paddle_size === "big" ? "selected" : ""}>Big</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary-custom" onclick="menuDisplay.saveSettings()">Save</button>
+                            <button class="btn btn-secondary" onclick="menuDisplay.handleMenuClick('back')">Back</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="setting-item">
-                    <label for="paddle-speed">Paddle Speed (1-10):</label>
-                    <input type="number" id="paddle-speed" min="1" max="10" value="${currentSettings.paddle_speed}">
-                </div>
-                <div class="setting-item">
-                    <label for="winning-score">Winning Score:</label>
-                    <input type="number" id="winning-score" min="1" max="20" value="${currentSettings.winning_score}">
-                </div>
-                <div class="setting-item">
-                    <label for="paddle-size">Paddle Size:</label>
-                    <select id="paddle-size">
-                        <option value="small" ${currentSettings.paddle_size === "small" ? "selected" : ""}>Small</option>
-                        <option value="middle" ${currentSettings.paddle_size === "middle" ? "selected" : ""}>Middle</option>
-                        <option value="big" ${currentSettings.paddle_size === "big" ? "selected" : ""}>Big</option>
-                    </select>
-                </div>
-                <button class="menu-item" onclick="menuDisplay.saveSettings()">Save</button>
-                <button class="menu-item" onclick="menuDisplay.handleMenuClick('back')">Back</button>
             </div>
         `;
     }
@@ -369,20 +472,28 @@ export class MenuDisplay {
 
     displayPlayerNamesInput(numPlayers, isTournament) {
         this.container.innerHTML = `
-            <div class="settings-container">
-                <h2>${isTournament ? 'Tournament' : 'Game'} Players</h2>
-                <form id="player-names-form">
-                    ${Array.from({length: numPlayers}, (_, i) => `
-                        <div class="setting-item">
-                            <label for="player-${i+1}">Player ${i+1} Name:</label>
-                            <input type="text" id="player-${i+1}"
-                                   value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
-                                   ${this.isAIPlayer(i) ? 'readonly' : ''}>
-                        </div>
-                    `).join('')}
-                    <button type="submit" class="menu-item">Start ${isTournament ? 'Tournament' : 'Game'}</button>
-                    <button type="button" class="menu-item" onclick="menuDisplay.handleMenuClick('back')">Back</button>
-                </form>
+            <div class="container py-4">
+                <div class="card">
+                    <div class="card-header profile-header">
+                        <h2 class="mb-0">${isTournament ? 'Tournament' : 'Game'} Players</h2>
+                    </div>
+                    <div class="card-body profile-card">
+                        <form id="player-names-form">
+                            ${Array.from({length: numPlayers}, (_, i) => `
+                                <div class="mb-3">
+                                    <label for="player-${i+1}" class="form-label">Player ${i+1} Name:</label>
+                                    <input type="text" id="player-${i+1}" class="form-control"
+                                           value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
+                                           ${this.isAIPlayer(i) ? 'readonly' : ''}>
+                                </div>
+                            `).join('')}
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary-custom">${isTournament ? 'Start Tournament' : 'Start Game'}</button>
+                                <button type="button" class="btn btn-secondary" onclick="menuDisplay.handleMenuClick('back')">Back</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -433,13 +544,21 @@ export class MenuDisplay {
     displaySearchingScreen(message) {
         console.log("Displaying search screen with message:", message);
         
-        // Vollständig neues HTML für den Container
         this.container.innerHTML = `
-            <div class="searching-container">
-                <div class="searching-box">
-                    <h2>${message || 'Searching for opponent...'}</h2>
-                    <div class="loading-spinner"></div>
-                    <button class="cancel-button">Cancel Search</button>
+            <div class="container py-5">
+                <div class="card text-center">
+                    <div class="card-header profile-header">
+                        <h2 class="mb-0">Searching for Opponent</h2>
+                    </div>
+                    <div class="card-body profile-card py-5">
+                        <h3 class="mb-4">${message || 'Searching for opponent...'}</h3>
+                        <div class="spinner-border mx-auto mb-4" style="width: 3rem; height: 3rem; color: var(--primary-color);" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="d-grid gap-2 col-6 mx-auto">
+                            <button class="btn btn-danger cancel-button">Cancel Search</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -462,11 +581,13 @@ export class MenuDisplay {
 
     display() {
         this.container.innerHTML = `
-            <div class="menu">
-                <h1>Pong Game</h1>
-                <button class="menu-item" onclick="menuDisplay.handleMenuClick('play')">Spielen</button>
-                <button class="menu-item" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
-                <button class="menu-item" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
+            <div class="container text-center py-5">
+                <h1 class="display-4 mb-4 menu-title">Pong Game</h1>
+                <div class="d-grid gap-3 col-md-6 mx-auto">
+                    <button class="btn-primary-custom" onclick="menuDisplay.handleMenuClick('play')">Play</button>
+                    <button class="btn-primary-custom" onclick="menuDisplay.handleMenuClick('leaderboard')">Leaderboard</button>
+                    <button class="btn-danger" onclick="menuDisplay.handleMenuClick('logout')">Logout</button>
+                </div>
             </div>
         `;
     }
