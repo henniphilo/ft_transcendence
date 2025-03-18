@@ -476,28 +476,28 @@ export class ThreeJSManager {
         }
     }
 
-    createPaddleModels() {
-        const paddleMaterial = new THREE.MeshStandardMaterial({ color: "#ff007f" });
+    // createPaddleModels() {
+    //     const paddleMaterial = new THREE.MeshStandardMaterial({ color: "#ff007f" });
 
-        // Spielfeldgröße als Basis (Breite: 8, Höhe: 6)
-        const paddleWidth = 0.2;
-        const paddleHeight = 0.4; // 1.2 ist ein guter Startwert (ca. 20% des Spielfelds)
-        const paddleDepth = 0.2;
+    //     // Spielfeldgröße als Basis (Breite: 8, Höhe: 6)
+    //     const paddleWidth = 0.2;
+    //     const paddleHeight = 0.4; // 1.2 ist ein guter Startwert (ca. 20% des Spielfelds)
+    //     const paddleDepth = 0.2;
 
-        // Paddle 1 (links)
-        const paddle1Geometry = new THREE.BoxGeometry(paddleHeight,paddleWidth, paddleDepth);
-        const paddle1 = new THREE.Mesh(paddle1Geometry, paddleMaterial);
-        paddle1.position.set(-4, paddleHeight / 2, 0);
-        this.paddleModels.push(paddle1);
-        this.scene.add(paddle1);
+    //     // Paddle 1 (links)
+    //     const paddle1Geometry = new THREE.BoxGeometry(paddleHeight,paddleWidth, paddleDepth);
+    //     const paddle1 = new THREE.Mesh(paddle1Geometry, paddleMaterial);
+    //     paddle1.position.set(-4, paddleHeight / 2, 0);
+    //     this.paddleModels.push(paddle1);
+    //     this.scene.add(paddle1);
 
-        // Paddle 2 (rechts)
-        const paddle2Geometry = new THREE.BoxGeometry(paddleWidth, paddleDepth, paddleHeight);
-        const paddle2 = new THREE.Mesh(paddle2Geometry, paddleMaterial);
-        paddle2.position.set(4, paddleHeight / 2, 0);
-        this.paddleModels.push(paddle2);
-        this.scene.add(paddle2);
-    }
+    //     // Paddle 2 (rechts)
+    //     const paddle2Geometry = new THREE.BoxGeometry(paddleWidth, paddleDepth, paddleHeight);
+    //     const paddle2 = new THREE.Mesh(paddle2Geometry, paddleMaterial);
+    //     paddle2.position.set(4, paddleHeight / 2, 0);
+    //     this.paddleModels.push(paddle2);
+    //     this.scene.add(paddle2);
+    // }
 
 
     updatePositions(gameState) {
@@ -528,16 +528,8 @@ export class ThreeJSManager {
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * (fieldHeight / 2);
         const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * (fieldHeight / 2);
 
-        // // Dynamische Paddelgröße basierend auf Spielfeld-Höhe
-        // const p1Height = (Math.abs(gameState.player1.paddle.bottom - gameState.player1.paddle.top) * fieldHeight) / 2;
-        // this.paddleModels[0].geometry.dispose();
-        // this.paddleModels[0].geometry = new THREE.BoxGeometry(0.2, 0.2, p1Height,);
-        // this.paddleModels[0].position.set(-4, 0, p1Z);
-
-        // const p2Height = (Math.abs(gameState.player2.paddle.bottom - gameState.player2.paddle.top) * fieldHeight) / 2;
-        // this.paddleModels[1].geometry.dispose();
-        // this.paddleModels[1].geometry = new THREE.BoxGeometry(0.2, 0.2, p2Height);
-        // this.paddleModels[1].position.set(4, 0, p2Z);
+        this.paddleModels[0].position.set(-4, 0, p1Z);
+        this.paddleModels[1].position.set(4, 0, p2Z);
     }
 
 
@@ -636,3 +628,46 @@ export class ThreeJSManager {
         });
     }
 }
+
+
+/*
+updatePositions(gameState) {
+    if (!gameState || this.paddleModels.length !== 2) return;
+
+    const fieldHeight = 6; // Spielfeld-Höhe
+    const fieldWidth = 8;  // Spielfeld-Breite
+
+    // Ballposition berechnen (Skalierung an das Spielfeld anpassen)
+    const ballX = gameState.ball[0] * (fieldWidth / 2);
+    const ballZ = gameState.ball[1] * (fieldHeight / 2);
+
+     // Check movement direction
+     if (ballX < this.humanModel.position.x) {
+        this.humanModel.rotation.y = Math.PI; // Facing left
+    } else if (ballX > this.humanModel.position.x) {
+        this.humanModel.rotation.y = 0; // Facing right
+    }
+
+    // Update Ball-Position
+    if (this.humanModel) {
+        this.humanModel.position.set(ballX, 0, ballZ);
+    } else {
+        console.warn("Warnung: humanModel ist nicht geladen!");
+    }
+
+    // Spielerpositionen berechnen
+    const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * (fieldHeight / 2);
+    const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * (fieldHeight / 2);
+
+    // // Dynamische Paddelgröße basierend auf Spielfeld-Höhe
+    // const p1Height = (Math.abs(gameState.player1.paddle.bottom - gameState.player1.paddle.top) * fieldHeight) / 2;
+    // this.paddleModels[0].geometry.dispose();
+    // this.paddleModels[0].geometry = new THREE.BoxGeometry(0.2, 0.2, p1Height,);
+    // this.paddleModels[0].position.set(-4, 0, p1Z);
+
+    // const p2Height = (Math.abs(gameState.player2.paddle.bottom - gameState.player2.paddle.top) * fieldHeight) / 2;
+    // this.paddleModels[1].geometry.dispose();
+    // this.paddleModels[1].geometry = new THREE.BoxGeometry(0.2, 0.2, p2Height);
+    // this.paddleModels[1].position.set(4, 0, p2Z);
+} */
+

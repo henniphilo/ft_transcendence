@@ -7,32 +7,28 @@ body {
     min-height: 100vh;
     flex-direction: column;
     color: #fff;
-    overflow: hidden; /* Verhindert Scrollbalken */
 }
 
 /* Game Area */
 #game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100vw;
+    display: none;
+    width: 100%;
     height: 100vh;
     position: absolute;
     top: 0;
     left: 0;
     background-color: #b5bd5d;
+    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
 }
 
 #background-canvas {
-    background-color: #c8f07de2;
+    background-color: #f0e47de2;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
-    object-fit: cover; /* Sorgt dafür, dass das Bild den gesamten Bereich füllt */
 }
 #menu-container {
     text-align: center;
@@ -143,20 +139,9 @@ body {
 
 #game-canvas {
     border: 2px solid #f8edab;
-    background-color: #70416e;
-    aspect-ratio: 4 / 3; /* Stellt sicher, dass es die richtige Proportion behält */
+    background-color: #497041;
 }
 
-/* Responsivität */
-@media (max-width: 480px) {
-    .score-board {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    #controls {
-        top: 70px;
-    }
 #three-js-container {
     width: 100%;
     height: 70vh;
@@ -164,7 +149,6 @@ body {
     overflow: hidden;
 }
 
-/* Spiel Info background*/
 .game-screen {
     background-color: #8c9900;
     display: flex;
@@ -188,18 +172,6 @@ body {
     }
 }
 
-#game-container {
-    display: none;
-    width: 100%;
-    height: 100vh;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-color: #aebc10;
-    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 @media (max-width: 480px) {
     body {
         flex-direction: column;

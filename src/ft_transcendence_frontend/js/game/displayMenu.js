@@ -18,7 +18,7 @@ export class MenuDisplay {
         // const wsPort = "8001"; // Falls der Port sich ändern soll, könnte dies auch dynamisch gesetzt werden
         // this.ws = new WebSocket(`${wsProtocol}${wsHost}:${wsPort}/ws/menu`);
 
-        
+
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
         const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
@@ -61,11 +61,11 @@ export class MenuDisplay {
     }
 
     async editProfile() {
-        const newBio = prompt('Neue Bio eingeben:', this.userProfile.bio);
+        const newBio = prompt('Enter your Bio:', this.userProfile.bio);
         const avatarFile = this.elements.avatarInput?.files[0];
 
         if (!newBio && !avatarFile) {
-            alert('Es wurden keine Änderungen vorgenommen.');
+            alert('No changes.');
             return;
         }
 
@@ -80,10 +80,10 @@ export class MenuDisplay {
             if (this.elements.avatarInput) {
                 this.elements.avatarInput.value = "";
             }
-            console.log('Profil erfolgreich aktualisiert!');
+            console.log('Profil successfully updated!');
         } catch (error) {
-            console.error('Fehler beim Aktualisieren:', error);
-            alert('Profil-Update fehlgeschlagen: ' + error);
+            console.error('Updating Error', error);
+            alert('Profil Update failed: ' + error);
         }
     }
 
@@ -111,7 +111,7 @@ export class MenuDisplay {
                         <div class="profile-details">
                             <p><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
                             <p><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
-                            <p><strong>Geburtstag:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
+                            <p><strong>Date of Birth:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
                         </div>
                     </div>
                     <form class="profile-form">
@@ -282,14 +282,14 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-        
+
         switch (data.action) {
             case 'searching_opponent':
                 console.log("Started searching for opponent...");
                 // Hier sollte der Suchbildschirm angezeigt werden
                 this.displaySearchingScreen(data.message || "Searching for opponent...");
                 break;
-            
+
             case 'game_found':
                 console.log("Match found! Game ID:", data.game_id);
                 console.log("Player1:", data.player1);
@@ -431,7 +431,7 @@ export class MenuDisplay {
 
     displaySearchingScreen(message) {
         console.log("Displaying search screen with message:", message);
-        
+
         // Vollständig neues HTML für den Container
         this.container.innerHTML = `
             <div class="searching-container">
