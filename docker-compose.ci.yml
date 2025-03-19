@@ -153,7 +153,7 @@ services:
     init: true
     tty: true
     stdin_open: true
-    build:
+    build: 
       context: ./src/grafana
       dockerfile: Dockerfile.grafana
     ports:
@@ -267,7 +267,7 @@ services:
     init: true
     tty: true
     stdin_open: true
-    build:
+    build: 
       context: ./src/grafana
       dockerfile: Dockerfile.prometheus
     ports:

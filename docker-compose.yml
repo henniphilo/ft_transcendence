@@ -12,29 +12,6 @@ x-common: &common
   stdin_open: true
 
 services:
-
-  #cloudflared:
-  #   <<: *common
-  #    image: cloudflare/cloudflared:latest
-  #    container_name: cloudflared
-  #    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-  
-  # postgres:
-  #   <<: *common
-  #   build: src/postgres
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #     - postgres_logs:/var/log/postgresql/data/log
-  #   environment:
-  #     - POSTGRES_USER=${POSTGRES_USER}
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #     - POSTGRES_DB=${POSTGRES_DB}
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U user -d transcendence -p 5432"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5 
-
   postgres:
     <<: *common
     image: "postgres:16"
@@ -139,6 +116,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - grafana_logs:/var/log/grafana
+      - ./src/grafana/provisioning:/etc/grafana/provisioning
+      - ./src/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - redis
       - loki
@@ -252,8 +231,7 @@ services:
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    networks:
-      - transcendence_network
+
 
 volumes:
   postgres_data: null
