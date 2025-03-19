@@ -19,13 +19,6 @@ scrape_configs:
     static_configs:
       - targets: ['backend:8000']
 
-# not yet sure about this - if django is an extra job
-  - job_name: 'django'
-    static_configs:
-      - targets: ['backend:8000/metrics']  # Replace 'backend' with your Django container name
-        labels:
-          app: 'django-backend'
-  
   # - job_name: 'grafana'
   #   static_configs:
   #     - targets: ['grafana:3000']
