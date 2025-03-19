@@ -28,20 +28,13 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-buildx-action@v3
 
-      - name: Debug secrets
-        run: |
-              echo "POSTGRES_USER: ${{ secrets.POSTGRES_USER }}"
-              echo "POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}"
-              echo "POSTGRES_DB: ${{ secrets.POSTGRES_DB }}"
-              echo "GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}"
-    
       - name: Build and run Docker Compose
         run: |
           docker compose -f docker-compose.ci.yml up -d --build
       
       - name: Add a delay before waiting for backend
-        run: sleep 15 # Add a 15-second delay
-      
+        run: sleep 5 # Add a 15-second delay
+
       - name: Run Unit Tests inside container
         run: docker compose exec backend pytest tests/unit/ -v
 
