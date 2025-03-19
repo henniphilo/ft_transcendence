@@ -9,6 +9,10 @@ alerting:
   - static_configs:
     - targets: ['alertmanager:9093'] 
 
+rule_files:
+  - /etc/prometheus/rules.yaml
+  - /etc/prometheus/alerts.yaml
+
 scrape_configs:
 
   - job_name: 'caddy'
