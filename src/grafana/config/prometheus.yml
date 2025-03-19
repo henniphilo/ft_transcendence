@@ -23,6 +23,10 @@ scrape_configs:
     static_configs:
       - targets: ['backend:8000']
 
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
   # - job_name: 'grafana'
   #   static_configs:
   #     - targets: ['grafana:3000']
@@ -44,7 +48,3 @@ scrape_configs:
   #   scrape_timeout: 5s
   #   static_configs:
   #     - targets: ['prometheus:9090'] 
-
-  # - job_name: "node_exporter"
-  #   static_configs:
-  #     - targets: ["node-exporter:9100"]
