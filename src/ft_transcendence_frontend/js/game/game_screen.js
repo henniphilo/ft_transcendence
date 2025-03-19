@@ -70,7 +70,16 @@ export class GameScreen {
 
     setupWebSocket() {
         console.log("Connecting to game with ID:", this.gameId);
-        this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
+        //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsHost = window.location.hostname;
+        const wsPort = wsProtocol === "ws://" ? ":8001" : ""; // Port nur für ws:// setzen
+
+        const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/game/${this.gameId}`;
+        console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
+
+        this.ws = new WebSocket(wsUrl);
+
 
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);

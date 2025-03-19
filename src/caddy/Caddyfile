@@ -45,7 +45,14 @@
 		path /ws/*
 	}
 	handle @ws {
-		reverse_proxy backend:8001
+		request_header Host {host}
+		request_header X-Real-IP {remote}
+		request_header X-Forwarded-For {remote}
+		request_header X-Forwarded-Proto {scheme}
+		request_header Connection "upgrade"
+		request_header Upgrade "websocket"
+		
+		reverse_proxy game:8001
 	}
 
 	@media {
