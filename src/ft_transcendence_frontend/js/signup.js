@@ -166,7 +166,8 @@ const AuthLib = (function () {
 
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
+        
+        window.location.href = "/";
     }
 
     return {

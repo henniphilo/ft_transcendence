@@ -32,6 +32,8 @@ class Migration(migrations.Migration):
                 ('avatar', models.ImageField(blank=True, null=True, upload_to='avatars/')),
                 ('bio', models.TextField(blank=True, null=True)),
                 ('birth_date', models.DateField(blank=True, null=True)),
+                ('tournament_name', models.CharField(max_length=50, unique=True, blank=True, null=True)),
+                ('friends', models.ManyToManyField(blank=True, to='users.CustomUser')),  # Hier eingefügt!
                 ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
                 ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
             ],

@@ -2,66 +2,60 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - dev
+
+  workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
+    env: 
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} 
+      DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+      CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Rename env file
+        run: cp .env.ci .env
 
-      - name: Create env file
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v3
+
+      - name: Debug secrets
         run: |
-          echo "POSTGRES_DB=test_db" >> .env.test
-          echo "POSTGRES_USER=test_user" >> .env.test
-          echo "POSTGRES_PASSWORD=test_password" >> .env.test
-          echo "REDIS_URL=redis://redis_test:6379/0" >> .env.test
-
-      - name: Run tests
-        run: docker compose -f docker-compose.test.yml up --build --exit-code-from backend_test
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: true
-
-  build-and-push:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push images
+              echo "POSTGRES_USER: ${{ secrets.POSTGRES_USER }}"
+              echo "POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}"
+              echo "POSTGRES_DB: ${{ secrets.POSTGRES_DB }}"
+              echo "GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}"
+    
+      - name: Build and run Docker Compose
         run: |
-          docker compose build
-          docker compose push
+          docker compose -f docker-compose.ci.yml up -d --build
+      
+      - name: Add a delay before waiting for backend
+        run: sleep 15 # Add a 15-second delay
+      
+      - name: Capture backend logs 
+        run: docker compose logs backend
+      
+      - name: Run Unit Tests inside container
+        run: docker compose exec backend pytest tests/unit/ -v
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Deploy to production
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            cd /path/to/project
-            git pull
-            docker compose pull
-            docker compose up -d
+      - name: Run Integration Tests
+        run: |
+          docker compose exec backend pytest tests/integration/ -v
+
+      - name: Stop Docker Compose
+        run: docker compose down
+

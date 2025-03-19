@@ -36,3 +36,11 @@ from .views import get_online_users
 urlpatterns += [
     path("online-users/", get_online_users, name="online_users"),
 ]
+
+from .views import add_friend, remove_friend, list_friends
+
+urlpatterns += [
+    path('friends/add/<str:username>/', add_friend, name='add-friend'),
+    path('friends/remove/<str:username>/', remove_friend, name='remove-friend'),
+    path('friends/list/', list_friends, name='list-friends'),
+]

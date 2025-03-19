@@ -19,8 +19,16 @@ typing_extensions==4.12.2
 urllib3==2.3.0
 channels==4.1.0
 channels-redis==4.1.0
+opentelemetry-distro 
 opentelemetry-api==1.23.0
 opentelemetry-sdk==1.23.0
 opentelemetry-instrumentation-django==0.44b0
 opentelemetry-exporter-otlp==1.23.0
+opentelemetry-instrumentation-fastapi
+opentelemetry-exporter-otlp-proto-grpc 
 python-logging-loki==0.3.1
+django-prometheus==2.3.1
+pytest==8.3.5
+requests==2.32.3
+pytest-django==4.10.0
+pytest-cov==6.0.0

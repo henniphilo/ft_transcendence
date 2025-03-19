@@ -219,34 +219,32 @@ class Menu:
             del self.searching_players[player1_ws]
             del self.searching_players[player2_ws]
 
-            # Erstelle EIN Spiel für beide Spieler
             game_id = str(uuid.uuid4())
             game_settings = self.game_settings.get_settings()
             game_settings.update({
                 "mode": "online",
-                "online_type": "host",  # Wichtig für die Spielsynchronisation
+                "online_type": "host",
                 "player1_name": player1_name,
                 "player2_name": player2_name,
-                "game_id": game_id  # Füge die game_id zu den Settings hinzu
+                "game_id": game_id
             })
+            
+            self.current_game_settings = game_settings.copy()
 
             try:
-                # Beide Spieler bekommen die GLEICHE game_id
                 match_data = {
                     "action": "game_found",
-                    "game_id": game_id,  # Die gleiche ID für beide!
+                    "game_id": game_id,
                     "settings": game_settings,
                     "player1": player1_name,
                     "player2": player2_name,
                 }
 
-                # Spieler 1 ist "Host"
                 await player1_ws.send_json({
                     **match_data,
                     "playerRole": "player1"
                 })
 
-                # Spieler 2 ist "Client"
                 await player2_ws.send_json({
                     **match_data,
                     "playerRole": "player2"

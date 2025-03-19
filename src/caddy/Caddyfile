@@ -1,4 +1,7 @@
 {
+	servers {
+		metrics
+	}
 	log {
 		output file /var/log/caddy/caddy_main.log {
 			roll_size 100MiB
@@ -12,7 +15,11 @@
 
 :80 {
 	log {
-		output file /var/log/caddy/access.log
+		output file /var/log/caddy/access.log {
+			roll_size 100MiB
+			roll_keep 5
+			roll_keep_for 100d
+		}
 		format json
 	}
 
@@ -38,7 +45,14 @@
 		path /ws/*
 	}
 	handle @ws {
-		reverse_proxy backend:8001
+		request_header Host {host}
+		request_header X-Real-IP {remote}
+		request_header X-Forwarded-For {remote}
+		request_header X-Forwarded-Proto {scheme}
+		request_header Connection "upgrade"
+		request_header Upgrade "websocket"
+		
+		reverse_proxy game:8001
 	}
 
 	@media {
@@ -47,7 +61,13 @@
 	handle @media {
 		reverse_proxy backend:8000
 	}
+	metrics /metrics
 }
+
+
+
+
+
 # localhost:443 {
 
 #     tls internal
