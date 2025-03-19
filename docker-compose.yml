@@ -116,6 +116,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - grafana_logs:/var/log/grafana
+      - ./src/grafana/provisioning:/etc/grafana/provisioning
+      - ./src/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - redis
       - loki
@@ -158,22 +160,22 @@ services:
       retries: 5
 
      
-  portainer:
-    <<: *common
-    build: src/portainer
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - portainer-data:/data
-    depends_on:
-      - caddy
-    ports:
-      - "9443:9443"
-    command: ["--metrics", "--metrics-address=:9443"]
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f -k https://localhost:9443 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+  # portainer:
+  #   <<: *common
+  #   build: src/portainer
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #     - portainer-data:/data
+  #   depends_on:
+  #     - caddy
+  #   ports:
+  #     - "9443:9443"
+  #   command: ["--metrics", "--metrics-address=:9443"]
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f -k https://localhost:9443 || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
 
   prometheus:
     <<: *common
