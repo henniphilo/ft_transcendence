@@ -254,8 +254,6 @@ services:
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - transcendence_network
-    env_file:
-      - .env
 
 volumes:
   postgres_data: null
