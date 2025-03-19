@@ -41,9 +41,6 @@ jobs:
       - name: Add a delay before waiting for backend
         run: sleep 15 # Add a 15-second delay
       
-      - name: Capture backend logs 
-        run: docker compose logs backend
-      
       - name: Run Unit Tests inside container
         run: docker compose exec backend pytest tests/unit/ -v
 
