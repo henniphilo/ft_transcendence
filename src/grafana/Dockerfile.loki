@@ -1,0 +1,18 @@
+FROM grafana/loki:3.4.0 
+
+
+# Switch to root user to copy files and set permissions
+USER root
+
+# Copy the Loki configuration file into the container
+COPY config/loki-config.yml /etc/loki/local-config.yml
+
+# Set correct permissions for the configuration file
+RUN chmod 644 /etc/loki/local-config.yml
+
+# Create directories for Loki data and logs
+RUN mkdir -p /tmp/loki /var/log/loki && \
+    chmod -R 777 /tmp/loki /var/log/loki
+
+# Switch back to the Loki user
+USER loki
