@@ -146,7 +146,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "(\n  (1 - rate(node_cpu_seconds_total{job=\"node\", mode=\"idle\", instance=\"$instance\"}[$__interval]))\n/ ignoring(cpu) group_left\n  count without (cpu)( node_cpu_seconds_total{job=\"node\", mode=\"idle\", instance=\"$instance\"})\n)\n",
 			"format": "time_series",
@@ -245,7 +245,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "node_load1{job=\"node\", instance=\"$instance\"}",
 			"format": "time_series",
@@ -266,7 +266,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "node_load15{job=\"node\", instance=\"$instance\"}",
 			"format": "time_series",
@@ -291,7 +291,7 @@
 	  {
 		"datasource": {
 		  "type": "prometheus",
-		  "uid": "${DS_PROMETHEUS}"
+		  "uid": "DS_PROMETHEUS"
 		},
 		"fieldConfig": {
 		  "defaults": {
@@ -385,7 +385,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "node_memory_Buffers_bytes{job=\"node\", instance=\"$instance\"}",
 			"format": "time_series",
@@ -406,7 +406,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "node_memory_MemFree_bytes{job=\"node\", instance=\"$instance\"}",
 			"format": "time_series",
@@ -488,7 +488,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "100 -\n(\n  avg(node_memory_MemAvailable_bytes{job=\"node\", instance=\"$instance\"})\n/\n  avg(node_memory_MemTotal_bytes{job=\"node\", instance=\"$instance\"})\n* 100\n)\n",
 			"format": "time_series",
@@ -602,7 +602,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "rate(node_disk_read_bytes_total{job=\"node\", instance=\"$instance\", device!=\"\"}[$__interval])",
 			"format": "time_series",
@@ -625,7 +625,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "rate(node_disk_io_time_seconds_total{job=\"node\", instance=\"$instance\", device!=\"\"}[$__interval])",
 			"format": "time_series",
@@ -755,7 +755,7 @@
 		  {
 			"datasource": {
 			  "type": "prometheus",
-			  "uid": "${DS_PROMETHEUS}"
+			  "uid": "DS_PROMETHEUS"
 			},
 			"expr": "sum(\n  max by (device) (\n    node_filesystem_size_bytes{job=\"node\", instance=\"$instance\", fstype!=\"\"}\n  -\n    node_filesystem_avail_bytes{job=\"node\", instance=\"$instance\", fstype!=\"\"}\n  )\n)\n",
 			"format": "time_series",
@@ -780,7 +780,7 @@
 	  {
 		"datasource": {
 		  "type": "prometheus",
-		  "uid": "${DS_PROMETHEUS}"
+		  "uid": "DS_PROMETHEUS"
 		},
 		"fieldConfig": {
 		  "defaults": {
@@ -879,7 +879,7 @@
 	  {
 		"datasource": {
 		  "type": "prometheus",
-		  "uid": "${DS_PROMETHEUS}"
+		  "uid": "DS_PROMETHEUS"
 		},
 		"fieldConfig": {
 		  "defaults": {
@@ -994,7 +994,7 @@
 		  "current": {},
 		  "datasource": {
 			"type": "prometheus",
-			"uid": "${DS_PROMETHEUS}"
+			"uid": "DS_PROMETHEUS"
 		  },
 		  "includeAll": false,
 		  "name": "instance",
