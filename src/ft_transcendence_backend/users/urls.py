@@ -44,3 +44,9 @@ urlpatterns += [
     path('friends/remove/<str:username>/', remove_friend, name='remove-friend'),
     path('friends/list/', list_friends, name='list-friends'),
 ]
+
+from .views import get_user_profile
+
+urlpatterns += [
+    path('profile/<str:username>/', get_user_profile, name='get_user_profile'),
+]

@@ -4,6 +4,7 @@ import { OnlineUsersHandler } from '../onlineUsers.js';
 import { LeaderboardDisplay } from './displayLeaderboard.js';
 import { updateProfile, logoutUser, getProfile } from '../authLib.js';
 import { fillProfileFields } from '../profileHandler.js';
+import { FriendsHandler } from '../friendsHandler.js';
 
 export class MenuDisplay {
     constructor(userProfile) {
@@ -34,6 +35,7 @@ export class MenuDisplay {
         this.leaderboardDisplay = null;
         this.userProfile = userProfile; // Speichere Benutzerprofil
         this.elements = {};  // Für DOM-Element-Referenzen
+        this.friendsHandler = new FriendsHandler();
         this.initWebSocket();
     }
 
@@ -157,7 +159,7 @@ export class MenuDisplay {
         this.container.innerHTML = `
             <div class="container py-4">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="card mb-4">
                             <div class="card-header profile-header">
                                 <h2 class="mb-0">Menu</h2>
@@ -167,49 +169,59 @@ export class MenuDisplay {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="card mb-4">
-                                    <div class="card-header profile-header">
-                                        <h3 class="mb-0">Profile</h3>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header profile-header">
+                                <h3 class="mb-0">Profile</h3>
+                            </div>
+                            <div class="card-body profile-card">
+                                <div class="row">
+                                    <div class="col-md-4 text-center">
+                                        <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" 
+                                             alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
+                                        <div class="mb-3">
+                                            <label for="avatar-input" class="form-label">Change Avatar:</label>
+                                            <input class="avatar-input form-control form-control-sm" type="file" accept="image/*" />
+                                        </div>
                                     </div>
-                                    <div class="card-body profile-card">
-                                        <div class="row">
-                                            <div class="col-md-4 text-center">
-                                                <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" 
-                                                     alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
-                                                <div class="mb-3">
-                                                    <label for="avatar-input" class="form-label">Change Avatar:</label>
-                                                    <input class="avatar-input form-control form-control-sm" type="file" accept="image/*" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <h4 class="profile-username mb-3">Welcome ${this.userProfile.username}!</h4>
-                                                <div class="profile-details mb-3">
-                                                    <p class="mb-2"><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
-                                                    <p class="mb-2"><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
-                                                    <p class="mb-2"><strong>Birthday:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
-                                                    <p class="mb-2"><strong>Tournament Name:</strong> <span class="profile-tournament-name">${this.userProfile.tournament_name || ''}</span></p>
-                                                </div>
-                                                <div class="d-grid gap-2">
-                                                    <button class="edit-profile-button btn btn-primary-custom">Edit Profile</button>
-                                                    <button class="logout-button btn btn-danger">Logout</button>
-                                                </div>
-                                            </div>
+                                    <div class="col-md-8">
+                                        <h4 class="profile-username mb-3">Welcome ${this.userProfile.username}!</h4>
+                                        <div class="profile-details mb-3">
+                                            <p class="mb-2"><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
+                                            <p class="mb-2"><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
+                                            <p class="mb-2"><strong>Birthday:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
+                                            <p class="mb-2"><strong>Tournament Name:</strong> <span class="profile-tournament-name">${this.userProfile.tournament_name || ''}</span></p>
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <button class="edit-profile-button btn btn-primary-custom">Edit Profile</button>
+                                            <button class="logout-button btn btn-danger">Logout</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-header online-players-header">
-                                        <h3 class="mb-0">Online Players</h3>
-                                    </div>
-                                    <div class="card-body profile-card online-players-list">
-                                        <ul id="online-users-list" class="list-group"></ul>
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card mb-4">
+                            <div class="card-header online-players-header">
+                                <h3 class="mb-0">Online Players</h3>
+                            </div>
+                            <div class="card-body profile-card online-players-list">
+                                <ul id="online-users-list" class="list-group"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="card">
+                            <div class="card-header friends-header">
+                                <h3 class="mb-0">Friends</h3>
+                            </div>
+                            <div class="card-body profile-card friends-list">
+                                <ul id="friends-list" class="list-group">
+                                    <li class="list-group-item text-center" id="no-friends-message">
+                                        No friends found
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -252,7 +264,10 @@ export class MenuDisplay {
         });
 
         // Starte das Polling für Online-User
-        OnlineUsersHandler.startPolling();
+        OnlineUsersHandler.startPolling(this.friendsHandler);
+        
+        // Lade die Freundesliste
+        this.loadFriendsList();
     }
 
     async handleAvatarChange(e) {
@@ -591,6 +606,96 @@ export class MenuDisplay {
             </div>
         `;
     }
+
+    async loadFriendsList() {
+        try {
+            const friendsList = document.getElementById('friends-list');
+            if (!friendsList) return;
+
+            // Freunde vom Server abrufen
+            const friends = await this.friendsHandler.getFriends();
+            
+            // Liste leeren
+            friendsList.innerHTML = '';
+            
+            if (friends.length === 0) {
+                friendsList.innerHTML = '<li class="list-group-item text-center" id="no-friends-message">No friends found</li>';
+                return;
+            }
+            
+            // Freunde anzeigen
+            friends.forEach(friend => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                listItem.innerHTML = `
+                    <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-sm btn-outline-primary chat-with-friend-btn" 
+                                data-username="${friend.username}">
+                            <i class="bi bi-chat-dots"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger remove-friend-btn" 
+                                data-username="${friend.username}">
+                            <i class="bi bi-person-dash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                friendsList.appendChild(listItem);
+            });
+            
+            // Event-Listener für die Namen (zum Profil)
+            document.querySelectorAll('.friend-name').forEach(nameSpan => {
+                nameSpan.addEventListener('click', (e) => {
+                    const username = e.currentTarget.dataset.username;
+                    this.viewFriendProfile(username);
+                });
+            });
+            
+            // Event-Listener für den Chat-Button
+            document.querySelectorAll('.chat-with-friend-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const username = e.currentTarget.dataset.username;
+                    this.openChatWithFriend(username);
+                });
+            });
+            
+            // Event-Listener für den Remove-Button
+            document.querySelectorAll('.remove-friend-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const username = e.currentTarget.dataset.username;
+                    if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
+                        try {
+                            await this.friendsHandler.removeFriend(username);
+                            alert(`${username} has been removed from your friends.`);
+                            this.loadFriendsList(); // Liste aktualisieren
+                        } catch (error) {
+                            console.error('Error removing friend:', error);
+                            alert('Error removing friend. Please try again.');
+                        }
+                    }
+                });
+            });
+            
+        } catch (error) {
+            console.error('Error loading friends list:', error);
+        }
+    }
+    
+    viewFriendProfile(username) {
+        // Wechsle zum Benutzerprofil-Template und übergebe den Benutzernamen und das aktuelle Benutzerprofil
+        window.showTemplate('userProfile', {
+            username: username,
+            currentUserProfile: this.userProfile
+        });
+    }
+
+    // Neue Methode zum Öffnen eines Chats mit einem Freund
+    openChatWithFriend(username) {
+        alert(`Chat with ${username} (not implemented yet)`);
+        // Hier später die Implementierung für den Chat
+    }
 }
 
 let menuDisplay;
@@ -604,3 +709,50 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     menuDisplay = new MenuDisplay(userProfile);
 });
+
+OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler) {
+    const usersList = document.getElementById('online-users-list');
+    if (!usersList) return;
+
+    usersList.innerHTML = '';
+
+    if (onlineUsers.length === 0) {
+        usersList.innerHTML = '<li class="list-group-item text-center">No players online</li>';
+        return;
+    }
+
+    onlineUsers.forEach(user => {
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        // Prüfe, ob der Benutzer der aktuelle Benutzer ist
+        const isCurrentUser = user.username === menuDisplay.userProfile.username;
+        
+        listItem.innerHTML = `
+            <span>${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+            ${!isCurrentUser ? `
+                <button class="btn btn-sm btn-outline-success add-friend-btn" 
+                        data-username="${user.username}">
+                    <i class="bi bi-person-plus"></i> Add Friend
+                </button>
+            ` : ''}
+        `;
+        
+        usersList.appendChild(listItem);
+    });
+    
+    // Event-Listener für "Add Friend" Buttons
+    document.querySelectorAll('.add-friend-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const username = e.currentTarget.dataset.username;
+            try {
+                await friendsHandler.addFriend(username);
+                alert(`${username} wurde als Freund hinzugefügt!`);
+                menuDisplay.loadFriendsList(); // Freundesliste aktualisieren
+            } catch (error) {
+                console.error('Fehler beim Hinzufügen des Freundes:', error);
+                alert('Fehler beim Hinzufügen des Freundes. Möglicherweise seid ihr bereits befreundet.');
+            }
+        });
+    });
+};

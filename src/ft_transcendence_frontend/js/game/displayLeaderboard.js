@@ -11,10 +11,10 @@ export class LeaderboardDisplay {
         const leaderboardHtml = `
             <div class="container py-4">
                 <div class="row justify-content-center">
-                    <div class="col-md-8">
+                    <div class="col-md-12">
                         <div class="card">
                             <div class="card-header profile-header">
-                                <h2 class="mb-0">Top 10 Spieler</h2>
+                                <h2 class="mb-0">Top 10 Players</h2>
                             </div>
                             <div class="card-body profile-card">
                                 <div class="table-responsive">
@@ -28,7 +28,7 @@ export class LeaderboardDisplay {
                                         </thead>
                                         <tbody id="leaderboard-body">
                                             <tr>
-                                                <td colspan="3" class="text-center">Lade Leaderboard...</td>
+                                                <td colspan="3" class="text-center">Loading leaderboard...</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -37,7 +37,7 @@ export class LeaderboardDisplay {
                                 <div class="mt-4">
                                     <h3 class="mb-3">Your Position</h3>
                                     <div id="current-user-container" class="mb-4">
-                                        <!-- Wird dynamisch gefüllt -->
+                                        <!-- Will be filled dynamically -->
                                     </div>
                                 </div>
                                 
@@ -100,7 +100,7 @@ export class LeaderboardDisplay {
                     // Token abgelaufen oder ungültig
                     document.getElementById('current-user-container').innerHTML = `
                         <div class="alert alert-warning">
-                            Bitte logge dich ein, um deine Position zu sehen.
+                            Please log in to see your position.
                         </div>
                     `;
                 } else {
@@ -123,17 +123,17 @@ export class LeaderboardDisplay {
                 console.error('Error fetching current user stats:', error);
                 document.getElementById('current-user-container').innerHTML = `
                     <div class="alert alert-danger">
-                        Fehler beim Laden deiner Position.
+                        Error loading your position.
                     </div>
                 `;
             }
 
         } catch (error) {
-            console.error('Fehler beim Laden des Leaderboards:', error);
+            console.error('Error loading leaderboard:', error);
             if (document.getElementById('leaderboard-body')) {
                 document.getElementById('leaderboard-body').innerHTML = `
                     <tr>
-                        <td colspan="3" class="text-center text-danger">Fehler beim Laden der Daten</td>
+                        <td colspan="3" class="text-center text-danger">Error loading data</td>
                     </tr>
                 `;
             }
