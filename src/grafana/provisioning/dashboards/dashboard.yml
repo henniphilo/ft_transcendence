@@ -9,3 +9,12 @@ providers:
     editable: true
     options:
       path: /var/lib/grafana/dashboards
+
+  - name: "Tempo Monitoring"
+    orgId: 1
+    folder: "Tempo Monitoring"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/tempo

@@ -114,10 +114,10 @@ services:
       - GF_INSTALL_PLUGINS=redis-datasource
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
     volumes:
+      - grafana_provisioning:/etc/grafana/provisioning
+      - grafana_dashboards:/var/lib/grafana/dashboards
       - grafana_data:/var/lib/grafana
       - grafana_logs:/var/log/grafana
-      - ./src/grafana/provisioning:/etc/grafana/provisioning
-      - ./src/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - redis
       - loki
@@ -241,6 +241,8 @@ volumes:
   django_logs: null
   grafana_data: null
   grafana_logs: null
+  grafana_provisioning: null
+  grafana_dashboards: null
   loki_logs: null
   portainer-data: null
   loki-data: null

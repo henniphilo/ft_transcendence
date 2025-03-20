@@ -7,7 +7,7 @@ RUN apk update && \
     apk add --no-cache wget curl && \
     rm -rf /var/cache/apk/*
 
-# Copy the configuration file
+# Copy the configuration file and default files into the container
 COPY grafana.ini /etc/grafana/grafana.ini
 COPY provisioning/datasources /etc/grafana/provisioning/datasources
 COPY provisioning/dashboards /etc/grafana/provisioning/dashboards
