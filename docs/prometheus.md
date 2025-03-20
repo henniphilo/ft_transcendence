@@ -98,6 +98,8 @@ dockerfile_inline: |
 https://prometheus.io/docs/prometheus/latest/getting_started/  
 
 https://github.com/prometheus/prometheus/tree/main?tab=readme-ov-file  
+
+13978 node exporter quickstart and dashboard
 https://grafana.com/grafana/dashboards/13978-node-exporter-quickstart-and-dashboard/  
 
 https://medium.com/@tommyraspati/monitoring-your-django-project-with-prometheus-and-grafana-b06a5ca78744  
