@@ -1,6 +1,6 @@
 # views.py
 
-from django.shortcuts import render  # eventuell nicht benötigt
+from django.shortcuts import render, get_object_or_404  # eventuell nicht benötigt
 from rest_framework import generics, serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
