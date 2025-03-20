@@ -19,6 +19,3 @@ RUN chown -R grafana:root /var/lib/grafana && \
     chmod -R 777 /var/lib/grafana
 
 USER grafana
-
-ENTRYPOINT ["exec", "grafana-server", "--homepath=/usr/share/grafana"]
-
