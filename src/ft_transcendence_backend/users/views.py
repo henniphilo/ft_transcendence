@@ -267,3 +267,16 @@ def list_friends(request):
     friends = request.user.friends.all()
     friend_list = [{"username": f.username, "tournament_name": f.tournament_name} for f in friends]
     return Response(friend_list)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request, username):
+    """
+    Gibt das Profil eines bestimmten Benutzers zurück
+    """
+    try:
+        user = get_object_or_404(CustomUser, username=username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)

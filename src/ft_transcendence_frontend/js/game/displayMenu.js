@@ -684,8 +684,11 @@ export class MenuDisplay {
     }
     
     viewFriendProfile(username) {
-        alert(`View profile of ${username} (not implemented yet)`);
-        // Hier später die Implementierung für die Profilanzeige
+        // Wechsle zum Benutzerprofil-Template und übergebe den Benutzernamen und das aktuelle Benutzerprofil
+        window.showTemplate('userProfile', {
+            username: username,
+            currentUserProfile: this.userProfile
+        });
     }
 
     // Neue Methode zum Öffnen eines Chats mit einem Freund

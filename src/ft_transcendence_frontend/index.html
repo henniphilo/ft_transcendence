@@ -89,6 +89,69 @@
     </div>
   </template>
 
+  <!-- Nach dem template-game Template -->
+  <template id="template-user-profile">
+    <div id="user-profile-container" class="container py-4">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card mb-4">
+            <div class="card-header profile-header">
+              <h2 class="mb-0">User Profile</h2>
+            </div>
+            <div class="card-body profile-card">
+              <div class="row">
+                <div class="col-md-4 text-center">
+                  <img id="profile-view-avatar" class="rounded-circle mb-3" 
+                       src="/assets/default-avatar.png" 
+                       alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
+                </div>
+                <div class="col-md-8">
+                  <h3 id="profile-view-username" class="mb-3">Username</h3>
+                  <div class="profile-details mb-4">
+                    <p class="mb-2"><strong>Email:</strong> <span id="profile-view-email"></span></p>
+                    <p class="mb-2"><strong>Bio:</strong> <span id="profile-view-bio"></span></p>
+                    <p class="mb-2"><strong>Birthday:</strong> <span id="profile-view-birth-date"></span></p>
+                    <p class="mb-2"><strong>Tournament Name:</strong> <span id="profile-view-tournament-name"></span></p>
+                  </div>
+                  <div class="d-grid gap-2">
+                    <button id="back-to-menu-btn" class="btn btn-secondary">Back to Menu</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header profile-header">
+              <h3 class="mb-0">Match Stats</h3>
+            </div>
+            <div class="card-body profile-card">
+              <div id="match-stats">
+                <p><strong>Wins:</strong> <span id="profile-view-wins">0</span></p>
+                <p><strong>Losses:</strong> <span id="profile-view-losses">0</span></p>
+                <p><strong>Win Rate:</strong> <span id="profile-view-win-rate">0%</span></p>
+                <p><strong>Total Games:</strong> <span id="profile-view-total-games">0</span></p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header profile-header">
+              <h3 class="mb-0">Match History</h3>
+            </div>
+            <div class="card-body profile-card">
+              <div id="match-history" class="match-history-list">
+                <p class="text-center">No matches found</p>
+                <!-- Match history will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <!-- Content Div for Dynamic Loading -->
   <div id="content"></div>
 
