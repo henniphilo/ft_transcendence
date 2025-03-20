@@ -113,11 +113,10 @@ services:
     #   - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_admin_password
       - GF_INSTALL_PLUGINS=redis-datasource
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
-    volumes:
-      - grafana_provisioning:/etc/grafana/provisioning
-      - grafana_dashboards:/var/lib/grafana/dashboards
-      - grafana_data:/var/lib/grafana
-      - grafana_logs:/var/log/grafana
+    # volumes:
+    #   - grafana_provisioning:/etc/grafana/provisioning
+    #   - grafana_data:/var/lib/grafana
+    #   - grafana_logs:/var/log/grafana
     depends_on:
       - redis
       - loki
@@ -247,7 +246,6 @@ volumes:
   grafana_data: null
   grafana_logs: null
   grafana_provisioning: null
-  grafana_dashboards: null
   loki_logs: null
   loki-data: null
   tempo_data: null
