@@ -528,8 +528,16 @@ export class ThreeJSManager {
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * (fieldHeight / 2);
         const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * (fieldHeight / 2);
 
-        this.paddleModels[0].position.set(-4, 0, p1Z);
-        this.paddleModels[1].position.set(4, 0, p2Z);
+        console.log("p1Z: ", p1Z);
+        console.log("gameState.player1.paddle.top, gameState.player1.paddle.bottom: ", gameState.player1.paddle.top, gameState.player1.paddle.bottom );
+        console.log("p2Z: ", p2Z);
+        console.log("gameState.player2.paddle.top, gameState.player2.paddle.bottom: ", gameState.player2.paddle.top, gameState.player2.paddle.bottom);
+
+        // console.log("padelpositon 0: ", this.paddleModels[0].position.set(-4, 0, p1Z));
+        // console.log("padelpositon 1: ", this.paddleModels[1].position.set(4, 0, p2Z));
+
+        this.paddleModels[0].position.z= p1Z;
+        this.paddleModels[1].position.z= p2Z;
     }
 
 
