@@ -37,3 +37,10 @@ datasources:
     isDefault: true
     editable: true
     uid: DS_PROMETHEUS
+  
+  - name: alertmanager
+    type: prometheus
+    access: proxy
+    url: http://alertmanager:9093
+    editable: true
+    uid: DS_ALERTMANAGER

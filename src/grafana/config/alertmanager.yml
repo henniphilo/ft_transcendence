@@ -1,0 +1,25 @@
+global:
+  resolve_timeout: 1m
+  smtp_smarthost: 'smtp-relay.brevo.com:587'
+  smtp_from: '8881eb001@smtp-brevo.com'
+  smtp_auth_username: '8881eb001@smtp-brevo.com'
+  smtp_auth_password: 'Z8rOCaLt4b1EwTph'
+  smtp_require_tls: false
+  # smtp_smarthost: '${EMAIL_HOST}:587'
+  # smtp_from: '${EMAIL_HOST_USER}'        
+  # smtp_auth_username: '${EMAIL_HOST_USER}'    
+  # smtp_auth_password: '${EMAIL_HOST_PASSWORD}'  
+  # smtp_require_tls: true     
+
+route:
+  receiver: 'email-notifications'
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'metter2ooo@gmail.com'           
+        send_resolved: true
+        headers:
+          subject: 'Test Alert Notification'
+        html: >
+          <b>Test Alert:</b> This is a test message.
