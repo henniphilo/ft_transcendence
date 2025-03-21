@@ -1,0 +1,1 @@
+FROM bitnami/kibana:8.15.0

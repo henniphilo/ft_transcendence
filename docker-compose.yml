@@ -15,6 +15,8 @@ services:
   postgres:
     <<: *common
     image: "postgres:16"
+    profiles:
+      - gameprofile
     container_name: postgres
     # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
@@ -32,6 +34,8 @@ services:
   postgres-exporter:
     <<: *common
     image: bitnami/postgres-exporter:latest
+    profiles:
+      - gameprofile
     container_name: postgres-exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
@@ -47,6 +51,8 @@ services:
   redis:
     <<: *common
     build: src/redis
+    profiles:
+      - gameprofile
     container_name: redis
     ports:
       - "6380:6379"
@@ -62,6 +68,8 @@ services:
   backend:
     <<: *common
     build: src/ft_transcendence_backend
+    profiles:
+      - gameprofile
     container_name: backend
     depends_on:
       postgres:
@@ -85,6 +93,8 @@ services:
   game:
     <<: *common
     build: src/ft_transcendence_backend/game
+    profiles:
+      - gameprofile
     container_name: game
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
     ports:
@@ -100,12 +110,15 @@ services:
     build:
       context: ./src/
       dockerfile: caddy/Dockerfile
+    profiles:
+      - gameprofile
     container_name: caddy
     ports:
       - "8080:80"  
       - "8444:443"  
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -115,12 +128,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  cloudflared:
+    <<: *common
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
   
   grafana:
     <<: *common
     build: 
       context: ./src/grafana
       dockerfile: Dockerfile.grafana
+    profiles:
+      - grafanaprofile
     container_name: grafana
     ports:
       - "3000:3000"
@@ -133,52 +155,13 @@ services:
       - GF_INSTALL_PLUGINS=redis-datasource
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
     depends_on:
-      - redis
-      - loki
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-
-  loki:
-    <<: *common
-    build: 
-      context: ./src/grafana
-      dockerfile: Dockerfile.loki
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command: ["-config.file=/etc/loki/local-config.yml"]
-    volumes:
-      # - loki_config:/etc/loki/
-      - loki_logs:/var/log/loki 
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
-      interval: 60s
-      timeout: 660s
-      retries: 5
-
-  tempo:
-    <<: *common
-    build: 
-      context: ./src/grafana
-      dockerfile: Dockerfile.tempo
-    container_name: tempo
-    command: [ "-config.file=/etc/tempo.yml" ]
-    volumes:
-      - tempo_data:/tmp/tempo
-      - tempo_logs:/var/log/tempo
-    ports:
-      - "3200:3200"   # tempo
-      - "4317:4317"   # otlp grpc
-      - "4318:4318"   # otlp http
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
-      interval: 60s
-      timeout: 30s
-      retries: 5
-
      
   # portainer:
   #   <<: *common
@@ -203,6 +186,8 @@ services:
     build: 
       context: ./src/grafana
       dockerfile: Dockerfile.prometheus
+    profiles:
+      - grafanaprofile
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -218,6 +203,8 @@ services:
     <<: *common
     image: prom/node-exporter:latest
     container_name: node-exporter
+    profiles:
+      - grafanaprofile
     ports:
       - "9101:9100"
     healthcheck:
@@ -225,42 +212,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  promtail:
-    <<: *common
-    build:
-      context: ./src/grafana
-      dockerfile: Dockerfile.promtail
-    container_name: promtail
-    volumes:
-      - promtail_logs:/app/logs
-      - postgres_logs:/var/log/postgresql
-      - redis_logs:/var/log/redis
-      - caddy_logs:/var/log/caddy
-      - django_logs:/app/logs
-      - grafana_logs:/var/log/grafana
-    ports:
-    - "9080:9080" 
-    depends_on:
-      - loki
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  cloudflared:
-    <<: *common
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
   
   alertmanager:
     <<: *common
     build:
       context: ./src/grafana
       dockerfile: Dockerfile.alertmanager
+    profiles:
+      - grafanaprofile
     container_name: alertmanager
     environment:
       - EMAIL_HOST=${EMAIL_HOST}
@@ -269,6 +228,60 @@ services:
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
     ports:
       - "9093:9093"
+
+  elasticsearch:
+    <<: *common
+    image: bitnami/elasticsearch:8.15.0
+    profiles:
+      - elkprofile
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false # Disable security for development (enable in production)
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # Adjust memory as needed
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  logstash:
+    <<: *common
+    image: bitnami/logstash:8.15.0
+    profiles:
+      - elkprofile
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline/
+    ports:
+      - "5044:5044" # Beats input
+      - "9600:9600" # Logstash API
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    <<: *common
+    image: bitnami/kibana:8.15.0
+    profiles:
+      - elkprofile
+    container_name: kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   caddy_logs: null
@@ -280,15 +293,83 @@ volumes:
   grafana_data: null
   grafana_logs: null
   grafana_provisioning: null
+  prometheus_data: null
+  portainer-data: null
+  elasticsearch_data: null
+  kibana_data: null
+  logstash_data: null
+
   loki_logs: null
   loki-data: null
   tempo_data: null
   tempo_logs: null
   promtail_logs: null
-  prometheus_data: null
-  portainer-data: null
 
 networks:
   transcendence_network:
     name: transcendence_network
     driver: bridge
+
+
+
+  # promtail:
+  #   <<: *common
+  #   build:
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.promtail
+  #   container_name: promtail
+  #   volumes:
+  #     - promtail_logs:/app/logs
+  #     - postgres_logs:/var/log/postgresql
+  #     - redis_logs:/var/log/redis
+  #     - caddy_logs:/var/log/caddy
+  #     - django_logs:/app/logs
+  #     - grafana_logs:/var/log/grafana
+  #   ports:
+  #   - "9080:9080" 
+  #   depends_on:
+  #     - loki
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+
+
+  # tempo:
+  #   <<: *common
+  #   build: 
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.tempo
+  #   container_name: tempo
+  #   command: [ "-config.file=/etc/tempo.yml" ]
+  #   volumes:
+  #     - tempo_data:/tmp/tempo
+  #     - tempo_logs:/var/log/tempo
+  #   ports:
+  #     - "3200:3200"   # tempo
+  #     - "4317:4317"   # otlp grpc
+  #     - "4318:4318"   # otlp http
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
+  #     interval: 60s
+  #     timeout: 30s
+  #     retries: 5
+
+    # loki:
+    # <<: *common
+    # build: 
+    #   context: ./src/grafana
+    #   dockerfile: Dockerfile.loki
+    # container_name: loki
+    # ports:
+    #   - "3100:3100"
+    # command: ["-config.file=/etc/loki/local-config.yml"]
+    # volumes:
+    #   # - loki_config:/etc/loki/
+    #   - loki_logs:/var/log/loki 
+    # healthcheck:
+    #   test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
+    #   interval: 60s
+    #   timeout: 660s
+    #   retries: 5
