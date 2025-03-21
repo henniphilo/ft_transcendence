@@ -258,10 +258,10 @@ services:
   
   alertmanager:
     <<: *common
-    image: prom/alertmanager:latest
+    build:
+      context: ./src/grafana
+      dockerfile: Dockerfile.alertmanager
     container_name: alertmanager
-    volumes:
-      - ./src/grafana/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     environment:
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=587
