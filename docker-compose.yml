@@ -255,7 +255,15 @@ services:
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-
+  
+  alertmanager:
+    <<: *common
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./src/grafana/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
 
 volumes:
   caddy_logs: null

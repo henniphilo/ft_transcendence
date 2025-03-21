@@ -109,8 +109,8 @@ MIDDLEWARE = [
 ]
 
 # Redis-Konfiguration aus Docker-Compose nutzen
-REDIS_HOST = "redis"
-REDIS_PORT = 6379
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 
 ROOT_URLCONF = 'backend.urls'
@@ -226,12 +226,19 @@ SIMPLE_JWT = {
 }
 
 # Email Configuration
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp-relay.brevo.com'
+# EMAIL_HOST_USER = '849697001@smtp-brevo.com'
+# EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = '587'
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp-relay.brevo.com'
-EMAIL_HOST_USER = '849697001@smtp-brevo.com'
-EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
-EMAIL_USE_TLS = True
-EMAIL_PORT = '587'
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "849697001@smtp-brevo.com")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "kOmqRp1jT6KrPbWY")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 
 # logging configuration
 # using logging.getLogger(__name__) in your modules
