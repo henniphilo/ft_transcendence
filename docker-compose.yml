@@ -2,11 +2,13 @@ name: ft_transcendence
 
 # these are common to all containers
 x-common: &common
+  profiles:
+    - gameprofile
+    - grafanaprofile
+    - elkprofile
   env_file:
     - .env
   restart: always
-  networks:
-    - transcendence_network
   init: true
   tty: true
   stdin_open: true
@@ -15,8 +17,9 @@ services:
   postgres:
     <<: *common
     image: "postgres:16"
-    profiles:
-      - gameprofile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: postgres
     # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
@@ -34,8 +37,9 @@ services:
   postgres-exporter:
     <<: *common
     image: bitnami/postgres-exporter:latest
-    profiles:
-      - gameprofile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: postgres-exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
@@ -51,8 +55,9 @@ services:
   redis:
     <<: *common
     build: src/redis
-    profiles:
-      - gameprofile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: redis
     ports:
       - "6380:6379"
@@ -68,8 +73,9 @@ services:
   backend:
     <<: *common
     build: src/ft_transcendence_backend
-    profiles:
-      - gameprofile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: backend
     depends_on:
       postgres:
@@ -93,8 +99,9 @@ services:
   game:
     <<: *common
     build: src/ft_transcendence_backend/game
-    profiles:
-      - gameprofile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: game
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
     ports:
@@ -110,8 +117,9 @@ services:
     build:
       context: ./src/
       dockerfile: caddy/Dockerfile
-    profiles:
-      - gameprofile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: caddy
     ports:
       - "8080:80"  
@@ -132,6 +140,9 @@ services:
   cloudflared:
     <<: *common
     image: cloudflare/cloudflared:latest
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: cloudflared
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
@@ -141,8 +152,9 @@ services:
     build: 
       context: ./src/grafana
       dockerfile: Dockerfile.grafana
-    profiles:
-      - grafanaprofile
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     container_name: grafana
     ports:
       - "3000:3000"
@@ -186,8 +198,9 @@ services:
     build: 
       context: ./src/grafana
       dockerfile: Dockerfile.prometheus
-    profiles:
-      - grafanaprofile
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -203,8 +216,9 @@ services:
     <<: *common
     image: prom/node-exporter:latest
     container_name: node-exporter
-    profiles:
-      - grafanaprofile
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     ports:
       - "9101:9100"
     healthcheck:
@@ -218,8 +232,9 @@ services:
     build:
       context: ./src/grafana
       dockerfile: Dockerfile.alertmanager
-    profiles:
-      - grafanaprofile
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     container_name: alertmanager
     environment:
       - EMAIL_HOST=${EMAIL_HOST}
@@ -229,11 +244,36 @@ services:
     ports:
       - "9093:9093"
 
+  promtail:
+    <<: *common
+    build:
+      context: ./src/grafana
+      dockerfile: Dockerfile.promtail
+    container_name: promtail
+    profiles: ["elkprofile"]
+    networks:
+      - appnetwork
+    volumes:
+      - promtail_logs:/app/logs
+      - postgres_logs:/var/log/postgresql
+      - redis_logs:/var/log/redis
+      - caddy_logs:/var/log/caddy
+      - django_logs:/app/logs
+      - grafana_logs:/var/log/grafana
+    ports:
+    - "9080:9080" 
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   elasticsearch:
     <<: *common
     image: bitnami/elasticsearch:8.15.0
-    profiles:
-      - elkprofile
+    profiles: ["elkprofile"]
+    networks:
+      - appnetwork
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
@@ -251,9 +291,10 @@ services:
 
   logstash:
     <<: *common
-    image: bitnami/logstash:8.15.0
-    profiles:
-      - elkprofile
+    build: ./src/elk/logstash
+    profiles: ["elkprofile"]
+    networks:
+      - appnetwork
     container_name: logstash
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline/
@@ -267,8 +308,9 @@ services:
   kibana:
     <<: *common
     image: bitnami/kibana:8.15.0
-    profiles:
-      - elkprofile
+    profiles: ["elkprofile"]
+    networks:
+      - appnetwork
     container_name: kibana
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
@@ -306,34 +348,9 @@ volumes:
   promtail_logs: null
 
 networks:
-  transcendence_network:
-    name: transcendence_network
+  appnetwork:
+    name: appnetwork
     driver: bridge
-
-
-
-  # promtail:
-  #   <<: *common
-  #   build:
-  #     context: ./src/grafana
-  #     dockerfile: Dockerfile.promtail
-  #   container_name: promtail
-  #   volumes:
-  #     - promtail_logs:/app/logs
-  #     - postgres_logs:/var/log/postgresql
-  #     - redis_logs:/var/log/redis
-  #     - caddy_logs:/var/log/caddy
-  #     - django_logs:/app/logs
-  #     - grafana_logs:/var/log/grafana
-  #   ports:
-  #   - "9080:9080" 
-  #   depends_on:
-  #     - loki
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
 
 
   # tempo:

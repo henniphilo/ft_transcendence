@@ -1,4 +1,5 @@
-DC = docker-compose
+DC=docker-compose
+COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
 
 .PHONY: all build up down logs migrations migrate test fclean
 
@@ -9,10 +10,10 @@ build:
 	$(DC) build
 
 up:
-	$(DC) up -d --remove-orphans
+	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) up -d --remove-orphans
 
 rebuild:
-	$(DC) up -d --build --remove-orphans
+	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) up -d --build --remove-orphans
 
 down:
 	$(DC) down
@@ -21,7 +22,7 @@ stop:
 	$(DC) stop
 
 start:
-	$(DC) start
+	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) start
 
 logs:
 	$(DC) logs -f
