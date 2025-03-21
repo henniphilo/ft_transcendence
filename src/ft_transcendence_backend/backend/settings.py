@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'channels',
 	'django_prometheus',
     'gamestats',
+    'minimal_chat',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -171,6 +172,16 @@ CHANNEL_LAYERS = {
         },
     },
 }
+# might not be the best config ;) 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("redis", 6379)],
+#         },
+#     },
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
