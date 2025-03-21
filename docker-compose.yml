@@ -262,6 +262,11 @@ services:
     container_name: alertmanager
     volumes:
       - ./src/grafana/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    environment:
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
     ports:
       - "9093:9093"
 

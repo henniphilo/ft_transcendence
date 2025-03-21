@@ -47,9 +47,6 @@ services:
     image: bitnami/postgres-exporter:latest
     container_name: postgres-exporter
     environment:
-      # POSTGRES_USER: ${POSTGRES_USER}
-      # POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # POSTGRES_DB: ${POSTGRES_DB}
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
     depends_on:
       - postgres
@@ -184,7 +181,6 @@ services:
       - 3000:3000
     environment:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-
       - GF_AUTH_BASIC_ENABLED=false
       - ENABLE_LOGS_GRAFANA=true
       - GF_INSTALL_PLUGINS=redis-datasource
@@ -371,10 +367,23 @@ services:
       retries: 5
 
   alertmanager:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - transcendence_network
+    init: true
+    tty: true
+    stdin_open: true
     image: prom/alertmanager:latest
     container_name: alertmanager
     volumes:
       - ./src/grafana/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    environment:
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
     ports:
       - "9093:9093"
 

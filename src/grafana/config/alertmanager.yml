@@ -1,10 +1,10 @@
 global:
   resolve_timeout: 5m
-  smtp_smarthost: 'smtp-relay.brevo.com:587'  # From EMAIL_HOST and EMAIL_PORT
-  smtp_from: '849697001@smtp-brevo.com'      # From EMAIL_HOST_USER
-  smtp_auth_username: '849697001@smtp-brevo.com'  # From EMAIL_HOST_USER
-  smtp_auth_password: 'kOmqRp1jT6KrPbWY'     # From EMAIL_HOST_PASSWORD
-  smtp_require_tls: true                     # From EMAIL_USE_TLS
+  smtp_smarthost: '${EMAIL_HOST}:${EMAIL_PORT}'
+  smtp_from: '${EMAIL_HOST_USER}'      
+  smtp_auth_username: '${EMAIL_HOST_USER}'    
+  smtp_auth_password: '${EMAIL_HOST_PASSWORD}'  
+  smtp_require_tls: true     
 
 route:
   receiver: 'email-notifications'
