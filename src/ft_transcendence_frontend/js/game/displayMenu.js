@@ -19,7 +19,7 @@ export class MenuDisplay {
         // const wsPort = "8001"; // Falls der Port sich ändern soll, könnte dies auch dynamisch gesetzt werden
         // this.ws = new WebSocket(`${wsProtocol}${wsHost}:${wsPort}/ws/menu`);
 
-        
+
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
         const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
@@ -118,24 +118,24 @@ export class MenuDisplay {
                 formData.append('tournament_name', tournamentName);
 
                 const result = await ProfileHandler.updateProfile(formData);
-                
+
                 // Aktualisiere die lokalen Daten
                 this.userProfile.bio = bio;
                 this.userProfile.birth_date = birthDate;
                 this.userProfile.tournament_name = tournamentName;
-                
+
                 // Aktualisiere die Anzeige
                 if (this.elements.bio) this.elements.bio.textContent = bio;
                 if (this.elements.birthDate) this.elements.birthDate.textContent = birthDate;
                 if (this.elements.tournamentName) this.elements.tournamentName.textContent = tournamentName;
-                
+
                 modal.hide();
-                
+
                 // Entferne das Modal aus dem DOM nach dem Schließen
                 document.getElementById('editProfileModal').addEventListener('hidden.bs.modal', function () {
                     document.body.removeChild(modalElement);
                 });
-                
+
             } catch (error) {
                 console.error('Error updating profile:', error);
                 alert('Failed to update profile. Please try again.');
@@ -162,7 +162,7 @@ export class MenuDisplay {
                     <div class="col-md-4">
                         <div class="card mb-4">
                             <div class="card-header profile-header">
-                                <h2 class="mb-0">Menu</h2>
+                                <h3 class="mb-0">Menu</h3>
                             </div>
                             <div class="card-body profile-card">
                                 <div id="menu-options" class="d-grid gap-3"></div>
@@ -177,7 +177,7 @@ export class MenuDisplay {
                             <div class="card-body profile-card">
                                 <div class="row">
                                     <div class="col-md-4 text-center">
-                                        <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" 
+                                        <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}"
                                              alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
                                         <div class="mb-3">
                                             <label for="avatar-input" class="form-label">Change Avatar:</label>
@@ -260,12 +260,21 @@ export class MenuDisplay {
             button.style.marginBottom = '10px';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
+
+            button.onmouseover = () => {
+                button.style.backgroundColor = '#d7eb25'; // Hellere Farbe beim Hover
+                button.style.border = 'black';
+            };
+            button.onmouseout = () => {
+                button.style.backgroundColor = '#8c9900'; // Zurück zur ursprünglichen Farbe
+            };
+
             this.container.querySelector('#menu-options').appendChild(button);
         });
 
         // Starte das Polling für Online-User
         OnlineUsersHandler.startPolling(this.friendsHandler);
-        
+
         // Lade die Freundesliste
         this.loadFriendsList();
     }
@@ -299,7 +308,7 @@ export class MenuDisplay {
             localStorage.removeItem('refreshToken');
 
             console.log('Logout erfolgreich');
-            
+
             // Statt zu /login weiterzuleiten, zeigen wir das Signup-Template an
             showTemplate('signup');
         } catch (error) {
@@ -400,14 +409,14 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-        
+
         switch (data.action) {
             case 'searching_opponent':
                 console.log("Started searching for opponent...");
                 // Hier sollte der Suchbildschirm angezeigt werden
                 this.displaySearchingScreen(data.message || "Searching for opponent...");
                 break;
-            
+
             case 'game_found':
                 console.log("Match found! Game ID:", data.game_id);
                 console.log("Player1:", data.player1);
@@ -558,7 +567,7 @@ export class MenuDisplay {
 
     displaySearchingScreen(message) {
         console.log("Displaying search screen with message:", message);
-        
+
         this.container.innerHTML = `
             <div class="container py-5">
                 <div class="card text-center">
@@ -614,37 +623,37 @@ export class MenuDisplay {
 
             // Freunde vom Server abrufen
             const friends = await this.friendsHandler.getFriends();
-            
+
             // Liste leeren
             friendsList.innerHTML = '';
-            
+
             if (friends.length === 0) {
                 friendsList.innerHTML = '<li class="list-group-item text-center" id="no-friends-message">No friends found</li>';
                 return;
             }
-            
+
             // Freunde anzeigen
             friends.forEach(friend => {
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-                
+
                 listItem.innerHTML = `
                     <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button class="btn btn-sm btn-outline-primary chat-with-friend-btn" 
+                        <button class="btn btn-sm btn-outline-primary chat-with-friend-btn"
                                 data-username="${friend.username}">
                             <i class="bi bi-chat-dots"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger remove-friend-btn" 
+                        <button class="btn btn-sm btn-outline-danger remove-friend-btn"
                                 data-username="${friend.username}">
                             <i class="bi bi-person-dash"></i>
                         </button>
                     </div>
                 `;
-                
+
                 friendsList.appendChild(listItem);
             });
-            
+
             // Event-Listener für die Namen (zum Profil)
             document.querySelectorAll('.friend-name').forEach(nameSpan => {
                 nameSpan.addEventListener('click', (e) => {
@@ -652,7 +661,7 @@ export class MenuDisplay {
                     this.viewFriendProfile(username);
                 });
             });
-            
+
             // Event-Listener für den Chat-Button
             document.querySelectorAll('.chat-with-friend-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -660,7 +669,7 @@ export class MenuDisplay {
                     this.openChatWithFriend(username);
                 });
             });
-            
+
             // Event-Listener für den Remove-Button
             document.querySelectorAll('.remove-friend-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
@@ -677,12 +686,12 @@ export class MenuDisplay {
                     }
                 });
             });
-            
+
         } catch (error) {
             console.error('Error loading friends list:', error);
         }
     }
-    
+
     viewFriendProfile(username) {
         // Wechsle zum Benutzerprofil-Template und übergebe den Benutzernamen und das aktuelle Benutzerprofil
         window.showTemplate('userProfile', {
@@ -724,23 +733,23 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
     onlineUsers.forEach(user => {
         const listItem = document.createElement('li');
         listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-        
+
         // Prüfe, ob der Benutzer der aktuelle Benutzer ist
         const isCurrentUser = user.username === menuDisplay.userProfile.username;
-        
+
         listItem.innerHTML = `
             <span>${user.username} ${isCurrentUser ? '(You)' : ''}</span>
             ${!isCurrentUser ? `
-                <button class="btn btn-sm btn-outline-success add-friend-btn" 
+                <button class="btn btn-sm btn-outline-success add-friend-btn"
                         data-username="${user.username}">
                     <i class="bi bi-person-plus"></i> Add Friend
                 </button>
             ` : ''}
         `;
-        
+
         usersList.appendChild(listItem);
     });
-    
+
     // Event-Listener für "Add Friend" Buttons
     document.querySelectorAll('.add-friend-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {

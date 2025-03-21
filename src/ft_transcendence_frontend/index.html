@@ -19,10 +19,10 @@
   <!-- Templates -->
   <template id="template-signup">
     <div id="signup-container" class="card p-4 auth-container">
-      <div class="card-header-custom">
-        <h2 class="text-center">Sign Up</h2>
-      </div>
       <form id="signup-form">
+        <div class="card-header-custom">
+          <h2 class="text-center">Welcome to Pongbahnhof!</h2>
+        </div>
         <div class="mb-3">
           <input type="text" id="username" class="form-control" placeholder="Username" required>
         </div>
@@ -58,10 +58,10 @@
 
   <template id="template-login">
     <div id="login-container" class="card p-4 auth-container login-container">
-      <div class="card-header-custom">
-        <h2 class="text-center">Login</h2>
-      </div>
       <form id="login-form">
+        <div class="card-header-custom">
+          <h2 class="text-center">Welcome back!</h2>
+        </div>
         <div class="mb-3">
           <input type="text" id="login-username" class="form-control" placeholder="Username" required>
         </div>
@@ -93,7 +93,7 @@
   <template id="template-user-profile">
     <div id="user-profile-container" class="container py-4">
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-8 col-md-custom">
           <div class="card mb-4">
             <div class="card-header profile-header">
               <h2 class="mb-0">User Profile</h2>
@@ -101,11 +101,11 @@
             <div class="card-body profile-card">
               <div class="row">
                 <div class="col-md-4 text-center">
-                  <img id="profile-view-avatar" class="rounded-circle mb-3" 
-                       src="/assets/default-avatar.png" 
+                  <img id="profile-view-avatar" class="rounded-circle mb-3"
+                       src="/assets/default-avatar.png"
                        alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-8 col-md-custom">
                   <h3 id="profile-view-username" class="mb-3">Username</h3>
                   <div class="profile-details mb-4">
                     <p class="mb-2"><strong>Email:</strong> <span id="profile-view-email"></span></p>
@@ -121,7 +121,7 @@
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 col-md-custom">
           <div class="card mb-4">
             <div class="card-header profile-header">
               <h3 class="mb-0">Match Stats</h3>
@@ -135,7 +135,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="card">
             <div class="card-header profile-header">
               <h3 class="mb-0">Match History</h3>
@@ -170,7 +170,6 @@
   <!-- Skripte (am Ende des Body platzieren) -->
   <!-- AuthLib muss vor den anderen Skripten geladen werden -->
 
-  <script src="js/signup.js"></script>
   <script type="module" src="js/signup.js"></script>
   <script type="module" src="js/game/background3d.js"></script>
   <script type="module" src="js/game/3dmanager.js"></script>
