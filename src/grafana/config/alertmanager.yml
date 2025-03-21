@@ -1,7 +1,7 @@
 global:
   resolve_timeout: 5m
   smtp_smarthost: '${EMAIL_HOST}:${EMAIL_PORT}'
-  smtp_from: '${EMAIL_HOST_USER}'      
+  smtp_from: '${EMAIL_HOST_USER}'        
   smtp_auth_username: '${EMAIL_HOST_USER}'    
   smtp_auth_password: '${EMAIL_HOST_PASSWORD}'  
   smtp_require_tls: true     
