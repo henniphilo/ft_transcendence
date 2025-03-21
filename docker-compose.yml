@@ -1,4 +1,4 @@
-name: ft_transcendence
+name: u42
 
 # these are common to all containers
 x-common: &common
@@ -270,11 +270,11 @@ services:
 
   elasticsearch:
     <<: *common
+    container_name: elasticsearch
     image: bitnami/elasticsearch:8.15.0
     profiles: ["elkprofile"]
     networks:
       - appnetwork
-    container_name: elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false # Disable security for development (enable in production)
@@ -291,11 +291,11 @@ services:
 
   logstash:
     <<: *common
+    container_name: logstash
     build: ./src/elk/logstash
     profiles: ["elkprofile"]
     networks:
       - appnetwork
-    container_name: logstash
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline/
     ports:
@@ -307,13 +307,14 @@ services:
 
   kibana:
     <<: *common
-    image: bitnami/kibana:8.15.0
+    container_name: kibana
+    build: ./src/elk/kibana
     profiles: ["elkprofile"]
     networks:
       - appnetwork
-    container_name: kibana
     environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS = http://elasticsearch:9200
+      - XPACK_SECURITY_ENABLED = false
     ports:
       - "5601:5601"
     depends_on:
@@ -340,12 +341,12 @@ volumes:
   elasticsearch_data: null
   kibana_data: null
   logstash_data: null
-
-  loki_logs: null
-  loki-data: null
-  tempo_data: null
-  tempo_logs: null
   promtail_logs: null
+
+  # loki_logs: null
+  # loki-data: null
+  # tempo_data: null
+  # tempo_logs: null
 
 networks:
   appnetwork:
