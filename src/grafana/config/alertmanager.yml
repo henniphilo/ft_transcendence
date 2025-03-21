@@ -4,7 +4,7 @@ global:
   smtp_from: '8881eb001@smtp-brevo.com'
   smtp_auth_username: '8881eb001@smtp-brevo.com'
   smtp_auth_password: 'Z8rOCaLt4b1EwTph'
-  smtp_require_tls: false
+  smtp_require_tls: true
   # smtp_smarthost: '${EMAIL_HOST}:587'
   # smtp_from: '${EMAIL_HOST_USER}'        
   # smtp_auth_username: '${EMAIL_HOST_USER}'    
