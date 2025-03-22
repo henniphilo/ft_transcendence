@@ -85,3 +85,65 @@ develop:
 
 This is a great feature for speeding up development, especially when working with configuration files that need to be updated frequently.
 
+
+## Volumes overwriting my files
+
+If you removed the volume from your Docker Compose file but want to ensure the old volume data is **not reused**, follow these steps to clean up and rebuild your Logstash setup:
+
+---
+
+### **1. Remove the Old Logstash Container and Volume**
+First, delete the existing Logstash container and its associated volumes:
+
+```bash
+# Stop and remove the Logstash container
+docker-compose rm -fvs logstash
+
+# Remove any dangling volumes (including old Logstash volumes)
+docker volume prune
+```
+
+---
+
+### **2. Rebuild the Logstash Image**
+Rebuild your Logstash image to ensure the new configuration (`logstash.conf`) is baked into the image (not overridden by volumes):
+
+```bash
+# Rebuild with --no-cache to avoid cached layers
+docker-compose build --no-cache logstash
+```
+
+---
+
+### **3. Start Fresh Containers**
+Bring up the services again, forcing Docker Compose to recreate everything:
+
+```bash
+# Recreate containers (no old volumes will be attached)
+docker-compose up -d --force-recreate logstash
+```
+
+---
+
+### **4. Verify the Configuration**
+Ensure the new `logstash.conf` is inside the container and being used:
+
+```bash
+# Check if the config file exists in the container
+docker exec logstash ls -l /opt/bitnami/logstash/pipeline/
+
+# View Logstash logs to confirm no errors
+docker logs logstash
+```
+
+---
+
+### **Key Notes**
+1. **Why Volumes Cause Issues**:
+   - If you previously mounted a host directory (e.g., `./logstash/pipeline:/usr/share/logstash/pipeline`), the host files would override the files in the container. By removing the volume, the files inside the Docker image (copied via `COPY` in the Dockerfile) will take precedence.
+
+2. **Docker Volume Pruning**:
+   - The `docker volume prune` command removes all unused volumes. This ensures no stale data from previous runs persists.
+
+3. **Bitnami Logstash Paths**:
+   - The Bitnami Logstash image uses `/opt/bitnami/logstash/pipeline/` for pipeline configurations (not `/usr/share/logstash/pipeline`). Your Dockerfile already copies files to the correct location.
