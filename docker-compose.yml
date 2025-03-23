@@ -340,6 +340,7 @@ services:
 #       retries: 3
   
   elasticsearch:
+    <<: *common
     image: elasticsearch:8.17.0
     profiles: ["elkprofile"]
     container_name: elasticsearch
@@ -391,6 +392,7 @@ services:
 
 
   kibana:
+    <<: *common
     image: kibana:8.17.0
     container_name: kibana
     profiles: ["elkprofile"]
