@@ -1,1 +1,1 @@
-FROM bitnami/elasticsearch:8.15.0
+# FROM bitnami/elasticsearch:8.15.0
