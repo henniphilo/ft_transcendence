@@ -982,7 +982,10 @@
 	"templating": {
 	  "list": [
 		{
-		  "current": {},
+		  "current": {
+			"text": "Prometheus",
+			"value": "prometheus"
+		  },
 		  "name": "datasource",
 		  "options": [],
 		  "query": "prometheus",
@@ -1012,7 +1015,7 @@
 	},
 	"timepicker": {},
 	"timezone": "browser",
-	"title": "Node Exporter",
+	"title": "Host system stats",
 	"uid": "1",
 	"version": 1,
 	"weekStart": ""
