@@ -28,6 +28,11 @@ services:
       - postgres_logs:/var/log/postgresql
     environment:
       PGDATA: /var/lib/postgresql/data
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "postgres"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5432"]
       interval: 10s
@@ -64,6 +69,11 @@ services:
     volumes:
       - redis_data:/data
       - redis_logs:/var/log/redis
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "redis"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"] 
       interval: 10s
@@ -90,6 +100,11 @@ services:
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
              daphne -b 0.0.0.0 -p 8000 backend.asgi:application"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
       interval: 10s
@@ -106,6 +121,11 @@ services:
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
     ports:
       - "8001:8001"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "game"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8001 || exit 1"]
       interval: 30s
@@ -131,6 +151,11 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - caddy_logs:/var/log/caddy
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "postgres"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
@@ -145,6 +170,11 @@ services:
       - appnetwork
     container_name: cloudflared
     restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "cloudflared"
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
   
   grafana:
@@ -169,6 +199,11 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "grafana"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 30s
@@ -206,6 +241,11 @@ services:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "prometheus"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
       interval: 30s
@@ -221,6 +261,11 @@ services:
       - appnetwork
     ports:
       - "9101:9100"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "node-exporter"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9100/-/healthy || exit 1"]
       interval: 30s
@@ -243,6 +288,11 @@ services:
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
     ports:
       - "9093:9093"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "alertmanager"
 
   promtail:
     <<: *common
@@ -268,21 +318,44 @@ services:
       timeout: 10s
       retries: 5
 
+#   elasticsearch:
+#     <<: *common
+#     container_name: elasticsearch
+#     image: bitnami/elasticsearch:8.15.0
+#     profiles: ["elkprofile"]
+#     networks:
+#       - appnetwork
+#     environment:
+#       - discovery.type=single-node
+#       - xpack.security.enabled=false # Disable security for development (enable in production)
+#       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # Adjust memory as needed
+#     ports:
+#       - "9200:9200"
+#     volumes:
+#       - elasticsearch_data:/bitnami/elasticsearch/data
+#     healthcheck:
+#       test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+  
   elasticsearch:
-    <<: *common
-    container_name: elasticsearch
-    image: bitnami/elasticsearch:8.15.0
+    image: elasticsearch:7.16.2
     profiles: ["elkprofile"]
+    container_name: elasticsearch
+    restart: always
+    volumes:
+    - elastic_data:/usr/share/elasticsearch/data/
+    environment:
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+      - discovery.type=single-node
+    #   - xpack.security.enabled=true  # Enable security    
+    #   - ELASTIC_PASSWORD=yourpassword  # Set Elasticsearch password    
+    ports:
+    - '9200:9200'
+    - '9300:9300'
     networks:
       - appnetwork
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false # Disable security for development (enable in production)
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # Adjust memory as needed
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
       interval: 30s
@@ -294,29 +367,38 @@ services:
     container_name: logstash
     build: ./src/elk/logstash
     profiles: ["elkprofile"]
+    restart: always
+    command: logstash -f /logstash_dir/logstash.conf 
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5000:5000/udp"  # Expose UDP port 5000 for syslog
+      - '9600:9600'
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"    
     networks:
       - appnetwork
-    # volumes:
-    #   - ./logstash/pipeline:/usr/share/logstash/pipeline/
-    ports:
-      - "5044:5044" # Beats input
-      - "9600:9600" # Logstash API
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
+    volumes:
+      - caddy_logs:/var/log/caddy
+      - django_logs:/app/logs
+      - postgres_logs:/var/log/postgresql
+      - redis_logs:/var/log/redis
+      - grafana_logs:/var/log/grafana
+
 
   kibana:
-    <<: *common
+    image: kibana:7.16.2
     container_name: kibana
-    # build: ./src/elk/kibana
-    image: bitnami/kibana:8.15.0
     profiles: ["elkprofile"]
+    restart: always       
+    ports:
+    - '5601:5601'
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200  
+    #   - ELASTICSEARCH_USERNAME=kibana_system
+    #   - ELASTICSEARCH_PASSWORD=yourpassword  # Set Kibana system password
     networks:
       - appnetwork
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -325,6 +407,44 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+
+#   logstash:
+#     <<: *common
+#     container_name: logstash
+#     build: ./src/elk/logstash
+#     profiles: ["elkprofile"]
+    # networks:
+    #   - appnetwork
+#     volumes:
+#       - logstash-persistence:/bitnami
+#     ports:
+#       - "5044:5044" # Beats input
+#       - "9600:9600" # Logstash API
+#     depends_on:
+#       elasticsearch:
+#         condition: service_healthy
+
+#   kibana:
+#     <<: *common
+#     container_name: kibana
+#     # build: ./src/elk/kibana
+#     image: bitnami/kibana:8.15.0
+#     profiles: ["elkprofile"]
+#     networks:
+#       - appnetwork
+#     environment:
+#       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+#     ports:
+#       - "5601:5601"
+#     depends_on:
+#       elasticsearch:
+#         condition: service_healthy
+#     healthcheck:
+#       test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
 
 volumes:
   caddy_logs: null
@@ -338,9 +458,9 @@ volumes:
   grafana_provisioning: null
   prometheus_data: null
   portainer-data: null
-  elasticsearch_data: null
-  kibana_data: null
-  # logstash_data: null
+  elastic_data: null
+#   logstash-persistence: null
+#   kibana_data: null
   promtail_logs: null
 
   # loki_logs: null
