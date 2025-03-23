@@ -349,7 +349,7 @@ services:
     environment:
       - ES_JAVA_OPTS=-Xmx256m -Xms256m
       - discovery.type=single-node
-      - xpack.security.enabled=true  # Enable security    
+    #   - xpack.security.enabled=true  # Enable security    
       - ELASTIC_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Elasticsearch password    
     ports:
     - '9200:9200'
@@ -357,7 +357,7 @@ services:
     networks:
       - appnetwork
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -f https://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -377,7 +377,7 @@ services:
     environment:
       - LS_JAVA_OPTS=-Xmx256m -Xms256m
       - xpack.monitoring.enabled=true
-      - xpack.monitoring.elasticsearch.hosts=https://elasticsearch:9200
+      - xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200
       - xpack.monitoring.elasticsearch.username=elastic
       - xpack.monitoring.elasticsearch.password=LYCGEtv92deGJROBL*lp    
     networks:
@@ -398,7 +398,7 @@ services:
     ports:
     - '5601:5601'
     environment:
-      - ELASTICSEARCH_URL=https://elasticsearch:9200  
+      - ELASTICSEARCH_URL=http://elasticsearch:9200  
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Kibana system password
     #   - xpack.encryptedSavedObjects.encryptionKey=<5880da9738edab6101dc26330c2fafca>
@@ -406,9 +406,9 @@ services:
     #   - xpack.security.encryptionKey=<789dcf21ca81e07d37c6aa2c23742021>
     networks:
       - appnetwork
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
+    # depends_on:
+    #   elasticsearch:
+    #     condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
       interval: 30s
