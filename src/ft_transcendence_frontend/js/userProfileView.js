@@ -16,6 +16,13 @@ export class UserProfileView {
             backButton.addEventListener('click', () => {
                 // Zurück zum Menü mit dem aktuellen Benutzerprofil
                 console.log("Zurück zum Menü mit Profil:", this.currentUserProfile);
+                
+                // Stelle sicher, dass das Profil im localStorage gespeichert ist
+                if (this.currentUserProfile) {
+                    localStorage.setItem('userProfile', JSON.stringify(this.currentUserProfile));
+                }
+                
+                // Zurück zum Menü mit dem aktuellen Benutzerprofil
                 window.showTemplate('menu', { userProfile: this.currentUserProfile });
             });
         }

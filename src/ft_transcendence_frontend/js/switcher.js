@@ -60,8 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Menu wird eingerichtet mit Profil:", userProfile);
         
         // Stelle sicher, dass ein gültiges Benutzerprofil vorhanden ist
-        if (!userProfile || typeof userProfile !== 'object') {
-            console.error("Ungültiges Benutzerprofil:", userProfile);
+        if (!userProfile || typeof userProfile !== 'object' || Object.keys(userProfile).length === 0) {
+            console.log("Kein gültiges Profil übergeben, versuche aus localStorage zu laden");
             // Versuche, das Profil aus dem localStorage zu laden
             const storedProfile = localStorage.getItem('userProfile');
             if (storedProfile) {
@@ -70,32 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.log("Profil aus localStorage geladen:", userProfile);
                 } catch (e) {
                     console.error("Fehler beim Parsen des gespeicherten Profils:", e);
-                    // Fallback zu einem leeren Profil
-                    userProfile = {
-                        username: "Unknown",
-                        avatar: "/assets/default-avatar.png",
-                        email: "",
-                        bio: "",
-                        birth_date: ""
-                    };
                 }
-            } else {
-                // Fallback zu einem leeren Profil
-                userProfile = {
-                    username: "Unknown",
-                    avatar: "/assets/default-avatar.png",
-                    email: "",
-                    bio: "",
-                    birth_date: ""
-                };
             }
         }
         
-        // Speichere das Profil im localStorage für spätere Verwendung
-        localStorage.setItem('userProfile', JSON.stringify(userProfile));
-        
         // Initialisiere die MenuDisplay-Klasse mit dem Benutzerprofil
-        const menuDisplay = new MenuDisplay(userProfile);
+        window.menuDisplay = new MenuDisplay(userProfile);
     }
 
     function setupGameScreen(data) {
