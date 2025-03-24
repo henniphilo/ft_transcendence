@@ -71,7 +71,7 @@ def send_verification_code(request):
         send_mail(
             'Your Verification Code',
             f'Your code is {user.verification_code}',
-            'omio@musikbirne.de',
+            'u-acht@pongbahnhof.de',
             [email]
         )
         return Response({"message": "Verification code sent."})

@@ -2,8 +2,9 @@ FROM prom/prometheus:v3.2.1
 
 
 COPY config/prometheus.yml /etc/prometheus/prometheus.yml
-COPY config/rules.yaml /etc/prometheus/config/rules.yaml
-COPY config/alerts.yaml /etc/prometheus/config/alerts.yaml
+COPY config/rules.yaml /etc/prometheus/rules.yaml
+COPY config/alerts.yaml /etc/prometheus/alerts.yaml
+COPY config/node_rules.yaml /etc/prometheus/config/node_rules.yaml
 
 EXPOSE 9090
 
