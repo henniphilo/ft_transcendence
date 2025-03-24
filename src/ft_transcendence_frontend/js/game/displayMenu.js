@@ -1077,12 +1077,15 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
     friendsHandler.getFriends().then(friends => {
         const friendUsernames = friends.map(friend => friend.username);
         
+        // Hole den aktuellen Benutzernamen aus dem menuDisplay-Objekt
+        const currentUsername = window.menuDisplay ? window.menuDisplay.userProfile.username : '';
+        
         onlineUsers.forEach(user => {
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             
             // Prüfe, ob der Benutzer der aktuelle Benutzer ist
-            const isCurrentUser = user.username === menuDisplay.userProfile.username;
+            const isCurrentUser = user.username === currentUsername;
             // Prüfe, ob der Benutzer bereits ein Freund ist
             const isAlreadyFriend = friendUsernames.includes(user.username);
             
@@ -1109,7 +1112,9 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                     await friendsHandler.addFriend(username);
                     alert(`${username} has been added as a friend!`);
                     // Aktualisiere sowohl die Freundesliste als auch die Online-Benutzer-Liste
-                    menuDisplay.loadFriendsList();
+                    if (window.menuDisplay) {
+                        window.menuDisplay.loadFriendsList();
+                    }
                     OnlineUsersHandler.fetchOnlineUsers();
                 } catch (error) {
                     console.error('Error adding friend:', error);
