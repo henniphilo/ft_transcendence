@@ -640,11 +640,8 @@ export class MenuDisplay {
                     listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                     
                     listItem.innerHTML = `
-                        <span>${friend.username}</span>
+                        <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary view-profile-btn" data-username="${friend.username}">
-                                <i class="bi bi-person"></i>
-                            </button>
                             <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
                                 <i class="bi bi-chat"></i>
                             </button>
@@ -657,37 +654,39 @@ export class MenuDisplay {
                     friendsList.appendChild(listItem);
                 });
                 
-                // Event-Listener für die Buttons
-                friendsList.querySelectorAll('.view-profile-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const username = e.currentTarget.dataset.username;
-                        this.viewFriendProfile(username);
+                // Event-Listener für die Namen
+                if (window.menuDisplay) {
+                    friendsList.querySelectorAll('.friend-name').forEach(nameSpan => {
+                        nameSpan.addEventListener('click', (e) => {
+                            const username = e.currentTarget.dataset.username;
+                            window.menuDisplay.viewFriendProfile(username);
+                        });
                     });
-                });
-                
-                friendsList.querySelectorAll('.chat-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const username = e.currentTarget.dataset.username;
-                        this.openChatWithFriend(username);
+                    
+                    friendsList.querySelectorAll('.chat-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const username = e.currentTarget.dataset.username;
+                            window.menuDisplay.openChatWithFriend(username);
+                        });
                     });
-                });
-                
-                friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const username = e.currentTarget.dataset.username;
-                        if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
-                            try {
-                                await this.friendsHandler.removeFriend(username);
-                                // Aktualisiere die Freundesliste und die Online-Benutzer-Liste
-                                this.loadFriendsList();
-                                OnlineUsersHandler.fetchOnlineUsers();
-                            } catch (error) {
-                                console.error('Error removing friend:', error);
-                                alert('Error removing friend. Please try again later.');
+                    
+                    friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const username = e.currentTarget.dataset.username;
+                            if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
+                                try {
+                                    await this.friendsHandler.removeFriend(username);
+                                    // Aktualisiere die Freundesliste und die Online-Benutzer-Liste
+                                    this.getFriends();
+                                    OnlineUsersHandler.fetchOnlineUsers();
+                                } catch (error) {
+                                    console.error('Error removing friend:', error);
+                                    alert('Error removing friend. Please try again later.');
+                                }
                             }
-                        }
+                        });
                     });
-                });
+                }
             }
         } catch (error) {
             console.error('Error loading friends list:', error);
@@ -1132,7 +1131,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
             
             // Aktualisiere den Inhalt
             listItem.innerHTML = `
-                <span>${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+                <span class="user-name" data-username="${user.username}" style="cursor: pointer;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
                 ${!isCurrentUser && !isAlreadyFriend ? `
                     <button class="btn btn-sm btn-outline-success add-friend-btn" 
                             data-username="${user.username}">
@@ -1155,6 +1154,19 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
         // Stelle den Scroll-Zustand wieder her
         usersList.scrollTop = scrollTop;
         
+        // Event-Listener für die Namen
+        usersList.querySelectorAll('.user-name').forEach(nameSpan => {
+            nameSpan.addEventListener('click', (e) => {
+                const username = e.currentTarget.dataset.username;
+                // Zeige das Profil nur an, wenn es nicht der aktuelle Benutzer ist
+                if (username !== currentUsername) {
+                    if (window.menuDisplay) {
+                        window.menuDisplay.viewFriendProfile(username);
+                    }
+                }
+            });
+        });
+        
         // Event-Listener für "Add Friend" Buttons
         usersList.querySelectorAll('.add-friend-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -1164,81 +1176,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                     alert(`${username} has been added as a friend!`);
                     
                     // Aktualisiere sowohl die Freundesliste als auch die Online-Benutzer-Liste
-                    if (window.menuDisplay) {
-                        // Direkt die Freundesliste aktualisieren
-                        const updatedFriends = await friendsHandler.getFriends();
-                        const friendsList = document.getElementById('friends-list');
-                        
-                        if (friendsList) {
-                            console.log("Aktualisiere Freundesliste nach Hinzufügen:", updatedFriends);
-                            
-                            // Wenn die Liste leer ist, zeige eine Nachricht an
-                            if (!updatedFriends || updatedFriends.length === 0) {
-                                friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
-                            } else {
-                                // Leere die Liste und füge die Freunde hinzu
-                                friendsList.innerHTML = '';
-                                
-                                updatedFriends.forEach(friend => {
-                                    const listItem = document.createElement('li');
-                                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-                                    
-                                    listItem.innerHTML = `
-                                        <span>${friend.username}</span>
-                                        <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-primary view-profile-btn" data-username="${friend.username}">
-                                                <i class="bi bi-person"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
-                                                <i class="bi bi-chat"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger remove-friend-btn" data-username="${friend.username}">
-                                                <i class="bi bi-person-dash"></i>
-                                            </button>
-                                        </div>
-                                    `;
-                                    
-                                    friendsList.appendChild(listItem);
-                                });
-                                
-                                // Event-Listener für die Buttons
-                                if (window.menuDisplay) {
-                                    friendsList.querySelectorAll('.view-profile-btn').forEach(btn => {
-                                        btn.addEventListener('click', (e) => {
-                                            const username = e.currentTarget.dataset.username;
-                                            window.menuDisplay.viewFriendProfile(username);
-                                        });
-                                    });
-                                    
-                                    friendsList.querySelectorAll('.chat-btn').forEach(btn => {
-                                        btn.addEventListener('click', (e) => {
-                                            const username = e.currentTarget.dataset.username;
-                                            window.menuDisplay.openChatWithFriend(username);
-                                        });
-                                    });
-                                    
-                                    friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
-                                        btn.addEventListener('click', async (e) => {
-                                            const username = e.currentTarget.dataset.username;
-                                            if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
-                                                try {
-                                                    await friendsHandler.removeFriend(username);
-                                                    // Aktualisiere die Freundesliste und die Online-Benutzer-Liste
-                                                    window.menuDisplay.loadFriendsList();
-                                                    OnlineUsersHandler.fetchOnlineUsers();
-                                                } catch (error) {
-                                                    console.error('Error removing friend:', error);
-                                                    alert('Error removing friend. Please try again later.');
-                                                }
-                                            }
-                                        });
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Aktualisiere auch die Online-Benutzer-Liste
+                    friendsHandler.getFriends();
                     OnlineUsersHandler.fetchOnlineUsers();
                 } catch (error) {
                     console.error('Error adding friend:', error);
@@ -1285,7 +1223,7 @@ FriendsHandler.prototype.getFriends = async function() {
     }
 };
 
-// Füge eine neue Methode hinzu, um die Anzeige der Freundesliste zu aktualisieren
+// Modifiziere die updateFriendsListDisplay-Methode, um den Namen klickbar zu machen
 FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
     const friendsList = document.getElementById('friends-list');
     if (!friendsList) return;
@@ -1306,11 +1244,8 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
         listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
         
         listItem.innerHTML = `
-            <span>${friend.username}</span>
+            <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
             <div class="btn-group">
-                <button class="btn btn-sm btn-outline-primary view-profile-btn" data-username="${friend.username}">
-                    <i class="bi bi-person"></i>
-                </button>
                 <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
                     <i class="bi bi-chat"></i>
                 </button>
@@ -1323,10 +1258,10 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
         friendsList.appendChild(listItem);
     });
     
-    // Event-Listener für die Buttons
+    // Event-Listener für die Namen
     if (window.menuDisplay) {
-        friendsList.querySelectorAll('.view-profile-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        friendsList.querySelectorAll('.friend-name').forEach(nameSpan => {
+            nameSpan.addEventListener('click', (e) => {
                 const username = e.currentTarget.dataset.username;
                 window.menuDisplay.viewFriendProfile(username);
             });
