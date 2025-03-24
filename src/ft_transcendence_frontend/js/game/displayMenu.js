@@ -19,7 +19,7 @@ export class MenuDisplay {
         // const wsPort = "8001"; // Falls der Port sich ändern soll, könnte dies auch dynamisch gesetzt werden
         // this.ws = new WebSocket(`${wsProtocol}${wsHost}:${wsPort}/ws/menu`);
 
-        
+
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
         const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
@@ -118,24 +118,24 @@ export class MenuDisplay {
                 formData.append('tournament_name', tournamentName);
 
                 const result = await ProfileHandler.updateProfile(formData);
-                
+
                 // Aktualisiere die lokalen Daten
                 this.userProfile.bio = bio;
                 this.userProfile.birth_date = birthDate;
                 this.userProfile.tournament_name = tournamentName;
-                
+
                 // Aktualisiere die Anzeige
                 if (this.elements.bio) this.elements.bio.textContent = bio;
                 if (this.elements.birthDate) this.elements.birthDate.textContent = birthDate;
                 if (this.elements.tournamentName) this.elements.tournamentName.textContent = tournamentName;
-                
+
                 modal.hide();
-                
+
                 // Entferne das Modal aus dem DOM nach dem Schließen
                 document.getElementById('editProfileModal').addEventListener('hidden.bs.modal', function () {
                     document.body.removeChild(modalElement);
                 });
-                
+
             } catch (error) {
                 console.error('Error updating profile:', error);
                 alert('Failed to update profile. Please try again.');
@@ -162,7 +162,7 @@ export class MenuDisplay {
                     <div class="col-md-4">
                         <div class="card mb-4">
                             <div class="card-header profile-header">
-                                <h2 class="mb-0">Menu</h2>
+                                <h3 class="mb-0">Menu</h3>
                             </div>
                             <div class="card-body profile-card">
                                 <div id="menu-options" class="d-grid gap-3"></div>
@@ -177,7 +177,7 @@ export class MenuDisplay {
                             <div class="card-body profile-card">
                                 <div class="row">
                                     <div class="col-md-4 text-center">
-                                        <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}" 
+                                        <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}"
                                              alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
                                         <div class="mb-3">
                                             <label for="avatar-input" class="form-label">Change Avatar:</label>
@@ -260,12 +260,21 @@ export class MenuDisplay {
             button.style.marginBottom = '10px';
             button.textContent = item.text;
             button.onclick = () => this.handleMenuClick(item.id);
+
+            button.onmouseover = () => {
+                button.style.backgroundColor = '#d7eb25'; // Hellere Farbe beim Hover
+                button.style.border = 'black';
+            };
+            button.onmouseout = () => {
+                button.style.backgroundColor = '#8c9900'; // Zurück zur ursprünglichen Farbe
+            };
+
             this.container.querySelector('#menu-options').appendChild(button);
         });
 
         // Starte das Polling für Online-User
         OnlineUsersHandler.startPolling(this.friendsHandler);
-        
+
         // Lade die Freundesliste
         this.loadFriendsList();
     }
@@ -299,7 +308,7 @@ export class MenuDisplay {
             localStorage.removeItem('refreshToken');
 
             console.log('Logout erfolgreich');
-            
+
             // Statt zu /login weiterzuleiten, zeigen wir das Signup-Template an
             showTemplate('signup');
         } catch (error) {
@@ -400,14 +409,14 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-        
+
         switch (data.action) {
             case 'searching_opponent':
                 console.log("Started searching for opponent...");
                 // Hier sollte der Suchbildschirm angezeigt werden
                 this.displaySearchingScreen(data.message || "Searching for opponent...");
                 break;
-            
+
             case 'game_found':
                 console.log("Match found! Game ID:", data.game_id);
                 console.log("Player1:", data.player1);
@@ -558,7 +567,7 @@ export class MenuDisplay {
 
     displaySearchingScreen(message) {
         console.log("Displaying search screen with message:", message);
-        
+
         this.container.innerHTML = `
             <div class="container py-5">
                 <div class="card text-center">
@@ -692,7 +701,7 @@ export class MenuDisplay {
             console.error('Error loading friends list:', error);
         }
     }
-    
+
     viewFriendProfile(username) {
         // Wechsle zum Benutzerprofil-Template und übergebe den Benutzernamen und das aktuelle Benutzerprofil
         window.showTemplate('userProfile', {
