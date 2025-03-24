@@ -605,79 +605,86 @@ export class MenuDisplay {
                 </div>
             </div>
         `;
+        
+        // Starte das Polling für die Freundesliste
+        this.startFriendsListPolling();
     }
 
     async loadFriendsList() {
         try {
-            const friendsList = document.getElementById('friends-list');
-            if (!friendsList) return;
-
-            // Freunde vom Server abrufen
-            const friends = await this.friendsHandler.getFriends();
-            
-            // Liste leeren
-            friendsList.innerHTML = '';
-            
-            if (friends.length === 0) {
-                friendsList.innerHTML = '<li class="list-group-item text-center" id="no-friends-message">No friends found</li>';
-                return;
+            // Erstelle eine Instanz des FriendsHandler, falls noch nicht vorhanden
+            if (!this.friendsHandler) {
+                this.friendsHandler = new FriendsHandler();
             }
             
-            // Freunde anzeigen
-            friends.forEach(friend => {
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            // Hole die Freundesliste
+            const friends = await this.friendsHandler.getFriends();
+            
+            // Aktualisiere die Anzeige der Freundesliste
+            const friendsList = document.getElementById('friends-list');
+            if (friendsList) {
+                friendsList.innerHTML = '';
                 
-                listItem.innerHTML = `
-                    <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button class="btn btn-sm btn-outline-primary chat-with-friend-btn" 
-                                data-username="${friend.username}">
-                            <i class="bi bi-chat-dots"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger remove-friend-btn" 
-                                data-username="${friend.username}">
-                            <i class="bi bi-person-dash"></i>
-                        </button>
-                    </div>
-                `;
+                if (friends.length === 0) {
+                    friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
+                    return;
+                }
                 
-                friendsList.appendChild(listItem);
-            });
-            
-            // Event-Listener für die Namen (zum Profil)
-            document.querySelectorAll('.friend-name').forEach(nameSpan => {
-                nameSpan.addEventListener('click', (e) => {
-                    const username = e.currentTarget.dataset.username;
-                    this.viewFriendProfile(username);
+                friends.forEach(friend => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    
+                    // Erstelle den HTML-Inhalt für den Freund
+                    listItem.innerHTML = `
+                        <span>${friend.username}</span>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary view-profile-btn" data-username="${friend.username}">
+                                <i class="bi bi-person"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
+                                <i class="bi bi-chat"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger remove-friend-btn" data-username="${friend.username}">
+                                <i class="bi bi-person-dash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    friendsList.appendChild(listItem);
                 });
-            });
-            
-            // Event-Listener für den Chat-Button
-            document.querySelectorAll('.chat-with-friend-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const username = e.currentTarget.dataset.username;
-                    this.openChatWithFriend(username);
+                
+                // Event-Listener für die Buttons
+                friendsList.querySelectorAll('.view-profile-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const username = e.currentTarget.dataset.username;
+                        this.viewFriendProfile(username);
+                    });
                 });
-            });
-            
-            // Event-Listener für den Remove-Button
-            document.querySelectorAll('.remove-friend-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const username = e.currentTarget.dataset.username;
-                    if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
-                        try {
-                            await this.friendsHandler.removeFriend(username);
-                            alert(`${username} has been removed from your friends.`);
-                            this.loadFriendsList(); // Liste aktualisieren
-                        } catch (error) {
-                            console.error('Error removing friend:', error);
-                            alert('Error removing friend. Please try again.');
+                
+                friendsList.querySelectorAll('.chat-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const username = e.currentTarget.dataset.username;
+                        this.openChatWithFriend(username);
+                    });
+                });
+                
+                friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const username = e.currentTarget.dataset.username;
+                        if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
+                            try {
+                                await this.friendsHandler.removeFriend(username);
+                                // Aktualisiere die Freundesliste und die Online-Benutzer-Liste
+                                this.loadFriendsList();
+                                OnlineUsersHandler.fetchOnlineUsers();
+                            } catch (error) {
+                                console.error('Error removing friend:', error);
+                                alert('Error removing friend. Please try again later.');
+                            }
                         }
-                    }
+                    });
                 });
-            });
-            
+            }
         } catch (error) {
             console.error('Error loading friends list:', error);
         }
@@ -691,10 +698,348 @@ export class MenuDisplay {
         });
     }
 
-    // Neue Methode zum Öffnen eines Chats mit einem Freund
-    openChatWithFriend(username) {
-        alert(`Chat with ${username} (not implemented yet)`);
-        // Hier später die Implementierung für den Chat
+    async openChatWithFriend(username) {
+        // Prüfe zuerst, ob der Benutzer blockiert ist
+        const isBlocked = await this.isUserBlocked(username);
+        
+        // Erstelle ein Chat-Modal
+        const modalContent = `
+            <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header" style="background-color: #8c9900; color: white;">
+                            <h5 class="modal-title" id="chatModalLabel">Chat with ${username}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" style="background-color: #b9a84cc0; height: 300px;">
+                            <div id="chat-messages" class="chat-messages mb-3" style="height: 200px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 5px;"></div>
+                            <div class="input-group">
+                                <input type="text" id="chat-input" class="form-control" placeholder="Enter message...">
+                                <button class="btn btn-primary-custom d-flex align-items-center" id="send-message-btn">Send</button>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            ${isBlocked ? 
+                                `<button type="button" class="btn btn-success" id="unblock-user-btn">Unblock User</button>` : 
+                                `<button type="button" class="btn btn-danger" id="block-user-btn">Block User</button>`
+                            }
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Füge das Modal zum DOM hinzu
+        const modalElement = document.createElement('div');
+        modalElement.innerHTML = modalContent;
+        document.body.appendChild(modalElement);
+
+        // Zeige das Modal an
+        const modal = new bootstrap.Modal(document.getElementById('chatModal'));
+        modal.show();
+
+        // Verbinde mit dem WebSocket
+        this.initChatWebSocket(username);
+
+        // Event-Listener für den Senden-Button
+        document.getElementById('send-message-btn').addEventListener('click', () => {
+            this.sendChatMessage(username);
+        });
+
+        // Event-Listener für die Enter-Taste
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.sendChatMessage(username);
+            }
+        });
+
+        // Event-Listener für den Blockieren-Button (nur wenn nicht blockiert)
+        if (!isBlocked) {
+            document.getElementById('block-user-btn').addEventListener('click', () => {
+                this.blockUser(username);
+            });
+        } else {
+            // Event-Listener für den Entsperren-Button (nur wenn blockiert)
+            document.getElementById('unblock-user-btn').addEventListener('click', () => {
+                this.unblockUser(username);
+            });
+        }
+
+        // Entferne das Modal aus dem DOM nach dem Schließen
+        document.getElementById('chatModal').addEventListener('hidden.bs.modal', () => {
+            if (this.chatWs) {
+                this.chatWs.close();
+                this.chatWs = null;
+            }
+            document.body.removeChild(modalElement);
+        });
+    }
+
+    initChatWebSocket(username) {
+        // Hole den Token aus dem localStorage
+        const token = localStorage.getItem('accessToken');
+        
+        if (!token) {
+            this.addChatMessage('System', 'You are not logged in. Please log in.');
+            return;
+        }
+
+        // Erstelle die WebSocket-URL mit Token
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsHost = window.location.hostname;
+        const wsPort = window.location.protocol === "https:" ? "" : ":8000";
+        const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws_django/chat/?token=${token}`;
+        
+        console.log("Connecting to chat WebSocket:", wsUrl);
+        
+        this.chatWs = new WebSocket(wsUrl);
+        this.chatReceiver = username;
+        
+        this.chatWs.onopen = () => {
+            console.log('Chat WebSocket connected');
+            this.addChatMessage('System', 'Connection established. You can now chat.');
+        };
+        
+        this.chatWs.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Chat message received:', data);
+            
+            if (data.message) {
+                // Wenn die Nachricht von einem anderen Benutzer kommt
+                if (data.from) {
+                    // Hole den Benutzernamen des Absenders
+                    this.getUsernameById(data.from).then(senderUsername => {
+                        this.addChatMessage(senderUsername, data.message);
+                    });
+                } else {
+                    // System-Nachricht
+                    this.addChatMessage('System', data.message);
+                }
+            }
+        };
+        
+        this.chatWs.onerror = (error) => {
+            console.error('Chat WebSocket error:', error);
+            this.addChatMessage('System', 'Connection error. Please try again later.');
+        };
+        
+        this.chatWs.onclose = () => {
+            console.log('Chat WebSocket closed');
+            this.addChatMessage('System', 'Connection closed.');
+        };
+    }
+
+    async getUsernameById(userId) {
+        try {
+            // API-Aufruf, um den Benutzernamen anhand der ID zu erhalten
+            const response = await fetch(`/api/users/${userId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                return userData.username;
+            } else {
+                return 'Unbekannter Benutzer';
+            }
+        } catch (error) {
+            console.error('Fehler beim Abrufen des Benutzernamens:', error);
+            return 'Unbekannter Benutzer';
+        }
+    }
+
+    sendChatMessage(receiverUsername) {
+        const inputElement = document.getElementById('chat-input');
+        const message = inputElement.value.trim();
+        
+        if (!message) return;
+        
+        if (this.chatWs && this.chatWs.readyState === WebSocket.OPEN) {
+            // Finde die Benutzer-ID des Empfängers
+            this.getUserIdByUsername(receiverUsername).then(receiverId => {
+                if (receiverId) {
+                    const messageData = {
+                        message: message,
+                        receiver_id: receiverId
+                    };
+                    
+                    this.chatWs.send(JSON.stringify(messageData));
+                    this.addChatMessage(this.userProfile.username, message, true);
+                    inputElement.value = '';
+                } else {
+                    this.addChatMessage('System', 'Empfänger nicht gefunden.');
+                }
+            });
+        } else {
+            this.addChatMessage('System', 'Keine Verbindung zum Server. Bitte versuche es später erneut.');
+        }
+    }
+
+    async getUserIdByUsername(username) {
+        try {
+            // API-Aufruf, um die Benutzer-ID anhand des Benutzernamens zu erhalten
+            const response = await fetch(`/api/users/by-username/${username}/`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                return userData.id;
+            } else {
+                console.error('Benutzer nicht gefunden');
+                return null;
+            }
+        } catch (error) {
+            console.error('Fehler beim Abrufen der Benutzer-ID:', error);
+            return null;
+        }
+    }
+
+    addChatMessage(sender, message, isOwnMessage = false) {
+        const chatMessages = document.getElementById('chat-messages');
+        if (!chatMessages) return;
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = `chat-message ${isOwnMessage ? 'own-message' : 'other-message'} mb-2`;
+        
+        // Styling basierend auf dem Absender
+        if (sender === 'System') {
+            messageElement.style.color = '#6c757d';
+            messageElement.style.fontStyle = 'italic';
+            messageElement.style.textAlign = 'center';
+        } else if (isOwnMessage) {
+            messageElement.style.textAlign = 'right';
+            messageElement.style.backgroundColor = '#d1e7dd';
+            messageElement.style.padding = '5px 10px';
+            messageElement.style.borderRadius = '10px';
+            messageElement.style.maxWidth = '80%';
+            messageElement.style.marginLeft = 'auto';
+        } else {
+            messageElement.style.textAlign = 'left';
+            messageElement.style.backgroundColor = '#c3e6cb'; // Hellgrüner Hintergrund für empfangene Nachrichten
+            messageElement.style.color = '#155724'; // Dunkelgrüner Text für besseren Kontrast
+            messageElement.style.padding = '5px 10px';
+            messageElement.style.borderRadius = '10px';
+            messageElement.style.maxWidth = '80%';
+            messageElement.style.border = '1px solid #b1dfbb'; // Leichter Rahmen für mehr Struktur
+        }
+        
+        messageElement.innerHTML = `
+            ${sender !== 'System' ? `<strong>${sender}:</strong> ` : ''}${message}
+        `;
+        
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async blockUser(username) {
+        if (confirm(`Are you sure you want to block ${username}? You will no longer be able to exchange messages.`)) {
+            try {
+                const response = await fetch('/api/users/block/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+                
+                if (response.ok) {
+                    alert(`${username} has been blocked successfully.`);
+                    // Schließe das Chat-Modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('chatModal'));
+                    modal.hide();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error blocking user: ${errorData.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error blocking user:', error);
+                alert('Error blocking user. Please try again later.');
+            }
+        }
+    }
+
+    // Neue Methode zum Prüfen, ob ein Benutzer blockiert ist
+    async isUserBlocked(username) {
+        try {
+            // Hole die Liste der blockierten Benutzer
+            const response = await fetch('/api/users/blocked/', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            });
+            
+            if (response.ok) {
+                const blockedUsers = await response.json();
+                // Prüfe, ob der Benutzer in der Liste der blockierten Benutzer ist
+                return blockedUsers.some(user => user.username === username);
+            } else {
+                console.error('Fehler beim Abrufen der blockierten Benutzer');
+                return false;
+            }
+        } catch (error) {
+            console.error('Fehler beim Prüfen, ob der Benutzer blockiert ist:', error);
+            return false;
+        }
+    }
+
+    // Neue Methode zum Entsperren eines Benutzers
+    async unblockUser(username) {
+        if (confirm(`Are you sure you want to unblock ${username}? You will be able to exchange messages again.`)) {
+            try {
+                const response = await fetch('/api/users/unblock/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+                
+                if (response.ok) {
+                    alert(`${username} has been unblocked successfully.`);
+                    // Schließe das Chat-Modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('chatModal'));
+                    modal.hide();
+                    
+                    // Öffne den Chat erneut, um die Änderungen zu übernehmen
+                    setTimeout(() => this.openChatWithFriend(username), 500);
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error unblocking user: ${errorData.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error unblocking user:', error);
+                alert('Error unblocking user. Please try again later.');
+            }
+        }
+    }
+
+    startFriendsListPolling() {
+        // Sofort beim Start laden
+        this.loadFriendsList();
+        
+        // Dann alle 5 Sekunden aktualisieren (kürzeres Intervall für schnellere Updates)
+        if (this.friendsListInterval) {
+            clearInterval(this.friendsListInterval);
+        }
+        
+        this.friendsListInterval = setInterval(() => {
+            this.loadFriendsList();
+        }, 5000); // Auf 5 Sekunden reduziert für schnellere Updates
+    }
+
+    cleanup() {
+        if (this.friendsListInterval) {
+            clearInterval(this.friendsListInterval);
+            this.friendsListInterval = null;
+        }
     }
 }
 
@@ -708,6 +1053,13 @@ document.addEventListener('DOMContentLoaded', () => {
         birth_date: "01.01.1990"
     };
     menuDisplay = new MenuDisplay(userProfile);
+    
+    // Füge einen Event-Listener für das Beenden der Seite hinzu
+    window.addEventListener('beforeunload', () => {
+        if (menuDisplay) {
+            menuDisplay.cleanup();
+        }
+    });
 });
 
 OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler) {
@@ -721,38 +1073,51 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
         return;
     }
 
-    onlineUsers.forEach(user => {
-        const listItem = document.createElement('li');
-        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+    // Hole die aktuelle Freundesliste, um zu prüfen, ob ein Benutzer bereits ein Freund ist
+    friendsHandler.getFriends().then(friends => {
+        const friendUsernames = friends.map(friend => friend.username);
         
-        // Prüfe, ob der Benutzer der aktuelle Benutzer ist
-        const isCurrentUser = user.username === menuDisplay.userProfile.username;
-        
-        listItem.innerHTML = `
-            <span>${user.username} ${isCurrentUser ? '(You)' : ''}</span>
-            ${!isCurrentUser ? `
-                <button class="btn btn-sm btn-outline-success add-friend-btn" 
-                        data-username="${user.username}">
-                    <i class="bi bi-person-plus"></i> Add Friend
-                </button>
-            ` : ''}
-        `;
-        
-        usersList.appendChild(listItem);
-    });
-    
-    // Event-Listener für "Add Friend" Buttons
-    document.querySelectorAll('.add-friend-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const username = e.currentTarget.dataset.username;
-            try {
-                await friendsHandler.addFriend(username);
-                alert(`${username} wurde als Freund hinzugefügt!`);
-                menuDisplay.loadFriendsList(); // Freundesliste aktualisieren
-            } catch (error) {
-                console.error('Fehler beim Hinzufügen des Freundes:', error);
-                alert('Fehler beim Hinzufügen des Freundes. Möglicherweise seid ihr bereits befreundet.');
-            }
+        onlineUsers.forEach(user => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            
+            // Prüfe, ob der Benutzer der aktuelle Benutzer ist
+            const isCurrentUser = user.username === menuDisplay.userProfile.username;
+            // Prüfe, ob der Benutzer bereits ein Freund ist
+            const isAlreadyFriend = friendUsernames.includes(user.username);
+            
+            listItem.innerHTML = `
+                <span>${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+                ${!isCurrentUser && !isAlreadyFriend ? `
+                    <button class="btn btn-sm btn-outline-success add-friend-btn" 
+                            data-username="${user.username}">
+                        <i class="bi bi-person-plus"></i> Add Friend
+                    </button>
+                ` : isAlreadyFriend && !isCurrentUser ? `
+                    <span class="badge bg-success">Friend</span>
+                ` : ''}
+            `;
+            
+            usersList.appendChild(listItem);
         });
+        
+        // Event-Listener für "Add Friend" Buttons
+        document.querySelectorAll('.add-friend-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const username = e.currentTarget.dataset.username;
+                try {
+                    await friendsHandler.addFriend(username);
+                    alert(`${username} has been added as a friend!`);
+                    // Aktualisiere sowohl die Freundesliste als auch die Online-Benutzer-Liste
+                    menuDisplay.loadFriendsList();
+                    OnlineUsersHandler.fetchOnlineUsers();
+                } catch (error) {
+                    console.error('Error adding friend:', error);
+                    alert('Error adding friend. You might already be friends.');
+                }
+            });
+        });
+    }).catch(error => {
+        console.error('Error fetching friends list:', error);
     });
 };

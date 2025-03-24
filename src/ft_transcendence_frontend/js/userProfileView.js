@@ -15,6 +15,7 @@ export class UserProfileView {
         if (backButton) {
             backButton.addEventListener('click', () => {
                 // Zurück zum Menü mit dem aktuellen Benutzerprofil
+                console.log("Zurück zum Menü mit Profil:", this.currentUserProfile);
                 window.showTemplate('menu', { userProfile: this.currentUserProfile });
             });
         }
