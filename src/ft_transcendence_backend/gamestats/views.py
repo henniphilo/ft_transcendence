@@ -45,6 +45,32 @@ class GamestatsViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(games, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], url_path='stats/username/(?P<username>[^/.]+)')
+    def stats_by_username(self, request, username=None):
+        # Finde den Benutzer anhand des Benutzernamens
+        user = get_object_or_404(User, username=username)
+        
+        # Finde alle Spiele, bei denen der Benutzer teilgenommen hat
+        games = Gamestats.objects.filter(
+            models.Q(player1=user) | models.Q(player2=user)
+        )
+        
+        # Berechne die Statistiken
+        total_games = games.count()
+        wins = games.filter(winner=user).count()
+        losses = total_games - wins
+        win_rate = f"{round(wins / total_games * 100) if total_games > 0 else 0}%"
+        
+        # Erstelle ein Statistik-Objekt
+        stats = {
+            'total_games': total_games,
+            'wins': wins,
+            'losses': losses,
+            'win_rate': win_rate
+        }
+        
+        return Response(stats)
 
     @action(detail=False, methods=['get'], url_path='leaderboard')
     def leaderboard(self, request):
