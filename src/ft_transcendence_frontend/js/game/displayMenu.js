@@ -612,6 +612,8 @@ export class MenuDisplay {
 
     async loadFriendsList() {
         try {
+            console.log("Lade Freundesliste...");
+            
             // Erstelle eine Instanz des FriendsHandler, falls noch nicht vorhanden
             if (!this.friendsHandler) {
                 this.friendsHandler = new FriendsHandler();
@@ -619,22 +621,24 @@ export class MenuDisplay {
             
             // Hole die Freundesliste
             const friends = await this.friendsHandler.getFriends();
+            console.log("Freunde geladen:", friends);
             
             // Aktualisiere die Anzeige der Freundesliste
             const friendsList = document.getElementById('friends-list');
             if (friendsList) {
-                friendsList.innerHTML = '';
-                
-                if (friends.length === 0) {
+                // Wenn die Liste leer ist, zeige eine Nachricht an
+                if (!friends || friends.length === 0) {
                     friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
                     return;
                 }
+                
+                // Leere die Liste und füge die Freunde hinzu
+                friendsList.innerHTML = '';
                 
                 friends.forEach(friend => {
                     const listItem = document.createElement('li');
                     listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                     
-                    // Erstelle den HTML-Inhalt für den Freund
                     listItem.innerHTML = `
                         <span>${friend.username}</span>
                         <div class="btn-group">
@@ -1022,17 +1026,27 @@ export class MenuDisplay {
     }
 
     startFriendsListPolling() {
-        // Sofort beim Start laden
-        this.loadFriendsList();
+        console.log("Starte Polling für Freundesliste...");
         
-        // Dann alle 5 Sekunden aktualisieren (kürzeres Intervall für schnellere Updates)
+        // Erstelle eine Instanz des FriendsHandler, falls noch nicht vorhanden
+        if (!this.friendsHandler) {
+            this.friendsHandler = new FriendsHandler();
+        }
+        
+        // Sofort beim Start laden
+        this.friendsHandler.getFriends();
+        
+        // Dann alle 5 Sekunden aktualisieren
         if (this.friendsListInterval) {
             clearInterval(this.friendsListInterval);
         }
         
         this.friendsListInterval = setInterval(() => {
-            this.loadFriendsList();
-        }, 5000); // Auf 5 Sekunden reduziert für schnellere Updates
+            console.log("Polling-Intervall: Aktualisiere Freundesliste...");
+            this.friendsHandler.getFriends();
+        }, 5000);
+        
+        console.log("Polling für Freundesliste gestartet!");
     }
 
     cleanup() {
@@ -1148,10 +1162,83 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                 try {
                     await friendsHandler.addFriend(username);
                     alert(`${username} has been added as a friend!`);
+                    
                     // Aktualisiere sowohl die Freundesliste als auch die Online-Benutzer-Liste
                     if (window.menuDisplay) {
-                        window.menuDisplay.loadFriendsList();
+                        // Direkt die Freundesliste aktualisieren
+                        const updatedFriends = await friendsHandler.getFriends();
+                        const friendsList = document.getElementById('friends-list');
+                        
+                        if (friendsList) {
+                            console.log("Aktualisiere Freundesliste nach Hinzufügen:", updatedFriends);
+                            
+                            // Wenn die Liste leer ist, zeige eine Nachricht an
+                            if (!updatedFriends || updatedFriends.length === 0) {
+                                friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
+                            } else {
+                                // Leere die Liste und füge die Freunde hinzu
+                                friendsList.innerHTML = '';
+                                
+                                updatedFriends.forEach(friend => {
+                                    const listItem = document.createElement('li');
+                                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                    
+                                    listItem.innerHTML = `
+                                        <span>${friend.username}</span>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary view-profile-btn" data-username="${friend.username}">
+                                                <i class="bi bi-person"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
+                                                <i class="bi bi-chat"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger remove-friend-btn" data-username="${friend.username}">
+                                                <i class="bi bi-person-dash"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                                    
+                                    friendsList.appendChild(listItem);
+                                });
+                                
+                                // Event-Listener für die Buttons
+                                if (window.menuDisplay) {
+                                    friendsList.querySelectorAll('.view-profile-btn').forEach(btn => {
+                                        btn.addEventListener('click', (e) => {
+                                            const username = e.currentTarget.dataset.username;
+                                            window.menuDisplay.viewFriendProfile(username);
+                                        });
+                                    });
+                                    
+                                    friendsList.querySelectorAll('.chat-btn').forEach(btn => {
+                                        btn.addEventListener('click', (e) => {
+                                            const username = e.currentTarget.dataset.username;
+                                            window.menuDisplay.openChatWithFriend(username);
+                                        });
+                                    });
+                                    
+                                    friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
+                                        btn.addEventListener('click', async (e) => {
+                                            const username = e.currentTarget.dataset.username;
+                                            if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
+                                                try {
+                                                    await friendsHandler.removeFriend(username);
+                                                    // Aktualisiere die Freundesliste und die Online-Benutzer-Liste
+                                                    window.menuDisplay.loadFriendsList();
+                                                    OnlineUsersHandler.fetchOnlineUsers();
+                                                } catch (error) {
+                                                    console.error('Error removing friend:', error);
+                                                    alert('Error removing friend. Please try again later.');
+                                                }
+                                            }
+                                        });
+                                    });
+                                }
+                            }
+                        }
                     }
+                    
+                    // Aktualisiere auch die Online-Benutzer-Liste
                     OnlineUsersHandler.fetchOnlineUsers();
                 } catch (error) {
                     console.error('Error adding friend:', error);
@@ -1163,3 +1250,111 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
         console.error('Error fetching friends list:', error);
     });
 };
+
+// Modifiziere die FriendsHandler.getFriends-Methode, um sicherzustellen, dass sie immer die aktuellen Daten vom Server holt
+FriendsHandler.prototype.getFriends = async function() {
+    try {
+        console.log("FriendsHandler: Rufe Freundesliste ab...");
+        const accessToken = localStorage.getItem('accessToken');
+        const response = await fetch('/api/users/friends/list/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store' // Verhindere Caching
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Fehler beim Abrufen der Freundesliste: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("FriendsHandler: Freundesliste erhalten:", data);
+        
+        // Aktualisiere die gespeicherte Freundesliste
+        this.friends = data;
+        
+        // Aktualisiere die Anzeige der Freundesliste
+        this.updateFriendsListDisplay(data);
+        
+        return data;
+    } catch (error) {
+        console.error('FriendsHandler: Fehler beim Abrufen der Freundesliste:', error);
+        return [];
+    }
+};
+
+// Füge eine neue Methode hinzu, um die Anzeige der Freundesliste zu aktualisieren
+FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
+    const friendsList = document.getElementById('friends-list');
+    if (!friendsList) return;
+    
+    console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
+    
+    // Wenn die Liste leer ist, zeige eine Nachricht an
+    if (!friends || friends.length === 0) {
+        friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
+        return;
+    }
+    
+    // Leere die Liste und füge die Freunde hinzu
+    friendsList.innerHTML = '';
+    
+    friends.forEach(friend => {
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        listItem.innerHTML = `
+            <span>${friend.username}</span>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary view-profile-btn" data-username="${friend.username}">
+                    <i class="bi bi-person"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
+                    <i class="bi bi-chat"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger remove-friend-btn" data-username="${friend.username}">
+                    <i class="bi bi-person-dash"></i>
+                </button>
+            </div>
+        `;
+        
+        friendsList.appendChild(listItem);
+    });
+    
+    // Event-Listener für die Buttons
+    if (window.menuDisplay) {
+        friendsList.querySelectorAll('.view-profile-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const username = e.currentTarget.dataset.username;
+                window.menuDisplay.viewFriendProfile(username);
+            });
+        });
+        
+        friendsList.querySelectorAll('.chat-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const username = e.currentTarget.dataset.username;
+                window.menuDisplay.openChatWithFriend(username);
+            });
+        });
+        
+        friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const username = e.currentTarget.dataset.username;
+                if (confirm(`Are you sure you want to remove ${username} from your friends?`)) {
+                    try {
+                        await this.removeFriend(username);
+                        // Aktualisiere die Freundesliste und die Online-Benutzer-Liste
+                        this.getFriends();
+                        OnlineUsersHandler.fetchOnlineUsers();
+                    } catch (error) {
+                        console.error('Error removing friend:', error);
+                        alert('Error removing friend. Please try again later.');
+                    }
+                }
+            });
+        });
+    }
+};
+
