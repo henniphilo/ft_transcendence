@@ -104,3 +104,41 @@ input:focus {
   background-color: var(--background-color);
   border-color: var(--primary-color);
 }
+
+.chat-messages {
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  padding: 10px;
+  height: 200px;
+  overflow-y: auto;
+}
+
+.chat-message {
+  margin-bottom: 8px;
+  word-wrap: break-word;
+}
+
+.own-message {
+  text-align: right;
+  background-color: #d1e7dd;
+  padding: 5px 10px;
+  border-radius: 10px;
+  max-width: 80%;
+  margin-left: auto;
+}
+
+.other-message {
+  text-align: left;
+  background-color: #c3e6cb; /* Hellgrüner Hintergrund */
+  color: #155724; /* Dunkelgrüner Text */
+  padding: 5px 10px;
+  border-radius: 10px;
+  max-width: 80%;
+  border: 1px solid #b1dfbb; /* Leichter Rahmen */
+}
+
+.system-message {
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+}
