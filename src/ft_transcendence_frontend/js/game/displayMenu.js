@@ -1066,10 +1066,15 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
     const usersList = document.getElementById('online-users-list');
     if (!usersList) return;
 
-    usersList.innerHTML = '';
+    // Speichere den aktuellen Scroll-Zustand
+    const scrollTop = usersList.scrollTop;
 
+    // Wenn die Liste leer ist, zeige eine Nachricht an
     if (onlineUsers.length === 0) {
-        usersList.innerHTML = '<li class="list-group-item text-center">No players online</li>';
+        if (usersList.children.length === 0 || 
+            (usersList.children.length === 1 && !usersList.children[0].classList.contains('no-players'))) {
+            usersList.innerHTML = '<li class="list-group-item text-center no-players">No players online</li>';
+        }
         return;
     }
 
@@ -1080,15 +1085,38 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
         // Hole den aktuellen Benutzernamen aus dem menuDisplay-Objekt
         const currentUsername = window.menuDisplay ? window.menuDisplay.userProfile.username : '';
         
+        // Erstelle ein DocumentFragment für bessere Performance
+        const fragment = document.createDocumentFragment();
+        const existingItems = {};
+        
+        // Behalte bestehende Elemente bei, wenn möglich
+        Array.from(usersList.children).forEach(item => {
+            const username = item.querySelector('span')?.textContent.replace(' (You)', '');
+            if (username) {
+                existingItems[username] = item;
+            }
+        });
+        
+        // Aktualisiere oder erstelle Elemente für jeden Online-Benutzer
         onlineUsers.forEach(user => {
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            
             // Prüfe, ob der Benutzer der aktuelle Benutzer ist
             const isCurrentUser = user.username === currentUsername;
             // Prüfe, ob der Benutzer bereits ein Freund ist
             const isAlreadyFriend = friendUsernames.includes(user.username);
             
+            let listItem;
+            
+            // Verwende das bestehende Element, wenn vorhanden
+            if (existingItems[user.username]) {
+                listItem = existingItems[user.username];
+                delete existingItems[user.username]; // Entferne aus der Liste der bestehenden Elemente
+            } else {
+                // Erstelle ein neues Element
+                listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            }
+            
+            // Aktualisiere den Inhalt
             listItem.innerHTML = `
                 <span>${user.username} ${isCurrentUser ? '(You)' : ''}</span>
                 ${!isCurrentUser && !isAlreadyFriend ? `
@@ -1101,11 +1129,20 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                 ` : ''}
             `;
             
-            usersList.appendChild(listItem);
+            fragment.appendChild(listItem);
         });
         
+        // Entferne alle bestehenden Elemente
+        usersList.innerHTML = '';
+        
+        // Füge das Fragment zum DOM hinzu
+        usersList.appendChild(fragment);
+        
+        // Stelle den Scroll-Zustand wieder her
+        usersList.scrollTop = scrollTop;
+        
         // Event-Listener für "Add Friend" Buttons
-        document.querySelectorAll('.add-friend-btn').forEach(btn => {
+        usersList.querySelectorAll('.add-friend-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const username = e.currentTarget.dataset.username;
                 try {
