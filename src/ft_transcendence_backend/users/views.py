@@ -1,6 +1,6 @@
 # views.py
 
-from django.shortcuts import render  # eventuell nicht benötigt
+from django.shortcuts import render, get_object_or_404  # eventuell nicht benötigt
 from rest_framework import generics, serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -71,7 +71,7 @@ def send_verification_code(request):
         send_mail(
             'Your Verification Code',
             f'Your code is {user.verification_code}',
-            'supertabaluga@gmail.com',
+            'omio@musikbirne.de',
             [email]
         )
         return Response({"message": "Verification code sent."})
@@ -233,3 +233,50 @@ def get_online_users(request):
             online_users.append(json.loads(user_data))  # 🔥 JSON-String zu Python-Dict umwandeln
 
     return JsonResponse({"online_users": online_users})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_friend(request, username):
+    """ Freundschaft hinzufügen """
+    user = request.user
+    friend = get_object_or_404(CustomUser, username=username)
+
+    if user.is_friend(friend):
+        return Response({"detail": "Ihr seid bereits Freunde."}, status=400)
+
+    user.add_friend(friend)
+    return Response({"detail": f"{friend.username} wurde als Freund hinzugefügt!"})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_friend(request, username):
+    """ Freundschaft entfernen """
+    user = request.user
+    friend = get_object_or_404(CustomUser, username=username)
+
+    if not user.is_friend(friend):
+        return Response({"detail": "Ihr seid keine Freunde."}, status=400)
+
+    user.remove_friend(friend)
+    return Response({"detail": f"{friend.username} wurde als Freund entfernt."})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_friends(request):
+    """ Liste aller Freunde des eingeloggten Users """
+    friends = request.user.friends.all()
+    friend_list = [{"username": f.username, "tournament_name": f.tournament_name} for f in friends]
+    return Response(friend_list)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request, username):
+    """
+    Gibt das Profil eines bestimmten Benutzers zurück
+    """
+    try:
+        user = get_object_or_404(CustomUser, username=username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)

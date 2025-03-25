@@ -1,0 +1,18 @@
+FROM grafana/tempo:latest
+
+
+# Switch to root user to copy files and set permissions
+USER root
+
+# Copy the Tempo configuration file into the container
+COPY config/tempo.yml /etc/tempo.yml
+
+# Set correct permissions for the configuration file
+RUN chmod 644 /etc/tempo.yml
+
+# Create directories for Tempo data and logs
+RUN mkdir -p /tmp/tempo /var/log/tempo && \
+    chmod -R 777 /tmp/tempo /var/log/tempo
+
+# Switch back to the Tempo user
+USER tempo

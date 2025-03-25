@@ -4,6 +4,10 @@
 
 auth_enabled: false
 
+limits_config:
+  ingestion_rate_mb: 1024
+  ingestion_burst_size_mb: 1024
+
 server:
   http_listen_port: 3100
 

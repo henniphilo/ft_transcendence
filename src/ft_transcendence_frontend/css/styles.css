@@ -1,3 +1,131 @@
+/* Allgemeine Styles */
+:root {
+  --primary-color: #8c9900;
+  --secondary-color: #d7eb25;
+  --background-color: #b9a84cc0;
+  --login-background: #8e8658c0;
+  --text-light: white;
+  --text-dark: #333;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+}
+
+/* Card Styles */
+.auth-container {
+  background-color: #b9a84cc0 !important;
+  max-width: 400px !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+  margin: 0 auto !important;
+}
+
+.login-container {
+  background-color: #8e8658c0 !important;
+}
+
+.card-header-custom {
+  background-color: #8c9900 !important;
+  padding: 15px !important;
+  border-radius: 5px !important;
+  margin-bottom: 20px !important;
+}
+
+.card-header-custom h2 {
+  color: white !important;
+  margin-bottom: 0 !important;
+}
+
+/* Button Styles */
+.btn-primary-custom {
+  background-color: #8c9900 !important;
+  color: white !important;
+  border-color: #8c9900 !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  border-radius: 0.25rem !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  vertical-align: middle !important;
+  user-select: none !important;
+  border: 1px solid transparent !important;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, 
+              border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.btn-primary-custom:hover {
+  background-color: #7a8400 !important;
+  border-color: #7a8400 !important;
+}
+
+.btn-secondary-custom {
+  background-color: #d7eb25 !important;
+  color: #333 !important;
+  border-color: #d7eb25 !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  border-radius: 0.25rem !important;
+  cursor: pointer !important;
+  display: inline-block !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  vertical-align: middle !important;
+  user-select: none !important;
+  border: 1px solid transparent !important;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, 
+              border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.btn-secondary-custom:hover {
+  background-color: #c5d820 !important;
+  border-color: #c5d820 !important;
+}
+
+.link-light {
+  color: white !important;
+  text-decoration: underline !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  font-size: 1rem !important;
+}
+
+.link-light:hover {
+  color: #f0f0f0 !important;
+}
+
+/* Menu Styles */
+.menu-title {
+  color: #8c9900 !important;
+}
+
+/* Profile Styles */
+.profile-card, 
+.leaderboard-card {
+  background-color: #b9a84cc0 !important;
+}
+
+.profile-header, 
+.leaderboard-header {
+  background-color: #8c9900 !important;
+  color: white !important;
+}
+
+.online-players-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+.online-players-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 /* General Reset */
 * {
     margin: 0;
@@ -311,4 +439,49 @@ button:hover {
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   color: #47473b;
+}
+
+.friends-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+}
+
+.friends-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.btn-outline-success {
+  color: #8c9900;
+  border-color: #8c9900;
+}
+
+.btn-outline-success:hover {
+  background-color: #8c9900;
+  color: white;
+}
+
+.btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-outline-primary {
+  color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.list-group-item {
+  background-color: #b9a84cc0;
+  border-color: #8c9900;
 }

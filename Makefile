@@ -41,6 +41,9 @@ testuser:
 test15:
 	$(DC) exec backend sh -c "python manage.py shell < helper_scripts/create_fifteen_testusers.py"
 
+test16:
+	$(DC) exec backend sh -c "python manage.py shell < helper_scripts/create_testusers_and_friends.py"
+
 clean:
 	./utils/cleanup.sh
 
@@ -52,7 +55,7 @@ fclean:
 
 # Individual container logs
 logs-backend:
-	docker logs -f ft_transcendence-backend
+	docker logs -f ft_transcendence-backend-1
 
 logs-grafana:
 	docker logs -f ft_transcendence-grafana-1

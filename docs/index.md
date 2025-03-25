@@ -86,7 +86,7 @@ This container will run a Tempo instance.
 
 - [Setup](README_Omio.md)
 - [registering_and_login](registering_and_login.md)
-- [nginx](README_Omio.MD)
+- [nginx](README_Omio.md)
 - [nginx2](nginx2.md)
 - [dockercompose](dockercompose.md)
 - [Authlib](Authlib.md)
