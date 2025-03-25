@@ -9,7 +9,7 @@
   --highlight-color: #d7eb25;
   --button-hover: #c8da00;
   --border-color: white;
-  --shadow-color: rgba(0, 0, 0, 0.2);
+  --shadow-color: rgba(170, 186, 0, 0.2);
 }
 
 body {
@@ -36,7 +36,7 @@ button, .btn-primary-custom, .cancel-button, .btn-outline-success, .btn-outline-
   background-color: var(--primary-color);
   color: var(--text-light);
   border-color: var(--primary-color);
-  padding: 12px;
+  padding: 6px;
   font-size: 16px;
   border-radius: 6px;
   cursor: pointer;
@@ -79,7 +79,7 @@ input:focus {
 .searching-box {
   background-color: #1a1a2e;
   border: 2px solid var(--primary-color);
-  box-shadow: 0 0 20px rgba(215, 235, 37, 0.5);
+  box-shadow: 0 0 20px rgba(235, 37, 189, 0.5);
 }
 
 .loading-spinner {
