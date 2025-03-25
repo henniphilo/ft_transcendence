@@ -125,5 +125,8 @@ If logs aren’t reaching Elasticsearch:
 
 ### links
 
-remember it is a bitnami container  
-https://github.com/bitnami/containers/tree/main/bitnami/logstash
+remember it is a bitnami container    
+https://github.com/bitnami/containers/tree/main/bitnami/logstash  
+
+https://logz.io/blog/debug-logstash/  
+https://github.com/logstash-plugins/logstash-patterns-core/blob/main/patterns/ecs-v1/grok-patterns  

@@ -82,3 +82,5 @@ If everything is configured correctly, you should be able to:
 - View logs in Kibana by creating an index pattern and exploring the data.
 
 
+# links
+https://logz.io/blog/securing-elk-nginx/
