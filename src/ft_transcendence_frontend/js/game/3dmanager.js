@@ -395,7 +395,7 @@ export class ThreeJSManager {
         this.scene.add(line);
 
         // Spielfeld-Begrenzungen
-        const borderMaterial = new THREE.MeshStandardMaterial({ color: 'yellow' });
+        const borderMaterial = new THREE.MeshStandardMaterial({ color: 'orange' });
 
         const topBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.1), borderMaterial);
         topBorder.position.set(0, 0, 3);
@@ -439,8 +439,29 @@ export class ThreeJSManager {
             this.controls.dampingFactor = 0.05;
             this.controls.screenSpacePanning = false;
             this.controls.maxPolarAngle = Math.PI / 2;
+
+           // U-Bahn Modell laden
+           const ubahnModel = await this.loadModel('looks/ubahn-bigbig.glb', {
+               targetSize: 3, // Initiale Skalierung
+               addAxesHelper: false
+           });
+
+           // Bounding Box für das Modell berechnen
+           const box = new THREE.Box3().setFromObject(ubahnModel);
+           const size = new THREE.Vector3();
+           box.getSize(size);
+        //   const originalHeight = size.z; // Ursprüngliche Höhe des Modells
+           console.log("size of ubahn: ", size);
+
+            // U-Bahn-Modelle als Paddles klonen und positionieren
+            this.paddleModels = [ubahnModel.clone(), ubahnModel.clone()];
+            this.paddleModels[0].position.set(-4, 0, 0);
+            this.paddleModels[1].position.set(4, 0, 0);
+
+            this.scene.add(this.paddleModels[0], this.paddleModels[1]);
+
             // Lade Modelle und Paddles
-            this.createPaddleModels();
+   //         this.createPaddleModels();
             // Zusätzliche Modell-Initialisierung, wenn nötig
             this.humanModel = await this.loadModel('looks/womanwalkturn-XXXX.fbx', {
                 targetSize: 0.7,
@@ -455,35 +476,11 @@ export class ThreeJSManager {
         }
     }
 
-    createPaddleModels() {
-        const paddleMaterial = new THREE.MeshStandardMaterial({ color: "#ff007f" });
-
-        // Spielfeldgröße als Basis (Breite: 8, Höhe: 6)
-        const paddleWidth = 0.2;
-        const paddleHeight = 0.4; // 1.2 ist ein guter Startwert (ca. 20% des Spielfelds)
-        const paddleDepth = 0.2;
-
-        // Paddle 1 (links)
-        const paddle1Geometry = new THREE.BoxGeometry(paddleHeight,paddleWidth, paddleDepth);
-        const paddle1 = new THREE.Mesh(paddle1Geometry, paddleMaterial);
-        paddle1.position.set(-4, paddleHeight / 2, 0);
-        this.paddleModels.push(paddle1);
-        this.scene.add(paddle1);
-
-        // Paddle 2 (rechts)
-        const paddle2Geometry = new THREE.BoxGeometry(paddleWidth, paddleDepth, paddleHeight);
-        const paddle2 = new THREE.Mesh(paddle2Geometry, paddleMaterial);
-        paddle2.position.set(4, paddleHeight / 2, 0);
-        this.paddleModels.push(paddle2);
-        this.scene.add(paddle2);
-    }
-
-
     updatePositions(gameState) {
         if (!gameState || this.paddleModels.length !== 2) return;
 
-        const fieldHeight = 6; // Spielfeld-Höhe
-        const fieldWidth = 8;  // Spielfeld-Breite
+        const fieldHeight = 6;
+        const fieldWidth = 8;
 
         // Ballposition berechnen (Skalierung an das Spielfeld anpassen)
         const ballX = gameState.ball[0] * (fieldWidth / 2);
@@ -507,16 +504,16 @@ export class ThreeJSManager {
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * (fieldHeight / 2);
         const p2Z = (gameState.player2.paddle.top + gameState.player2.paddle.bottom) / 2 * (fieldHeight / 2);
 
-        // Dynamische Paddelgröße basierend auf Spielfeld-Höhe
-        const p1Height = (Math.abs(gameState.player1.paddle.bottom - gameState.player1.paddle.top) * fieldHeight) / 2;
-        this.paddleModels[0].geometry.dispose();
-        this.paddleModels[0].geometry = new THREE.BoxGeometry(0.2, 0.2, p1Height,);
-        this.paddleModels[0].position.set(-4, 0, p1Z);
+        // console.log("p1Z: ", p1Z);
+        // console.log("gameState.player1.paddle.top, gameState.player1.paddle.bottom: ", gameState.player1.paddle.top, gameState.player1.paddle.bottom );
+        // console.log("p2Z: ", p2Z);
+        // console.log("gameState.player2.paddle.top, gameState.player2.paddle.bottom: ", gameState.player2.paddle.top, gameState.player2.paddle.bottom);
 
-        const p2Height = (Math.abs(gameState.player2.paddle.bottom - gameState.player2.paddle.top) * fieldHeight) / 2;
-        this.paddleModels[1].geometry.dispose();
-        this.paddleModels[1].geometry = new THREE.BoxGeometry(0.2, 0.2, p2Height);
-        this.paddleModels[1].position.set(4, 0, p2Z);
+        // console.log("padelpositon 0: ", this.paddleModels[0].position.set(-4, 0, p1Z));
+        // console.log("padelpositon 1: ", this.paddleModels[1].position.set(4, 0, p2Z));
+
+        this.paddleModels[0].position.z= p1Z;
+        this.paddleModels[1].position.z= p2Z;
     }
 
 
@@ -591,7 +588,7 @@ export class ThreeJSManager {
                         object.add(axesHelper);
                     }
 
-                    // Animationsverarbeitung (falls vorhanden)
+                    // Animationsverarbeitung Frau walk
                     if (model.animations && model.animations.length > 0) {
                         console.log('Animationen gefunden:', model.animations);
                         this.mixer = new THREE.AnimationMixer(object);
@@ -605,7 +602,7 @@ export class ThreeJSManager {
                     resolve(object);
                 },
                 (xhr) => {
-                    console.log(`${(xhr.loaded / xhr.total) * 100}% geladen`);
+                //    console.log(`${(xhr.loaded / xhr.total) * 100}% geladen`);
                 },
                 (error) => {
                     console.error('Fehler beim Laden des Modells:', error);
