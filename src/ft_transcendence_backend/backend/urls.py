@@ -21,6 +21,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    path('blockchain/', include('blockchain.urls')),
     path('api/users/', include('users.urls')),  # User-Routen
     path('', include('django_prometheus.urls')),
     path('api/', include('gamestats.urls')),

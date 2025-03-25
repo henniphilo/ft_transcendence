@@ -84,6 +84,7 @@ INSTALLED_APPS = [
 	'django_prometheus',
     'gamestats',
     'minimal_chat',
+    'blockchain',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
