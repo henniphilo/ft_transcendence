@@ -5,7 +5,7 @@ global:
   smtp_auth_username: '8881eb001@smtp-brevo.com'
   smtp_auth_password: 'Z8rOCaLt4b1EwTph'
   smtp_require_tls: true
-
+  
 route:
   group_by: ['alertname']
   group_wait: 10s
@@ -16,9 +16,11 @@ route:
 receivers:
 - name: 'email-notifications'
   email_configs:
-  - to: 'metter2ooo@gmail.com, ohoro@student.42berlin.de, alimpens@student.42berlin.de, hwiemann@student.42berlin.de'
+  - to: 'metter2ooo@gmail.com'
     from: 'u-acht@pongbahnhof.de'
     send_resolved: true
     headers:
       subject: '{{ template "email.default.subject" . }}'
     html: '{{ template "email.default.html" . }}'
+
+#  - to: 'metter2ooo@gmail.com, ohoro@student.42berlin.de, alimpens@student.42berlin.de, hwiemann@student.42berlin.de'
