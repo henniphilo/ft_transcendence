@@ -77,15 +77,15 @@
 	}
 
 	#the alertmanager emails have links on them but I am behind a reverse proxy
-	redir /alertmanager /alertmanager/
+	# redir /alertmanager /alertmanager/
 	
-	handle /alertmanager/* {
-		   	    reverse_proxy alertmanager:9093 {
-			header_up Host {host}
-			header_up X-Forwarded-For {remote}
-			header_up X-Forwarded-Proto {scheme}
-		}
-	}	
+	# handle /alertmanager/* {
+	# 	   	    reverse_proxy alertmanager:9093 {
+	# 		header_up Host {host}
+	# 		header_up X-Forwarded-For {remote}
+	# 		header_up X-Forwarded-Proto {scheme}
+	# 	}
+	# }	
 
 	metrics /metrics
 }

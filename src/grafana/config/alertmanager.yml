@@ -1,11 +1,11 @@
 global:
   resolve_timeout: 1m
-  smtp_smarthost: 'smtp-relay.brevo.com:587'
-  smtp_from: 'u-acht@pongbahnhof.de' 
-  smtp_auth_username: '8881eb001@smtp-brevo.com'
-  smtp_auth_password: 'Z8rOCaLt4b1EwTph'
+  smtp_smarthost: '${EMAIL_HOST}:${EMAIL_PORT}' 
+  smtp_from: '${EMAIL_FROM}' 
+  smtp_auth_username: '${EMAIL_HOST_USER}'  
+  smtp_auth_password: '${EMAIL_HOST_PASSWORD}'  
   smtp_require_tls: true
-  
+
 route:
   group_by: ['alertname']
   group_wait: 10s
@@ -16,8 +16,8 @@ route:
 receivers:
 - name: 'email-notifications'
   email_configs:
-  - to: 'metter2ooo@gmail.com'
-    from: 'u-acht@pongbahnhof.de'
+  - to: '${EMAIL_TO}'  
+    from: '${EMAIL_FROM}'  
     send_resolved: true
     headers:
       subject: '{{ template "email.default.subject" . }}'
