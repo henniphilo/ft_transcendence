@@ -1,18 +1,6 @@
 # alert manager  
 
-# AlertManager Email Configuration Issue
-
-Based on your configuration, there are several issues that might be preventing email notifications from working. Let me help you correct them:
-
-## Main Problems
-
-1. **SMTP Configuration Issues**: Your SMTP settings for Brevo (formerly Sendinblue) aren't properly configured.
-2. **Receiver Configuration**: The email receiver has some conflicting settings.
-3. **From Address Mismatch**: You have different from addresses in different places.
-
-## Corrected Configuration
-
-Here's how your `alertmanager.yml` should look:
+# AlertManager Email Configuration 
 
 ```yaml
 global:
@@ -43,14 +31,9 @@ receivers:
 ## Key Fixes
 
 1. **SMTP Authentication**:
-   - Ensure your Brevo credentials are correct
    - The `smtp_from` must match a domain you're authorized to send from in Brevo
 
-2. **Simplified Route Configuration**:
-   - Removed redundant email settings in the receiver that were overriding global settings
-   - Added basic grouping and timing parameters
-
-3. **Proper Email Templates**:
+2. **Proper Email Templates**:
    - Using the default AlertManager templates which work better than hardcoded HTML
 
 ## Verification Steps
@@ -63,7 +46,7 @@ receivers:
 
 2. **Check AlertManager Logs**:
    ```bash
-   docker logs your_alertmanager_container
+   docker logs alertmanager
    ```
    Look for SMTP connection errors
 
@@ -92,9 +75,8 @@ receivers:
 - Verify that port 587 isn't blocked by your firewall
 - Try using `smtp-relay.brevo.com:25` with TLS disabled if you continue having issues
 
-Would you like me to explain any specific part of this configuration in more detail?
 
-Explanation of send_resolved:
+## Explanation of send_resolved:
 When send_resolved: true:
 
 Alertmanager will send a notification when an alert is resolved (i.e., the condition that triggered the alert is no longer true).
@@ -103,6 +85,8 @@ When send_resolved: false (default):
 
 Alertmanager will only send notifications when an alert is firing.
 No notification will be sent when the alert is resolved.
+
+
 ## links  
 
 https://prometheus.io/docs/alerting/latest/configuration/  
