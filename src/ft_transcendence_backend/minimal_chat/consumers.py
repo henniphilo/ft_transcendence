@@ -4,6 +4,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
+from .models import BlockedUser
 
 # Entferne das hier:
 # User = get_user_model()
@@ -12,6 +13,15 @@ from django.contrib.auth import get_user_model
 def get_user(user_id):
     User = get_user_model()
     return User.objects.get(id=user_id)
+
+@database_sync_to_async
+def is_blocked(user_id, other_user_id):
+    """Prüft, ob einer der Benutzer den anderen blockiert hat"""
+    return BlockedUser.objects.filter(
+        user_id=user_id, blocked_user_id=other_user_id
+    ).exists() or BlockedUser.objects.filter(
+        user_id=other_user_id, blocked_user_id=user_id
+    ).exists()
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -44,6 +54,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print(f"📩 Nachricht erhalten: {data}")
 
         if message and receiver_id:
+            # Prüfe, ob einer der Benutzer den anderen blockiert hat
+            if await is_blocked(self.user.id, receiver_id):
+                await self.send(text_data=json.dumps({
+                    "message": "Du kannst keine Nachrichten an diesen Benutzer senden, da einer von euch den anderen blockiert hat.",
+                    "error": "blocked"
+                }))
+                return
+                
             receiver_group = f"chat_user_{receiver_id}"
 
             await self.channel_layer.group_send(
