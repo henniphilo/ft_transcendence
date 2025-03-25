@@ -1,9 +1,9 @@
 /* Allgemeine Styles */
 :root {
   --primary-color: #8c9900;
-  --secondary-color: #d7eb25a5;
+  --secondary-color: white;
   --background-color: #8e8658c0;
-  --login-background: #8e8658c0;
+  --login-background: #8e865863;
   --text-light: white;
   --text-dark: #333;
   --highlight-color: #d7eb25;
@@ -52,7 +52,7 @@ body {
 }
 
 .auth-container .form-control {
-  background: #6b6a6a;
+  background: #3f3e3e;
   border: 1px solid var(--border-color);
   color: var(--text-light);
 }
@@ -68,30 +68,41 @@ body {
   background-color: var(--primary-color);
   border: none;
   color: var(--text-light);
-  padding: 10px;
-  border-radius: 5px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.3s ease-in-out;
+  border: 2px solid transparent; /* Keine Border anfangs */
 }
 
 .btn-primary-custom:hover {
-  background-color: var(--button-hover);
+  background-color: var(--button-hover); /* Hover-Farbe anpassen */
+  border-color: var(--highlight-color); /* Border beim Hover hinzufügen */
+}
+
+.btn-primary-custom:active {
+  background-color: var(--secondary-color); /* Farbe beim Aktivieren */
 }
 
 .btn-secondary-custom {
   background-color: var(--secondary-color);
   border: none;
   color: var(--text-light);
-  padding: 10px;
-  border-radius: 5px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
-  transition: background 0.3s ease-in-out;
+  transition: background-color 0.3s, transform 0.3s;
 }
 
 .btn-secondary-custom:hover {
   background-color: #005f66;
+  transform: scale(1.05); /* Hover-Effekt für den sekundären Button */
+}
+
+.btn-secondary-custom:active {
+  background-color: #004d56; /* Aktiv-Farbe für sekundären Button */
+  transform: scale(0.98);
 }
 
 .link-light {
@@ -129,6 +140,7 @@ body {
 .list-group-item {
   background-color: var(--primary-color);
   color: var(--text-light);
+  margin: 2px;
   border: none;
 }
 
@@ -152,6 +164,17 @@ body {
   background: rgba(0, 0, 0, 0.5);
   padding: 10px;
   border-radius: 5px;
+}
+
+/* Profil-Textfarbe auf Weiß setzen */
+.profile-username,
+.profile-details p,
+.profile-details p strong {
+  color: white;
+}
+
+.profile-details p strong {
+  color: var(--highlight-color);
 }
 
 /* Login und Signup spezifische Container */
@@ -186,6 +209,47 @@ body {
   opacity: 0.7;
 }
 
+/* Leaderboard-Karte anpassen */
+.profile-card {
+  background-color: #3f3e3e; /* Dunkler Hintergrund */
+  color: white;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Header (Top 10 Players) farblich hervorheben */
+.profile-header {
+  background-color: var(--primary-color);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Tabelle anpassen */
+.profile-card table {
+  background-color: #252525; /* Dunklerer Hintergrund für die Tabelle */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Tabellenkopf */
+.profile-card table thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Tabellenzeilen */
+.profile-card table tbody tr {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Tabellenzeilen Hover-Effekt */
+.profile-card table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 /* Label-Farbe anpassen (falls Labels hinzugefügt werden) */
 label {
   color: var(--highlight-color);
@@ -199,4 +263,3 @@ label {
 #switch-to-login:hover, #switch-to-signup:hover {
   color: var(--highlight-color);
 }
-

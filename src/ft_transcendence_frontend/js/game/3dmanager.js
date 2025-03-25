@@ -358,7 +358,7 @@ export class ThreeJSManager {
         this.scene.background = bgTexture;
 
         // Kamera Setup
-        this.camera.position.set(-1, 3, -15); //ausgangs perspektive
+        this.camera.position.set(-1, 3, -5); //ausgangs perspektive
         this.camera.lookAt(0, 0, 0);
 
         // Beleuchtung
@@ -380,7 +380,7 @@ export class ThreeJSManager {
 
         // Spielfeld
         const fieldGeometry = new THREE.PlaneGeometry(8, 6);
-        const fieldMaterial = new THREE.MeshStandardMaterial({ color: 'lightgrey', side: THREE.DoubleSide });
+        const fieldMaterial = new THREE.MeshStandardMaterial({ color: 0x3f3e3e, side: THREE.DoubleSide });
         const field = new THREE.Mesh(fieldGeometry, fieldMaterial);
         field.rotation.x = -Math.PI / 2;
         field.position.set(0, 0, 0);  // Damit das Feld in XZ-Ebene bleibt
@@ -388,7 +388,7 @@ export class ThreeJSManager {
 
         // Mittellinie
         const lineGeometry = new THREE.PlaneGeometry(0.1, 6);
-        const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+        const lineMaterial = new THREE.MeshStandardMaterial({ color: 'pink' });
         const line = new THREE.Mesh(lineGeometry, lineMaterial);
         line.rotation.x = -Math.PI / 2;
         line.position.set(0, 0.01, 0);
