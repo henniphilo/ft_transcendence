@@ -1,7 +1,7 @@
 /* Allgemeine Styles */
 :root {
   --primary-color: #8c9900;
-  --secondary-color: #008c99;
+  --secondary-color: #d7eb25a5;
   --background-color: #8e8658c0;
   --login-background: #8e8658c0;
   --text-light: white;
@@ -12,133 +12,191 @@
   --shadow-color: rgba(170, 186, 0, 0.2);
 }
 
+/* Allgemeine Stile */
 body {
-  font-family: 'Arial', sans-serif;
+  background-color: #121212;
+  color: var(--text-light);
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-/* Card Styles */
-.auth-container, .profile-card, .leaderboard-card {
-  background-color: var(--background-color) !important;
-  box-shadow: 0 4px 8px var(--shadow-color) !important;
+/* Hintergrund-Canvas */
+#background-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
 }
 
-.login-container {
-  background-color: var(--login-background) !important;
+/* Auth-Container (Signup & Login) */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  background: var(--background-color);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-light);
+  box-shadow: 0px 4px 10px var(--shadow-color);
+  margin: 50px auto;
+  backdrop-filter: blur(10px);
 }
 
-.card-header-custom, .profile-header, .leaderboard-header, .online-players-header, .friends-header {
-  background-color: var(--primary-color) !important;
-  color: var(--text-light) !important;
+.auth-container h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: var(--primary-color);
 }
 
-/* Button Styles */
-button, .btn-primary-custom, .cancel-button, .btn-outline-success, .btn-outline-danger, .btn-outline-primary {
-  background-color: var(--primary-color);
+.auth-container .form-control {
+  background: #6b6a6a;
+  border: 1px solid var(--border-color);
+  color: var(--text-light);
+}
+
+.auth-container .form-control:focus {
+  background: #333;
   color: var(--text-light);
   border-color: var(--primary-color);
-  padding: 6px;
-  font-size: 16px;
-  border-radius: 6px;
+}
+
+/* Button-Styling */
+.btn-primary-custom {
+  background-color: var(--primary-color);
+  border: none;
+  color: var(--text-light);
+  padding: 10px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s, border-color 0.3s;
+  font-size: 16px;
+  transition: background 0.3s ease-in-out;
 }
 
-button:hover, .btn-primary-custom:hover, .cancel-button:hover, .btn-outline-success:hover, .btn-outline-danger:hover, .btn-outline-primary:hover {
-  background-color: var(--highlight-color);
+.btn-primary-custom:hover {
+  background-color: var(--button-hover);
 }
 
-/* Link Styles */
+.btn-secondary-custom {
+  background-color: var(--secondary-color);
+  border: none;
+  color: var(--text-light);
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease-in-out;
+}
+
+.btn-secondary-custom:hover {
+  background-color: #005f66;
+}
+
 .link-light {
-  color: var(--text-light) !important;
-  text-decoration: underline !important;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 14px;
+  text-decoration: none;
 }
 
 .link-light:hover {
-  color: #f0f0f0 !important;
+  color: var(--highlight-color);
 }
 
-/* Menu Styles */
-.menu-title {
-  color: var(--primary-color) !important;
+/* Menü-Styling */
+#menu-container {
+  text-align: center;
+  margin-top: 50px;
 }
 
-/* Forms */
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 14px;
+#menu-container h2 {
+  font-size: 26px;
+  color: var(--primary-color);
 }
 
-input:focus {
-  border-color: var(--highlight-color);
-}
-
-/* Searching Box */
-.searching-box {
-  background-color: #1a1a2e;
-  border: 2px solid var(--primary-color);
-  box-shadow: 0 0 20px rgba(235, 37, 189, 0.5);
-}
-
-.loading-spinner {
-  border: 5px solid var(--primary-color);
-  border-top: 5px solid var(--highlight-color);
-}
-
-/* Profile & Friends Section */
-.profile-section {
-  background-color: var(--background-color);
-  border-radius: 10px;
-  box-shadow: 0 4px 8px var(--shadow-color);
-}
-
-.friends-list, .online-players-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-/* List Styles */
-.list-group-item {
-  background-color: var(--background-color);
-  border-color: var(--primary-color);
-}
-
-.chat-messages {
-  background-color: #f8f9fa;
-  border-radius: 5px;
+/* Profilbereich */
+.profile-header, .online-players-header, .friends-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
   padding: 10px;
-  height: 200px;
-  overflow-y: auto;
+  border-radius: 10px 10px 0 0;
 }
 
-.chat-message {
-  margin-bottom: 8px;
-  word-wrap: break-word;
+/* Listenelemente mit Primärfarbe */
+.list-group-item {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  border: none;
 }
 
-.own-message {
-  text-align: right;
-  background-color: #d1e7dd;
-  padding: 5px 10px;
-  border-radius: 10px;
-  max-width: 80%;
-  margin-left: auto;
+/* Hover-Effekt für Listenelemente */
+.list-group-item:hover {
+  background-color: var(--button-hover);
+  color: var(--text-dark);
 }
 
-.other-message {
-  text-align: left;
-  background-color: #c3e6cb; /* Hellgrüner Hintergrund */
-  color: #155724; /* Dunkelgrüner Text */
-  padding: 5px 10px;
-  border-radius: 10px;
-  max-width: 80%;
-  border: 1px solid #b1dfbb; /* Leichter Rahmen */
-}
-
-.system-message {
-  color: #6c757d;
-  font-style: italic;
+.profile-card {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-radius: 0 0 10px 10px;
   text-align: center;
 }
+
+/* Match History */
+.match-history-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Login und Signup spezifische Container */
+#signup-container, #login-container {
+  background: var(--login-background);
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px var(--shadow-color);
+}
+
+#signup-container h2, #login-container h2 {
+  color: var(--highlight-color);
+}
+
+#signup-container .form-control, #login-container .form-control {
+  border: 1px solid var(--primary-color);
+}
+
+#signup-container .btn-primary-custom, #login-container .btn-primary-custom {
+  font-weight: bold;
+}
+
+/* Input-Felder für Username, Email und Password */
+#signup-form input,
+#login-form input {
+  color: var(--primary-color); /* Ändert die Schriftfarbe */
+}
+
+/* Placeholder-Farbe anpassen */
+#signup-form input::placeholder,
+#login-form input::placeholder {
+  color: var(--secondary-color); /* Optionale Anpassung für Platzhalter */
+  opacity: 0.7;
+}
+
+/* Label-Farbe anpassen (falls Labels hinzugefügt werden) */
+label {
+  color: var(--highlight-color);
+}
+
+#switch-to-login, #switch-to-signup {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+#switch-to-login:hover, #switch-to-signup:hover {
+  color: var(--highlight-color);
+}
+
