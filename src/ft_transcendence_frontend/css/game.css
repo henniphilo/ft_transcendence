@@ -1,3 +1,17 @@
+/* Allgemeine Styles */
+:root {
+    --primary-color: #8c9900;
+    --secondary-color: white;
+    --background-color: #8e8658c0;
+    --login-background: #8e8658c0;
+    --text-light: white;
+    --text-dark: #333;
+    --highlight-color: #d7eb25;
+    --button-hover: #c8da00;
+    --border-color: white;
+    --shadow-color: rgba(170, 186, 0, 0.2);
+  }
+
 body {
     margin: 0;
     padding: 0;
@@ -6,7 +20,8 @@ body {
     align-items: center;
     min-height: 100vh;
     flex-direction: column;
-    color: #fff;
+    color: var(--text-light);
+    background-color: var(--background-color);
 }
 
 /* Game Area */
@@ -17,12 +32,12 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #b5bd5d;
-    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
+    background-color: var(--primary-color);
+    box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 #background-canvas {
-    background-color: #f0e47de2;
+    background-color: var(--highlight-color);
     position: absolute;
     top: 0;
     left: 0;
@@ -30,50 +45,90 @@ body {
     height: 100%;
     z-index: -1;
 }
+
 #menu-container {
     text-align: center;
 }
+
+/* Menü-Items anpassen */
 .menu-item {
-    padding: 10px 20px;
-    margin: 5px;
-    background-color: #8e8658c0;
+    padding: 15px 30px;
+    margin: 10px;
+    background-color: var(--primary-color); /* Hintergrundfarbe anpassen */
+    color: var(--text-light); /* Textfarbe anpassen */
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px; /* Abgerundete Ecken */
     cursor: pointer;
-    transition: background-color 0.3s;
+    border: 2px solid transparent; /* Keine Border anfangs */
 }
+
+/* Hover-Effekt für Menü-Item */
 .menu-item:hover {
-    background-color: #d7eb25;
+    background-color: var(--highlight-color); /* Farbwechsel beim Hover */
+    border-color: var(--highlight-color); /* Border beim Hover hinzufügen */
 }
+
+/* Aktiviertes Menü-Item hervorheben */
+.menu-item:active {
+    background-color: var(--secondary-color); /* Farbe für aktives Menü */
+}
+
+/* Button im Menü-Item */
+.menu-item button {
+    border-radius: 12px; /* Runde Ecken für den Button */
+    padding: 10px 20px; /* Polsterung für den Button */
+    background-color: var(--highlight-color); /* Hintergrundfarbe */
+    color: var(--text-light); /* Textfarbe */
+    border: none; /* Kein Rahmen */
+    cursor: pointer; /* Zeigt an, dass der Button klickbar ist */
+    transition: background-color 0.3s, transform 0.3s; /* Übergangseffekte */
+}
+
+/* Button Hover */
+.menu-item button:hover {
+    background-color: var(--secondary-color); /* Farbe beim Hover */
+    transform: scale(1.05); /* Leichtes Vergrößern beim Hover */
+}
+
+/* Button Aktiviert */
+.menu-item button:active {
+    background-color: var(--primary-color); /* Farbe im aktiven Zustand */
+    transform: scale(0.98); /* Leichte Verkleinerung beim Drücken */
+}
+
+
 .settings-container {
-    background-color: #333;
+    background-color: var(--text-dark);
     padding: 20px;
     border-radius: 10px;
 }
-.setting-item {
-    margin: 15px 0;
-}
+
 .setting-item label {
     display: block;
     margin-bottom: 5px;
 }
-.setting-item input {
+
+.setting-item input, .setting-item select {
     padding: 5px;
     width: 100px;
     background-color: #444;
-    border: 1px solid #666;
-    color: white;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
     border-radius: 4px;
 }
+
 .winner-screen {
     text-align: center;
     padding: 20px;
-    background-color: #333;
+    background-color: var(--text-dark);
     border-radius: 10px;
 }
+
 .winner-screen h1 {
-    color: #ee8821;
+    color: var(--highlight-color);
     margin-bottom: 20px;
 }
-
 
 .game-header {
     display: flex;
@@ -97,7 +152,7 @@ body {
 
 .player-score {
     font-size: 24px;
-    color: #fff;
+    color: var(--text-light);
     padding: 5px 15px;
     border-radius: 5px;
     background-color: rgba(255, 255, 255, 0.1);
@@ -111,33 +166,14 @@ body {
     max-width: 300px;
 }
 
-.controls-info h2 {
-    margin-top: 0;
+.controls-info h2, .controls-info h3 {
     margin-bottom: 10px;
     font-size: 18px;
 }
 
-.controls-info h3 {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    font-size: 16px;
-}
-
-.control-section {
-    margin-bottom: 8px;
-}
-
-.key {
-    display: inline-block;
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin: 0 3px;
-}
-
 #game-canvas {
-    border: 2px solid #f8edab;
-    background-color: #497041;
+    border: 2px solid var(--highlight-color);
+    background-color: var(--secondary-color);
 }
 
 #three-js-container {
@@ -148,7 +184,7 @@ body {
 }
 
 .game-screen {
-    background-color: #8c9900;
+    background-color: var(--primary-color);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -174,55 +210,4 @@ body {
     body {
         flex-direction: column;
     }
-}
-
-.setting-item select {
-    padding: 5px;
-    font-size: 16px;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 4px;
-    width: 100%;
-    margin-top: 5px;
-}
-
-.setting-item select:focus {
-    outline: none;
-    border-color: #4CAF50;
-}
-
-.leaderboard-container {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 10px;
-    color: #fff;
-    max-width: 800px;
-    margin: 20px auto;
-}
-
-.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-}
-
-.leaderboard-table th,
-.leaderboard-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #444;
-}
-
-.leaderboard-table th {
-    background-color: #acb737;
-    color: white;
-}
-
-.leaderboard-table tr:nth-child(even) {
-    background-color: #3a3a3a;
-}
-
-.leaderboard-table tr:hover {
-    background-color: #444;
 }
