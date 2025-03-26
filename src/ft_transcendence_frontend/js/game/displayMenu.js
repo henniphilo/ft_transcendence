@@ -11,15 +11,6 @@ export class MenuDisplay {
         console.log("MenuDisplay loaded!");
 
         this.container = document.getElementById('menu-container');
-        //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/menu`);
-
-
-        // const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        // const wsHost = window.location.hostname; // Nur der Hostname (ohne Port)
-        // const wsPort = "8001"; // Falls der Port sich ändern soll, könnte dies auch dynamisch gesetzt werden
-        // this.ws = new WebSocket(`${wsProtocol}${wsHost}:${wsPort}/ws/menu`);
-
-
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
         const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
@@ -176,15 +167,16 @@ export class MenuDisplay {
                             </div>
                             <div class="card-body profile-card">
                                 <div class="row">
-                                    <div class="col-md-4 text-center">
-                                        <img class="profile-avatar rounded-circle mb-3" src="${this.userProfile.avatar || '/assets/default-avatar.png'}"
+                                    <div class="col-md-4 col-sm-12 text-center">
+                                        <img class="profile-avatar rounded-circle mb-3"
+                                             src="${this.userProfile.avatar || '/assets/default-avatar.png'}"
                                              alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
                                         <div class="mb-3">
                                             <label for="avatar-input" class="form-label">Change Avatar:</label>
                                             <input class="avatar-input form-control form-control-sm" type="file" accept="image/*" />
                                         </div>
                                     </div>
-                                    <div class="col-md-8">
+                                    <div class="col-md-8 col-sm-12">
                                         <h4 class="profile-username mb-3">Welcome ${this.userProfile.username}!</h4>
                                         <div class="profile-details mb-3">
                                             <p class="mb-2"><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
@@ -201,7 +193,7 @@ export class MenuDisplay {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-3 col-sm-6">
                         <div class="card mb-4">
                             <div class="card-header online-players-header">
                                 <h3 class="mb-0">Online Players</h3>
@@ -211,7 +203,7 @@ export class MenuDisplay {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2 col-md-3 col-sm-6">
                         <div class="card">
                             <div class="card-header friends-header">
                                 <h3 class="mb-0">Friends</h3>
@@ -648,11 +640,11 @@ export class MenuDisplay {
 
                 friends.forEach(friend => {
                     const listItem = document.createElement('li');
-                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    listItem.className = 'list-group-item d-flex flex-column align-items-center text-center';
 
                     listItem.innerHTML = `
-                        <span class="friend-name" data-username="${friend.username}" style="cursor: pointer; margin-right: 8px;">${friend.username}</span>
-                        <div class="btn-group">
+                        <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
+                        <div class="btn-group mt-2">
                             <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
                                 <i class="bi bi-chat"></i>
                             </button>
@@ -1252,11 +1244,11 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
 
     friends.forEach(friend => {
         const listItem = document.createElement('li');
-        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        listItem.className = 'list-group-item d-flex flex-column align-items-center text-center';
 
         listItem.innerHTML = `
-            <span class="friend-name" data-username="${friend.username}" style="cursor: pointer; margin-right: 8px;">${friend.username}</span>
-            <div class="btn-group">
+            <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
+            <div class="btn-group mt-2">
                 <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
                     <i class="bi bi-chat"></i>
                 </button>
