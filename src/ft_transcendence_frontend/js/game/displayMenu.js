@@ -259,14 +259,16 @@ export class MenuDisplay {
             button.style.color = 'white';
             button.style.marginBottom = '10px';
             button.textContent = item.text;
+            button.style.border = '2px solid transparent';
             button.onclick = () => this.handleMenuClick(item.id);
 
             button.onmouseover = () => {
                 button.style.backgroundColor = '#d7eb25'; // Hellere Farbe beim Hover
-                button.style.border = 'black';
+                button.style.border = '2px solid rgb(234, 255, 41)';
             };
             button.onmouseout = () => {
                 button.style.backgroundColor = '#8c9900'; // Zurück zur ursprünglichen Farbe
+                button.style.border = '2px solid transparent';
             };
 
             this.container.querySelector('#menu-options').appendChild(button);
@@ -614,7 +616,7 @@ export class MenuDisplay {
                 </div>
             </div>
         `;
-        
+
         // Starte das Polling für die Freundesliste
         this.startFriendsListPolling();
     }
@@ -622,16 +624,16 @@ export class MenuDisplay {
     async loadFriendsList() {
         try {
             console.log("Lade Freundesliste...");
-            
+
             // Erstelle eine Instanz des FriendsHandler, falls noch nicht vorhanden
             if (!this.friendsHandler) {
                 this.friendsHandler = new FriendsHandler();
             }
-            
+
             // Hole die Freundesliste
             const friends = await this.friendsHandler.getFriends();
             console.log("Freunde geladen:", friends);
-            
+
             // Aktualisiere die Anzeige der Freundesliste
             const friendsList = document.getElementById('friends-list');
             if (friendsList) {
@@ -640,16 +642,16 @@ export class MenuDisplay {
                     friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
                     return;
                 }
-                
+
                 // Leere die Liste und füge die Freunde hinzu
                 friendsList.innerHTML = '';
-                
+
                 friends.forEach(friend => {
                     const listItem = document.createElement('li');
                     listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    
+
                     listItem.innerHTML = `
-                        <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
+                        <span class="friend-name" data-username="${friend.username}" style="cursor: pointer; margin-right: 8px;">${friend.username}</span>
                         <div class="btn-group">
                             <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
                                 <i class="bi bi-chat"></i>
@@ -659,10 +661,10 @@ export class MenuDisplay {
                             </button>
                         </div>
                     `;
-                    
+
                     friendsList.appendChild(listItem);
                 });
-                
+
                 // Event-Listener für die Namen
                 if (window.menuDisplay) {
                     friendsList.querySelectorAll('.friend-name').forEach(nameSpan => {
@@ -671,14 +673,14 @@ export class MenuDisplay {
                             window.menuDisplay.viewFriendProfile(username);
                         });
                     });
-                    
+
                     friendsList.querySelectorAll('.chat-btn').forEach(btn => {
                         btn.addEventListener('click', (e) => {
                             const username = e.currentTarget.dataset.username;
                             window.menuDisplay.openChatWithFriend(username);
                         });
                     });
-                    
+
                     friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
                         btn.addEventListener('click', async (e) => {
                             const username = e.currentTarget.dataset.username;
@@ -713,7 +715,7 @@ export class MenuDisplay {
     async openChatWithFriend(username) {
         // Prüfe zuerst, ob der Benutzer blockiert ist
         const isBlocked = await this.isUserBlocked(username);
-        
+
         // Erstelle ein Chat-Modal
         const modalContent = `
             <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
@@ -731,8 +733,8 @@ export class MenuDisplay {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            ${isBlocked ? 
-                                `<button type="button" class="btn btn-success" id="unblock-user-btn">Unblock User</button>` : 
+                            ${isBlocked ?
+                                `<button type="button" class="btn btn-success" id="unblock-user-btn">Unblock User</button>` :
                                 `<button type="button" class="btn btn-danger" id="block-user-btn">Block User</button>`
                             }
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -791,7 +793,7 @@ export class MenuDisplay {
     initChatWebSocket(username) {
         // Hole den Token aus dem localStorage
         const token = localStorage.getItem('accessToken');
-        
+
         if (!token) {
             this.addChatMessage('System', 'You are not logged in. Please log in.');
             return;
@@ -802,21 +804,21 @@ export class MenuDisplay {
         const wsHost = window.location.hostname;
         const wsPort = window.location.protocol === "https:" ? "" : ":8000";
         const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws_django/chat/?token=${token}`;
-        
+
         console.log("Connecting to chat WebSocket:", wsUrl);
-        
+
         this.chatWs = new WebSocket(wsUrl);
         this.chatReceiver = username;
-        
+
         this.chatWs.onopen = () => {
             console.log('Chat WebSocket connected');
             this.addChatMessage('System', 'Connection established. You can now chat.');
         };
-        
+
         this.chatWs.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log('Chat message received:', data);
-            
+
             if (data.message) {
                 // Wenn die Nachricht von einem anderen Benutzer kommt
                 if (data.from) {
@@ -830,12 +832,12 @@ export class MenuDisplay {
                 }
             }
         };
-        
+
         this.chatWs.onerror = (error) => {
             console.error('Chat WebSocket error:', error);
             this.addChatMessage('System', 'Connection error. Please try again later.');
         };
-        
+
         this.chatWs.onclose = () => {
             console.log('Chat WebSocket closed');
             this.addChatMessage('System', 'Connection closed.');
@@ -850,7 +852,7 @@ export class MenuDisplay {
                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 }
             });
-            
+
             if (response.ok) {
                 const userData = await response.json();
                 return userData.username;
@@ -866,9 +868,9 @@ export class MenuDisplay {
     sendChatMessage(receiverUsername) {
         const inputElement = document.getElementById('chat-input');
         const message = inputElement.value.trim();
-        
+
         if (!message) return;
-        
+
         if (this.chatWs && this.chatWs.readyState === WebSocket.OPEN) {
             // Finde die Benutzer-ID des Empfängers
             this.getUserIdByUsername(receiverUsername).then(receiverId => {
@@ -877,7 +879,7 @@ export class MenuDisplay {
                         message: message,
                         receiver_id: receiverId
                     };
-                    
+
                     this.chatWs.send(JSON.stringify(messageData));
                     this.addChatMessage(this.userProfile.username, message, true);
                     inputElement.value = '';
@@ -898,7 +900,7 @@ export class MenuDisplay {
                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 }
             });
-            
+
             if (response.ok) {
                 const userData = await response.json();
                 return userData.id;
@@ -915,10 +917,10 @@ export class MenuDisplay {
     addChatMessage(sender, message, isOwnMessage = false) {
         const chatMessages = document.getElementById('chat-messages');
         if (!chatMessages) return;
-        
+
         const messageElement = document.createElement('div');
         messageElement.className = `chat-message ${isOwnMessage ? 'own-message' : 'other-message'} mb-2`;
-        
+
         // Styling basierend auf dem Absender
         if (sender === 'System') {
             messageElement.style.color = '#6c757d';
@@ -940,11 +942,11 @@ export class MenuDisplay {
             messageElement.style.maxWidth = '80%';
             messageElement.style.border = '1px solid #b1dfbb'; // Leichter Rahmen für mehr Struktur
         }
-        
+
         messageElement.innerHTML = `
             ${sender !== 'System' ? `<strong>${sender}:</strong> ` : ''}${message}
         `;
-        
+
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -960,7 +962,7 @@ export class MenuDisplay {
                     },
                     body: JSON.stringify({ username: username })
                 });
-                
+
                 if (response.ok) {
                     alert(`${username} has been blocked successfully.`);
                     // Schließe das Chat-Modal
@@ -986,7 +988,7 @@ export class MenuDisplay {
                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 }
             });
-            
+
             if (response.ok) {
                 const blockedUsers = await response.json();
                 // Prüfe, ob der Benutzer in der Liste der blockierten Benutzer ist
@@ -1013,13 +1015,13 @@ export class MenuDisplay {
                     },
                     body: JSON.stringify({ username: username })
                 });
-                
+
                 if (response.ok) {
                     alert(`${username} has been unblocked successfully.`);
                     // Schließe das Chat-Modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('chatModal'));
                     modal.hide();
-                    
+
                     // Öffne den Chat erneut, um die Änderungen zu übernehmen
                     setTimeout(() => this.openChatWithFriend(username), 500);
                 } else {
@@ -1035,25 +1037,25 @@ export class MenuDisplay {
 
     startFriendsListPolling() {
         console.log("Starte Polling für Freundesliste...");
-        
+
         // Erstelle eine Instanz des FriendsHandler, falls noch nicht vorhanden
         if (!this.friendsHandler) {
             this.friendsHandler = new FriendsHandler();
         }
-        
+
         // Sofort beim Start laden
         this.friendsHandler.getFriends();
-        
+
         // Dann alle 5 Sekunden aktualisieren
         if (this.friendsListInterval) {
             clearInterval(this.friendsListInterval);
         }
-        
+
         this.friendsListInterval = setInterval(() => {
             console.log("Polling-Intervall: Aktualisiere Freundesliste...");
             this.friendsHandler.getFriends();
         }, 5000);
-        
+
         console.log("Polling für Freundesliste gestartet!");
     }
 
@@ -1075,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', () => {
         birth_date: "01.01.1990"
     };
     menuDisplay = new MenuDisplay(userProfile);
-    
+
     // Füge einen Event-Listener für das Beenden der Seite hinzu
     window.addEventListener('beforeunload', () => {
         if (menuDisplay) {
@@ -1093,7 +1095,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 
     // Wenn die Liste leer ist, zeige eine Nachricht an
     if (onlineUsers.length === 0) {
-        if (usersList.children.length === 0 || 
+        if (usersList.children.length === 0 ||
             (usersList.children.length === 1 && !usersList.children[0].classList.contains('no-players'))) {
             usersList.innerHTML = '<li class="list-group-item text-center no-players">No players online</li>';
         }
@@ -1103,14 +1105,14 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
     // Hole die aktuelle Freundesliste, um zu prüfen, ob ein Benutzer bereits ein Freund ist
     friendsHandler.getFriends().then(friends => {
         const friendUsernames = friends.map(friend => friend.username);
-        
+
         // Hole den aktuellen Benutzernamen aus dem menuDisplay-Objekt
         const currentUsername = window.menuDisplay ? window.menuDisplay.userProfile.username : '';
-        
+
         // Erstelle ein DocumentFragment für bessere Performance
         const fragment = document.createDocumentFragment();
         const existingItems = {};
-        
+
         // Behalte bestehende Elemente bei, wenn möglich
         Array.from(usersList.children).forEach(item => {
             const username = item.querySelector('span')?.textContent.replace(' (You)', '');
@@ -1118,16 +1120,16 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                 existingItems[username] = item;
             }
         });
-        
+
         // Aktualisiere oder erstelle Elemente für jeden Online-Benutzer
         onlineUsers.forEach(user => {
             // Prüfe, ob der Benutzer der aktuelle Benutzer ist
             const isCurrentUser = user.username === currentUsername;
             // Prüfe, ob der Benutzer bereits ein Freund ist
             const isAlreadyFriend = friendUsernames.includes(user.username);
-            
+
             let listItem;
-            
+
             // Verwende das bestehende Element, wenn vorhanden
             if (existingItems[user.username]) {
                 listItem = existingItems[user.username];
@@ -1137,12 +1139,12 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                 listItem = document.createElement('li');
                 listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             }
-            
+
             // Aktualisiere den Inhalt
             listItem.innerHTML = `
-                <span class="user-name" data-username="${user.username}" style="cursor: pointer;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+                <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-right: 8px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
                 ${!isCurrentUser && !isAlreadyFriend ? `
-                    <button class="btn btn-sm btn-outline-success add-friend-btn" 
+                    <button class="btn btn-sm btn-outline-success add-friend-btn"
                             data-username="${user.username}">
                         <i class="bi bi-person-plus"></i> Add Friend
                     </button>
@@ -1150,19 +1152,19 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                     <span class="badge bg-success">Friend</span>
                 ` : ''}
             `;
-            
+
             fragment.appendChild(listItem);
         });
-        
+
         // Entferne alle bestehenden Elemente
         usersList.innerHTML = '';
-        
+
         // Füge das Fragment zum DOM hinzu
         usersList.appendChild(fragment);
-        
+
         // Stelle den Scroll-Zustand wieder her
         usersList.scrollTop = scrollTop;
-        
+
         // Event-Listener für die Namen
         usersList.querySelectorAll('.user-name').forEach(nameSpan => {
             nameSpan.addEventListener('click', (e) => {
@@ -1175,7 +1177,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                 }
             });
         });
-        
+
         // Event-Listener für "Add Friend" Buttons
         usersList.querySelectorAll('.add-friend-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -1183,7 +1185,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
                 try {
                     await friendsHandler.addFriend(username);
                     alert(`${username} has been added as a friend!`);
-                    
+
                     // Aktualisiere sowohl die Freundesliste als auch die Online-Benutzer-Liste
                     friendsHandler.getFriends();
                     OnlineUsersHandler.fetchOnlineUsers();
@@ -1211,20 +1213,20 @@ FriendsHandler.prototype.getFriends = async function() {
             },
             cache: 'no-store' // Verhindere Caching
         });
-        
+
         if (!response.ok) {
             throw new Error(`Fehler beim Abrufen der Freundesliste: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         console.log("FriendsHandler: Freundesliste erhalten:", data);
-        
+
         // Aktualisiere die gespeicherte Freundesliste
         this.friends = data;
-        
+
         // Aktualisiere die Anzeige der Freundesliste
         this.updateFriendsListDisplay(data);
-        
+
         return data;
     } catch (error) {
         console.error('FriendsHandler: Fehler beim Abrufen der Freundesliste:', error);
@@ -1236,24 +1238,24 @@ FriendsHandler.prototype.getFriends = async function() {
 FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
     const friendsList = document.getElementById('friends-list');
     if (!friendsList) return;
-    
+
     console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
-    
+
     // Wenn die Liste leer ist, zeige eine Nachricht an
     if (!friends || friends.length === 0) {
         friendsList.innerHTML = '<li class="list-group-item text-center">No friends yet</li>';
         return;
     }
-    
+
     // Leere die Liste und füge die Freunde hinzu
     friendsList.innerHTML = '';
-    
+
     friends.forEach(friend => {
         const listItem = document.createElement('li');
         listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-        
+
         listItem.innerHTML = `
-            <span class="friend-name" data-username="${friend.username}" style="cursor: pointer;">${friend.username}</span>
+            <span class="friend-name" data-username="${friend.username}" style="cursor: pointer; margin-right: 8px;">${friend.username}</span>
             <div class="btn-group">
                 <button class="btn btn-sm btn-outline-success chat-btn" data-username="${friend.username}">
                     <i class="bi bi-chat"></i>
@@ -1263,10 +1265,10 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
                 </button>
             </div>
         `;
-        
+
         friendsList.appendChild(listItem);
     });
-    
+
     // Event-Listener für die Namen
     if (window.menuDisplay) {
         friendsList.querySelectorAll('.friend-name').forEach(nameSpan => {
@@ -1275,14 +1277,14 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
                 window.menuDisplay.viewFriendProfile(username);
             });
         });
-        
+
         friendsList.querySelectorAll('.chat-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const username = e.currentTarget.dataset.username;
                 window.menuDisplay.openChatWithFriend(username);
             });
         });
-        
+
         friendsList.querySelectorAll('.remove-friend-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const username = e.currentTarget.dataset.username;
