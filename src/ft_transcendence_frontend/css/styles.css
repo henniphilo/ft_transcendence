@@ -58,7 +58,7 @@ body {
 }
 
 .auth-container .form-control:focus {
-  background: #333;
+  background: #3f3e3e;
   color: var(--text-light);
   border-color: var(--primary-color);
 }
@@ -147,7 +147,7 @@ body {
 /* Hover-Effekt für Listenelemente */
 .list-group-item:hover {
   background-color: var(--button-hover);
-  color: var(--text-dark);
+  color: var(--text-light);
 }
 
 .profile-card {
@@ -209,6 +209,25 @@ body {
   opacity: 0.7;
 }
 
+/* Stile für alle Input-Felder */
+input {
+  background-color: #3f3e3e !important; /* Dunkler Hintergrund */
+  color: #c8da00 !important; /* Weiße Schrift */
+  border: 1px solid #3b3b3b !important; /* Dezenter Rand */
+}
+
+/* Spezielle Behandlung für AutoFill-Felder */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: #3f3e3e !important; /* Hintergrund bleibt dunkel */
+  color: #c8da00 !important; /* Schrift bleibt weiß */
+  -webkit-text-fill-color: #c8da00 !important; /* Verhindert schwarze Schrift */
+  transition: background-color 5000s ease-in-out 0s; /* Behält Hintergrundfarbe bei */
+}
+
+
 /* Leaderboard-Karte anpassen */
 .profile-card {
   background-color: #3f3e3e; /* Dunkler Hintergrund */
@@ -261,5 +280,28 @@ label {
 }
 
 #switch-to-login:hover, #switch-to-signup:hover {
-  color: var(--highlight-color);
+  color: 'pink';
+  background-color: #d7eb252f; /* Füge einen Hintergrund hinzu, um den Hover-Effekt sichtbarer zu machen */
+  transition: background-color 0.3s ease; /* Optionale Übergangsanimation */
+}
+
+
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px; /* Abstand zwischen den Buttons */
+}
+
+@media (max-width: 400px) {
+  .btn-group {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-avatar {
+      display: block;
+      margin: 0 auto;
+  }
 }
