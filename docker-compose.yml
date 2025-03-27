@@ -42,7 +42,7 @@ services:
   postgres-exporter:
     <<: *common
     image: bitnami/postgres-exporter:latest
-    profiles: ["gameprofile"]
+    profiles: ["grafanaprofile"]
     networks:
       - appnetwork
     container_name: postgres-exporter
