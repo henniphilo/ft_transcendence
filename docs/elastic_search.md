@@ -1,6 +1,7 @@
 # elastic search
 
-verify the logs are coming in
+verify the logs are coming in http://localhost:9200/_cat/indices?v
+
 
 ```bash
 curl -X GET "localhost:9200/_cat/indices?v"
