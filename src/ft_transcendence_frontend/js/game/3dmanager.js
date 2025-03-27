@@ -21,6 +21,10 @@ export class ThreeJSManager {
         this.camera.add(this.listener);  // Verknüpft die Kamera mit dem AudioListener
         this.audioManager = new AudioManager(this.listener);
         this.audioManager.loadSound('bounce', '/sounds/boing-2-44164.mp3');
+        this.audioManager.loadSound('start', '/sounds/Mehringdamm.mp3').then(() => {
+            this.audioManager.playSound('start');
+        });
+
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.humanModel = null;
@@ -99,8 +103,7 @@ export class ThreeJSManager {
                 this.camera.position.set(-8, 3, 2);
                 break;
             case '3': // Vogelperspektive
-                this   //         this.createPaddleModels();
-                // Zusätzliche Modell-Initialisierung, wenn nötig.camera.position.set(0, 8, 0);
+                this.camera.position.set(0, 8, 0);
                 break;
         }
         this.camera.lookAt(0, 0, 0);
@@ -172,32 +175,27 @@ export class ThreeJSManager {
         // Check movement direction und Rotation anpassen
         let newRotationY = 0;
         if (ballX < this.humanModel.position.x) {
-            console.log("bounce left");
-            this.audioManager.playSound('bounce');
             newRotationY = Math.PI; // Facing left
         } else if (ballX > this.humanModel.position.x) {
-            console.log("bounce right");
-            this.audioManager.playSound('bounce');
             newRotationY = 0; // Facing right
         }
 
         // Überprüfe, ob die Rotation sich geändert hat
         if (this.previousRotationY !== null && this.previousRotationY !== newRotationY) {
-            // Wenn sich die Rotation geändert hat, spiele den Sound ab
-            if (!this.sound.isPlaying) {  // Verhindert mehrfaches Abspielen
                 console.log("bounce");
                 this.audioManager.playSound('bounce');
-            }
         }
+        this.previousRotationY = newRotationY;
 
         // Setze die Rotation und aktualisiere das Model
         this.humanModel.rotation.y = newRotationY;
-            // Update Ball-Position
-            if (this.humanModel) {
-                this.humanModel.position.set(ballX, 0, ballZ);
-            } else {
-                console.warn("Warnung: humanModel ist nicht geladen!");
-            }
+
+        // Update Ball-Position
+        if (this.humanModel) {
+            this.humanModel.position.set(ballX, 0, ballZ);
+        } else {
+            console.warn("Warnung: humanModel ist nicht geladen!");
+        }
 
         // Spielerpositionen berechnen
         const p1Z = (gameState.player1.paddle.top + gameState.player1.paddle.bottom) / 2 * (fieldHeight / 2);
@@ -220,8 +218,6 @@ export class ThreeJSManager {
         this.controls.update();
         if (this.mixer) {
             this.mixer.update(0.01); // Zeit in Sekunden seit dem letzten Frame
-        }  else {
-            console.warn("Mixer ist nicht gesetzt!");
         }
         this.renderer.render(this.scene, this.camera);
     }

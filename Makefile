@@ -64,5 +64,5 @@ logs-nginx:
 	docker logs -f ft_transcendence-nginx
 
 animate-game:
-	docker cp ft_transcendence-game-1:/app/game.log ./game.log
+	docker cp game:/app/game.log ./game.log
 	python3 utils/animate_game.py
