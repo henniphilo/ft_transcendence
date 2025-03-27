@@ -720,7 +720,7 @@ export class MenuDisplay {
                         <div class="modal-body" style="background-color: #b9a84cc0; height: 300px;">
                             <div id="chat-messages" class="chat-messages mb-3" style="height: 200px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 5px;"></div>
                             <div class="input-group">
-                                <input type="text" id="chat-input" class="form-control" placeholder="Enter message...">
+                                <input type="text" id="chat-input" class="form-control" placeholder="Enter message..." style="background-color:rgb(116, 113, 113); color:rgb(0, 218, 171);">
                                 <button class="btn btn-primary-custom d-flex align-items-center" id="send-message-btn">Send</button>
                             </div>
                         </div>
