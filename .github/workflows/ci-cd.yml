@@ -46,7 +46,7 @@ jobs:
           docker compose -f docker-compose.ci.yml up -d --build
       
       - name: Add a delay for the backend
-        run: sleep 2 
+        run: sleep 30 
       
       - name: Capture backend logs 
         run: docker compose logs backend
