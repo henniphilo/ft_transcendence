@@ -65,17 +65,17 @@ urlpatterns = [
 def send_verification_code(request):
     email = request.data.get('email')
     user = CustomUser.objects.filter(email=email).first()
-    
+
     if user:
         user.generate_verification_code()  # nehme an, in models.py definiert
         send_mail(
             'Your Verification Code',
             f'Your code is {user.verification_code}',
-            'omio@musikbirne.de',
+            'u-acht@pongbahnhof.de',
             [email]
         )
         return Response({"message": "Verification code sent."})
-    
+
     return Response({"error": "User not found."}, status=400)
 
 @api_view(['POST'])
@@ -89,7 +89,7 @@ def verify_code(request):
         user.verification_code = None  # Code nach Verifikation löschen
         user.save()
         return Response({"message": "User verified."})
-    
+
     return Response({"error": "Invalid code."}, status=400)
 
 # ------------------
@@ -143,14 +143,14 @@ def get_leaderboard(request):
     """Gibt die Top 10 Spieler zurück"""
     users = CustomUser.objects.order_by('-score')[:10]
     leaderboard_data = []
-    
+
     for rank, user in enumerate(users, 1):
         leaderboard_data.append({
             'rank': rank,
             'username': user.username,
             'score': user.score
         })
-    
+
     return Response(leaderboard_data)
 
 @api_view(['GET'])
@@ -160,11 +160,11 @@ def get_current_user_stats(request):
     try:
         # Hole alle User, sortiert nach Score
         all_users = CustomUser.objects.order_by('-score')
-        
+
         # Finde die Position des aktuellen Users
         current_user = request.user
         user_rank = list(all_users.values_list('id', flat=True)).index(current_user.id) + 1
-        
+
         return Response({
             'username': current_user.username,
             'score': current_user.score,
