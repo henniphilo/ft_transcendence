@@ -42,8 +42,8 @@ for user in test_users:
 print("\n🎉 DONE! 15 Testusers created with random friendships.")
 print("\nhuhu:")
 # 🔥 Alle User löschen
-print("🛑 Deleting all users and related data...")
+# print("🛑 Deleting all users and related data...")
 
-CustomUser.objects.all().delete()
+# CustomUser.objects.all().delete()
 
-print("✅ All users and friendships deleted successfully!")
+# print("✅ All users and friendships deleted successfully!")

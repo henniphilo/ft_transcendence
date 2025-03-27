@@ -29,3 +29,18 @@ datasources:
       serviceMap:
         datasourceUid: 'prometheus'
     editable: true
+
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090  
+    isDefault: true
+    editable: true
+    uid: DS_PROMETHEUS
+  
+  - name: alertmanager
+    type: prometheus
+    access: proxy
+    url: http://alertmanager:9093
+    editable: true
+    uid: DS_ALERTMANAGER

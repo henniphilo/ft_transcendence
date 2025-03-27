@@ -6,6 +6,8 @@
   <title>Pong Game</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/game.css" />
@@ -17,10 +19,10 @@
   <!-- Templates -->
   <template id="template-signup">
     <div id="signup-container" class="card p-4 auth-container">
-      <div class="card-header-custom">
-        <h2 class="text-center">Sign Up</h2>
-      </div>
       <form id="signup-form">
+        <div class="card-header-custom">
+          <h2 class="text-center">Welcome to Pongbahnhof!</h2>
+        </div>
         <div class="mb-3">
           <input type="text" id="username" class="form-control" placeholder="Username" required>
         </div>
@@ -56,10 +58,10 @@
 
   <template id="template-login">
     <div id="login-container" class="card p-4 auth-container login-container">
-      <div class="card-header-custom">
-        <h2 class="text-center">Login</h2>
-      </div>
       <form id="login-form">
+        <div class="card-header-custom">
+          <h2 class="text-center">Welcome back!</h2>
+        </div>
         <div class="mb-3">
           <input type="text" id="login-username" class="form-control" placeholder="Username" required>
         </div>
@@ -87,6 +89,69 @@
     </div>
   </template>
 
+  <!-- Nach dem template-game Template -->
+  <template id="template-user-profile">
+    <div id="user-profile-container" class="container py-4">
+      <div class="row">
+        <div class="col-md-8 col-md-custom">
+          <div class="card mb-4">
+            <div class="card-header profile-header">
+              <h2 class="mb-0">User Profile</h2>
+            </div>
+            <div class="card-body profile-card">
+              <div class="row">
+                <div class="col-md-4 text-center">
+                  <img id="profile-view-avatar" class="rounded-circle mb-3"
+                       src="/assets/default-avatar.png"
+                       alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
+                </div>
+                <div class="col-md-8 col-md-custom">
+                  <h3 id="profile-view-username" class="mb-3">Username</h3>
+                  <div class="profile-details mb-4">
+                    <p class="mb-2"><strong>Email:</strong> <span id="profile-view-email"></span></p>
+                    <p class="mb-2"><strong>Bio:</strong> <span id="profile-view-bio"></span></p>
+                    <p class="mb-2"><strong>Birthday:</strong> <span id="profile-view-birth-date"></span></p>
+                    <p class="mb-2"><strong>Tournament Name:</strong> <span id="profile-view-tournament-name"></span></p>
+                  </div>
+                  <div class="d-grid gap-2">
+                    <button id="back-to-menu-btn" class="btn btn-secondary">Back to Menu</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-md-custom">
+          <div class="card mb-4">
+            <div class="card-header profile-header">
+              <h3 class="mb-0">Match Stats</h3>
+            </div>
+            <div class="card-body profile-card">
+              <div id="match-stats">
+                <p><strong>Wins:</strong> <span id="profile-view-wins">0</span></p>
+                <p><strong>Losses:</strong> <span id="profile-view-losses">0</span></p>
+                <p><strong>Win Rate:</strong> <span id="profile-view-win-rate">0%</span></p>
+                <p><strong>Total Games:</strong> <span id="profile-view-total-games">0</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header profile-header">
+              <h3 class="mb-0">Match History</h3>
+            </div>
+            <div class="card-body profile-card">
+              <div id="match-history" class="match-history-list">
+                <p class="text-center">No matches found</p>
+                <!-- Match history will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <!-- Content Div for Dynamic Loading -->
   <div id="content"></div>
 
@@ -105,7 +170,6 @@
   <!-- Skripte (am Ende des Body platzieren) -->
   <!-- AuthLib muss vor den anderen Skripten geladen werden -->
 
-  <script src="js/signup.js"></script>
   <script type="module" src="js/signup.js"></script>
   <script type="module" src="js/game/background3d.js"></script>
   <script type="module" src="js/game/3dmanager.js"></script>

@@ -10,6 +10,39 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+from opentelemetry import trace
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.django import DjangoInstrumentor
+
+# Set up tracing
+resource = Resource(attributes={
+    SERVICE_NAME: "ft-transcendence-backend"
+})
+
+trace_provider = TracerProvider(resource=resource)
+trace.set_tracer_provider(trace_provider)
+
+# Configure the OTLP exporter
+otlp_exporter = OTLPSpanExporter(
+    endpoint="tempo:4317",  # Use the service name from docker-compose
+    insecure=True  # Since we're in Docker network, we don't need TLS
+)
+
+# Add the exporter to the TracerProvider
+trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
+# Initialize Django instrumentation
+DjangoInstrumentor().instrument()
+
+# OpenTelemetry configuration
+OTEL_PYTHON_DJANGO_INSTRUMENT = True
+OTEL_PYTHON_SERVICE_NAME = "ft-transcendence-backend"
+OTEL_EXPORTER_OTLP_ENDPOINT = "http://tempo:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL = "grpc"
+
 from pathlib import Path
 import os
 from datetime import timedelta
@@ -19,7 +52,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-#MEDIA_URL = "/media/"
 #MEDIA_ROOT = "/app/users/media"
 
 # Quick-start development settings - unsuitable for production
@@ -51,6 +83,7 @@ INSTALLED_APPS = [
     'channels',
 	'django_prometheus',
     'gamestats',
+    'minimal_chat',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -77,8 +110,8 @@ MIDDLEWARE = [
 ]
 
 # Redis-Konfiguration aus Docker-Compose nutzen
-REDIS_HOST = "redis"
-REDIS_PORT = 6379
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 
 ROOT_URLCONF = 'backend.urls'
@@ -139,6 +172,16 @@ CHANNEL_LAYERS = {
         },
     },
 }
+# might not be the best config ;) 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("redis", 6379)],
+#         },
+#     },
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -194,12 +237,19 @@ SIMPLE_JWT = {
 }
 
 # Email Configuration
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp-relay.brevo.com'
+# EMAIL_HOST_USER = '849697001@smtp-brevo.com'
+# EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
+
+# EMAIL_PORT = '587'
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp-relay.brevo.com'
-EMAIL_HOST_USER = '849697001@smtp-brevo.com'
-EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "849697001@smtp-brevo.com")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "kOmqRp1jT6KrPbWY")
 EMAIL_USE_TLS = True
-EMAIL_PORT = '587'
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 
 # logging configuration
 # using logging.getLogger(__name__) in your modules
