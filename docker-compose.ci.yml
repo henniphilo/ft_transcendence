@@ -309,6 +309,56 @@ services:
       timeout: 10s
       retries: 5
 
+
+  elasticsearch:
+    <<: *common
+    container_name: elasticsearch
+    image: bitnami/elasticsearch:8.15.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false # Disable security for development (enable in production)
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # Adjust memory as needed
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  logstash:
+    <<: *common
+    container_name: logstash
+    build: ./src/elk/logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline/
+    ports:
+      - "5044:5044" # Beats input
+      - "9600:9600" # Logstash API
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    <<: *common
+    container_name: kibana
+    # build: ./src/elk/kibana
+    image: bitnami/kibana:8.15.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   
   node-exporter:
     env_file:

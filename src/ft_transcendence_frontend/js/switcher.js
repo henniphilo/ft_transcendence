@@ -57,8 +57,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupMenu(userProfile) {
+        console.log("Menu wird eingerichtet mit Profil:", userProfile);
+        
+        // Stelle sicher, dass ein gültiges Benutzerprofil vorhanden ist
+        if (!userProfile || typeof userProfile !== 'object' || Object.keys(userProfile).length === 0) {
+            console.log("Kein gültiges Profil übergeben, versuche aus localStorage zu laden");
+            // Versuche, das Profil aus dem localStorage zu laden
+            const storedProfile = localStorage.getItem('userProfile');
+            if (storedProfile) {
+                try {
+                    userProfile = JSON.parse(storedProfile);
+                    console.log("Profil aus localStorage geladen:", userProfile);
+                } catch (e) {
+                    console.error("Fehler beim Parsen des gespeicherten Profils:", e);
+                }
+            }
+        }
+        
         // Initialisiere die MenuDisplay-Klasse mit dem Benutzerprofil
-        const menuDisplay = new MenuDisplay(userProfile);
+        window.menuDisplay = new MenuDisplay(userProfile);
     }
 
     function setupGameScreen(data) {

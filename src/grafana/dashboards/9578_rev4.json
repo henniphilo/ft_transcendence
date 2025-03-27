@@ -2190,7 +2190,10 @@
 	"templating": {
 	  "list": [
 		{
-		  "current": {},
+		  "current": {
+			"text": "Prometheus",
+			"value": "prometheus"
+		  },
 		  "includeAll": false,
 		  "label": "Prometheus datasource",
 		  "name": "datasource",
@@ -2226,7 +2229,7 @@
 	},
 	"timepicker": {},
 	"timezone": "",
-	"title": "Alertmanager1",
+	"title": "Alertmanager",
 	"uid": "eea-9_sik1",
 	"version": 1,
 	"weekStart": ""

@@ -1,5 +1,5 @@
 // Basis-URL für API-Endpunkte
-const BASE_URL = 'http://localhost:8080/api/users';
+const BASE_URL = '/api/users';
 
 /**
  * Liest einen Cookie-Wert anhand des Namens.

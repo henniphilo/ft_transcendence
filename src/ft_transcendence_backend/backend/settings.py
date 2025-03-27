@@ -58,7 +58,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7891*hs6jd=fd_kacvcjx^_o=b1347g5&#8ho#dm^xuh-e+7do'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -84,6 +84,7 @@ INSTALLED_APPS = [
 	'django_prometheus',
     'gamestats',
     'minimal_chat',
+    'blockchain',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -236,20 +237,13 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Email Configuration
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp-relay.brevo.com'
-# EMAIL_HOST_USER = '849697001@smtp-brevo.com'
-# EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
 
-# EMAIL_PORT = '587'
-# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "849697001@smtp-brevo.com")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "kOmqRp1jT6KrPbWY")
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = True
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT"))
 
 # logging configuration
 # using logging.getLogger(__name__) in your modules

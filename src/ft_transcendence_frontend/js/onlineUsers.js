@@ -71,7 +71,7 @@ export class OnlineUsersHandler {
 
         try {
             // FIXME: gesamte URL ist wahrscheinlich falsch (but works)
-            const response = await fetch("http://localhost:8080/api/users/logout/", {
+            const response = await fetch("/api/users/logout/", {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${accessToken}`,
