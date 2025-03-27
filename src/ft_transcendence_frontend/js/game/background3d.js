@@ -55,7 +55,7 @@ function init() {
             model.scale.set(1, 1, 1);
         },
         (xhr) => {
-            console.log((xhr.loaded / xhr.total * 100) + '% background loaded');
+   //         console.log((xhr.loaded / xhr.total * 100) + '% background loaded');
         },
         (error) => console.error('Error loading background model:', error)
     );

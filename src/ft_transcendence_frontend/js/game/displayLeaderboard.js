@@ -14,7 +14,7 @@ export class LeaderboardDisplay {
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-header profile-header">
-                                <h2 class="mb-0">Top 10 Players</h2>
+                                <h3 class="mb-0">Top 10 Players</h3>
                             </div>
                             <div class="card-body profile-card">
                                 <div class="table-responsive">
@@ -33,14 +33,14 @@ export class LeaderboardDisplay {
                                         </tbody>
                                     </table>
                                 </div>
-                                
+
                                 <div class="mt-4">
                                     <h3 class="mb-3">Your Position</h3>
                                     <div id="current-user-container" class="mb-4">
                                         <!-- Will be filled dynamically -->
                                     </div>
                                 </div>
-                                
+
                                 <div class="d-grid">
                                     <button class="btn-primary-custom" id="back-button">
                                         Back to Menu
