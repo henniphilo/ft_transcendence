@@ -26,6 +26,7 @@ jobs:
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
 
     steps:
       - name: Checkout code
