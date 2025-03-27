@@ -311,7 +311,14 @@ services:
 
 
   elasticsearch:
-    <<: *common
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - transcendence_network
+    init: true
+    tty: true
+    stdin_open: true
     container_name: elasticsearch
     image: bitnami/elasticsearch:8.15.0
     environment:
@@ -329,7 +336,14 @@ services:
       retries: 3
 
   logstash:
-    <<: *common
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - transcendence_network
+    init: true
+    tty: true
+    stdin_open: true
     container_name: logstash
     build: ./src/elk/logstash
     volumes:
@@ -342,7 +356,14 @@ services:
         condition: service_healthy
 
   kibana:
-    <<: *common
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - transcendence_network
+    init: true
+    tty: true
+    stdin_open: true
     container_name: kibana
     # build: ./src/elk/kibana
     image: bitnami/kibana:8.15.0
