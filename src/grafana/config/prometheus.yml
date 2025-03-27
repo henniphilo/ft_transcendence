@@ -4,6 +4,7 @@ global:
   external_labels:
       monitor: 'transcendence'
 
+# This ensures that Prometheus sends alerts to Alertmanager.
 alerting:
   alertmanagers:
   - static_configs:
@@ -14,6 +15,8 @@ rule_files:
   - /etc/prometheus/alerts.yaml
   - /etc/node_exporter_recording_rules.yml
 
+
+# Prometheus scrapes metrics from the services.
 scrape_configs:
 
   - job_name: 'caddy'
@@ -52,8 +55,8 @@ scrape_configs:
   #   static_configs:
   #     - targets: ['promtail:9080']
 
-  # - job_name: 'prometheus'
-  #   scrape_interval: 5s
-  #   scrape_timeout: 5s
-  #   static_configs:
-  #     - targets: ['prometheus:9090'] 
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ['prometheus:9090'] 

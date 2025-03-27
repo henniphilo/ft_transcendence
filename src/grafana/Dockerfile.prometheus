@@ -1,6 +1,5 @@
 FROM prom/prometheus:v3.2.1
 
-
 COPY config/prometheus.yml /etc/prometheus/prometheus.yml
 COPY config/rules.yaml /etc/prometheus/rules.yaml
 COPY config/alerts.yaml /etc/prometheus/alerts.yaml
@@ -9,6 +8,6 @@ COPY config/node_rules.yaml /etc/prometheus/config/node_rules.yaml
 EXPOSE 9090
 
 ENTRYPOINT ["/bin/prometheus"]
-CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]
-
-#  docker run --name prometheus -d -p 127.0.0.1:9090:9090 prom/prometheus
+CMD ["--config.file=/etc/prometheus/prometheus.yml", \
+		"--storage.tsdb.path=/prometheus", \
+		"--storage.tsdb.retention.time=14d"]
