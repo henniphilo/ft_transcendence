@@ -31,11 +31,6 @@ export class GameScreen {
             this.gameMode = 'online';
         }
 
-        console.log("Spielmodus basierend auf Spielerrolle und Namen:", this.gameMode);
-
-        console.log("Finaler Spielmodus:", this.gameMode);
-        console.log("Spielerrolle:", this.playerRole);
-
         this.threeJSManager = new ThreeJSManager();
 
         // Sende Inputs zum Server (60 mal pro Sekunde)
@@ -241,16 +236,9 @@ export class GameScreen {
         const player1Score = this.scoreBoard.querySelector('#player1-score');
         const player2Score = this.scoreBoard.querySelector('#player2-score');
 
-        console.log("Scoreboard-Elemente:", player1Score, player2Score);
-
         // Bestimme die Spielernamen basierend auf dem Spielmodus
         let player1Name = this.gameState.player1.name;
         let player2Name = this.gameState.player2.name;
-
-     //   console.log("Ursprüngliche Namen:", player1Name, player2Name);
-    //    console.log("Spielmodus:", this.gameMode);
-    //    console.log("Spielerrolle:", this.playerRole);
-    //    console.log("Benutzerprofil:", this.userProfile);
 
         // Wenn wir ein Benutzerprofil haben, passen wir die Namen an
         if (this.userProfile) {
@@ -276,7 +264,6 @@ export class GameScreen {
      //   console.log("Angepasste Namen:", player1Name, player2Name);
 
         if (player1Score && player2Score) {
-            console.log("Aktualisiere Scoreboard-Elemente");
             player1Score.innerHTML = `<strong>${player1Name}:</strong> ${this.gameState.player1.score}`;
             player2Score.innerHTML = `<strong>${player2Name}:</strong> ${this.gameState.player2.score}`;
         } else {

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { AudioManager } from './audioManger.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -16,11 +17,21 @@ export class ThreeJSManager {
         this.loader = new GLTFLoader();
         this.fbxLoader = new FBXLoader();
 
+        this.listener = new THREE.AudioListener();
+        this.camera.add(this.listener);  // Verknüpft die Kamera mit dem AudioListener
+        this.audioManager = new AudioManager(this.listener);
+        this.audioManager.loadSound('bounce', '/sounds/boing-2-44164.mp3');
+        this.audioManager.loadSound('start', '/sounds/Mehringdamm.mp3').then(() => {
+            this.audioManager.playSound('start');
+        });
+
+
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.humanModel = null;
         this.paddleModels = []; // Hier werden die Paddle-Objekte gespeichert
         this.mixer = null; // Animation Mixer
         this.animations = []; // Animations Array
+        this.previousRotationY = null;  // Speichert die vorherige Rotation des humanModel
 
         this.setupScene();
     }
@@ -161,12 +172,23 @@ export class ThreeJSManager {
         const ballX = gameState.ball[0] * (fieldWidth / 2);
         const ballZ = gameState.ball[1] * (fieldHeight / 2);
 
-         // Check movement direction
-         if (ballX < this.humanModel.position.x) {
-            this.humanModel.rotation.y = Math.PI; // Facing left
+        // Check movement direction und Rotation anpassen
+        let newRotationY = 0;
+        if (ballX < this.humanModel.position.x) {
+            newRotationY = Math.PI; // Facing left
         } else if (ballX > this.humanModel.position.x) {
-            this.humanModel.rotation.y = 0; // Facing right
+            newRotationY = 0; // Facing right
         }
+
+        // Überprüfe, ob die Rotation sich geändert hat
+        if (this.previousRotationY !== null && this.previousRotationY !== newRotationY) {
+                console.log("bounce");
+                this.audioManager.playSound('bounce');
+        }
+        this.previousRotationY = newRotationY;
+
+        // Setze die Rotation und aktualisiere das Model
+        this.humanModel.rotation.y = newRotationY;
 
         // Update Ball-Position
         if (this.humanModel) {
@@ -196,8 +218,6 @@ export class ThreeJSManager {
         this.controls.update();
         if (this.mixer) {
             this.mixer.update(0.01); // Zeit in Sekunden seit dem letzten Frame
-        }  else {
-            console.warn("Mixer ist nicht gesetzt!");
         }
         this.renderer.render(this.scene, this.camera);
     }
