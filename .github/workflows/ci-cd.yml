@@ -65,6 +65,10 @@ jobs:
         run: |
           docker compose exec backend pytest tests/integration/ -v
 
+      - name: Output backend logs on failure
+        if: failure()
+        run: docker logs backend
+
       - name: Stop Docker Compose
         run: docker compose down
 
