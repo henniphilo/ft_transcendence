@@ -1,8 +1,5 @@
 # Kibana
 
-
-
-
 To verify if Kibana is working correctly, you can follow these steps:
 
 ### 1. **Access Kibana via Web Browser**
