@@ -21,6 +21,7 @@ export class ThreeJSManager {
         this.camera.add(this.listener);  // Verknüpft die Kamera mit dem AudioListener
         this.audioManager = new AudioManager(this.listener);
         this.audioManager.loadSound('bounce', '/sounds/boing-2-44164.mp3');
+        this.audioManager.loadSound('win', '/sounds/girl-scream-45657.mp3');
         this.audioManager.loadSound('start', '/sounds/Mehringdamm.mp3').then(() => {
             this.audioManager.playSound('start');
         });
@@ -28,10 +29,12 @@ export class ThreeJSManager {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.humanModel = null;
-        this.paddleModels = [];
+        this.paddleModels = []; // Hier werden die Paddle-Objekte gespeichert
         this.mixer = null; // Animation Mixer
         this.animations = []; // Animations Array
         this.previousRotationY = null;  // Speichert die vorherige Rotation des humanModel
+        this.previousScoreP1 = 0;
+        this.previousScoreP2 = 0;
 
         this.setupScene();
     }
@@ -163,7 +166,7 @@ export class ThreeJSManager {
     }
 
     updatePositions(gameState) {
-        if (!gameState || this.paddleModels.length !== 2) return;
+        if (!gameState || this.paddleModels.length !== 2 || !this.humanModel) return;
 
         const fieldHeight = 6;
         const fieldWidth = 8;
@@ -171,6 +174,15 @@ export class ThreeJSManager {
         // Ballposition berechnen (Skalierung an das Spielfeld anpassen)
         const ballX = gameState.ball[0] * (fieldWidth / 2);
         const ballZ = gameState.ball[1] * (fieldHeight / 2);
+
+        if (gameState.player1.score != this.previousScoreP1 || gameState.player2.score != this.previousScoreP2)
+            {
+                console.log("win score is:", gameState.player1.score, gameState.player2.score);
+                this.audioManager.stopSound('bounce');
+                this.audioManager.playSound('win');
+                this.previousScoreP1 = gameState.player1.score;
+                this.previousScoreP2 = gameState.player2.score;
+            }
 
         // Check movement direction und Rotation anpassen
         let newRotationY = 0;
@@ -181,13 +193,15 @@ export class ThreeJSManager {
         }
 
         // Überprüfe, ob die Rotation sich geändert hat
-        if (this.previousRotationY !== null && this.previousRotationY !== newRotationY) {
-                console.log("bounce");
-                this.audioManager.playSound('bounce');
+        if (this.previousRotationY !== null && this.previousRotationY !== newRotationY
+            && gameState.player1.score == this.previousScoreP1 && gameState.player2.score == this.previousScoreP2 ) {
+                if (!this.audioManager.isPlaying('win')) { // Nur abspielen, wenn 'win' nicht läuft
+                    console.log("bounce");
+                    this.audioManager.playSound('bounce');
+                }
         }
         this.previousRotationY = newRotationY;
 
-        // Setze die Rotation und aktualisiere das Model
         this.humanModel.rotation.y = newRotationY;
 
         // Update Ball-Position
