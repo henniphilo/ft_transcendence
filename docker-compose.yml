@@ -1,12 +1,14 @@
-name: ft_transcendence
+name: u42
 
 # these are common to all containers
 x-common: &common
+  profiles:
+    - gameprofile
+    - grafanaprofile
+    - elkprofile
   env_file:
     - .env
   restart: always
-  networks:
-    - transcendence_network
   init: true
   tty: true
   stdin_open: true
@@ -15,6 +17,9 @@ services:
   postgres:
     <<: *common
     image: "postgres:16"
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: postgres
     # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
@@ -23,6 +28,11 @@ services:
       - postgres_logs:/var/log/postgresql
     environment:
       PGDATA: /var/lib/postgresql/data
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "postgres"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5432"]
       interval: 10s
@@ -32,6 +42,9 @@ services:
   postgres-exporter:
     <<: *common
     image: bitnami/postgres-exporter:latest
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     container_name: postgres-exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
@@ -47,12 +60,20 @@ services:
   redis:
     <<: *common
     build: src/redis
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: redis
     ports:
       - "6380:6379"
     volumes:
       - redis_data:/data
       - redis_logs:/var/log/redis
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "redis"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"] 
       interval: 10s
@@ -62,6 +83,9 @@ services:
   backend:
     <<: *common
     build: src/ft_transcendence_backend
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: backend
     depends_on:
       postgres:
@@ -76,6 +100,11 @@ services:
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
              daphne -b 0.0.0.0 -p 8000 backend.asgi:application"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
       interval: 10s
@@ -85,10 +114,18 @@ services:
   game:
     <<: *common
     build: src/ft_transcendence_backend/game
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: game
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
     ports:
       - "8001:8001"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "game"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8001 || exit 1"]
       interval: 30s
@@ -100,27 +137,54 @@ services:
     build:
       context: ./src/
       dockerfile: caddy/Dockerfile
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
     container_name: caddy
     ports:
       - "8080:80"  
       - "8444:443"  
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - caddy_logs:/var/log/caddy
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "postgres"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+
+  cloudflared:
+    <<: *common
+    image: cloudflare/cloudflared:latest
+    profiles: ["gameprofile"]
+    networks:
+      - appnetwork
+    container_name: cloudflared
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "cloudflared"
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
   
   grafana:
     <<: *common
     build: 
       context: ./src/grafana
       dockerfile: Dockerfile.grafana
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     container_name: grafana
     ports:
       - "3000:3000"
@@ -133,52 +197,18 @@ services:
       - GF_INSTALL_PLUGINS=redis-datasource
       - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
     depends_on:
-      - redis
-      - loki
+      redis:
+        condition: service_healthy
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "grafana"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-
-  loki:
-    <<: *common
-    build: 
-      context: ./src/grafana
-      dockerfile: Dockerfile.loki
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command: ["-config.file=/etc/loki/local-config.yml"]
-    volumes:
-      # - loki_config:/etc/loki/
-      - loki_logs:/var/log/loki 
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
-      interval: 60s
-      timeout: 660s
-      retries: 5
-
-  tempo:
-    <<: *common
-    build: 
-      context: ./src/grafana
-      dockerfile: Dockerfile.tempo
-    container_name: tempo
-    command: [ "-config.file=/etc/tempo.yml" ]
-    volumes:
-      - tempo_data:/tmp/tempo
-      - tempo_logs:/var/log/tempo
-    ports:
-      - "3200:3200"   # tempo
-      - "4317:4317"   # otlp grpc
-      - "4318:4318"   # otlp http
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
-      interval: 60s
-      timeout: 30s
-      retries: 5
-
      
   # portainer:
   #   <<: *common
@@ -203,11 +233,19 @@ services:
     build: 
       context: ./src/grafana
       dockerfile: Dockerfile.prometheus
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
       - prometheus_data:/prometheus
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "prometheus"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
       interval: 30s
@@ -218,13 +256,45 @@ services:
     <<: *common
     image: prom/node-exporter:latest
     container_name: node-exporter
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
     ports:
       - "9101:9100"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "node-exporter"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9100/-/healthy || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+  
+  alertmanager:
+    <<: *common
+    build:
+      context: ./src/grafana
+      dockerfile: Dockerfile.alertmanager
+    profiles: ["grafanaprofile"]
+    networks:
+      - appnetwork
+    container_name: alertmanager
+    environment:
+      - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_TO=${EMAIL_TO}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+    ports:
+      - "9093:9093"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://localhost:5000"
+        tag: "alertmanager"
 
   promtail:
     <<: *common
@@ -232,6 +302,9 @@ services:
       context: ./src/grafana
       dockerfile: Dockerfile.promtail
     container_name: promtail
+    profiles: ["elkprofile"]
+    networks:
+      - appnetwork
     volumes:
       - promtail_logs:/app/logs
       - postgres_logs:/var/log/postgresql
@@ -241,34 +314,150 @@ services:
       - grafana_logs:/var/log/grafana
     ports:
     - "9080:9080" 
-    depends_on:
-      - loki
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
       interval: 30s
       timeout: 10s
       retries: 5
 
-  cloudflared:
-    <<: *common
-    image: cloudflare/cloudflared:latest
-    container_name: cloudflared
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+#   elasticsearch:
+#     <<: *common
+#     container_name: elasticsearch
+#     image: bitnami/elasticsearch:8.15.0
+#     profiles: ["elkprofile"]
+#     networks:
+#       - appnetwork
+#     environment:
+#       - discovery.type=single-node
+#       - xpack.security.enabled=false # Disable security for development (enable in production)
+#       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # Adjust memory as needed
+#     ports:
+#       - "9200:9200"
+#     volumes:
+#       - elasticsearch_data:/bitnami/elasticsearch/data
+#     healthcheck:
+#       test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
   
-  alertmanager:
+  elasticsearch:
     <<: *common
-    build:
-      context: ./src/grafana
-      dockerfile: Dockerfile.alertmanager
-    container_name: alertmanager
+    image: elasticsearch:8.17.0
+    profiles: ["elkprofile"]
+    container_name: elasticsearch
+    restart: always
+    volumes:
+    - elastic_data:/usr/share/elasticsearch/data/
     environment:
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=587
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+      - discovery.type=single-node
+      - xpack.security.enabled=false  # Enable security    
+      # - ELASTIC_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Elasticsearch password    
     ports:
-      - "9093:9093"
+    - '9200:9200'
+    - '9300:9300'
+    networks:
+      - appnetwork
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -s -f -u elastic:yourpassword http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+  
+  logstash:
+    <<: *common
+    container_name: logstash
+    build: ./src/elk/logstash
+    profiles: ["elkprofile"]
+    restart: always
+    command: logstash -f /logstash_dir/logstash.conf 
+    # depends_on:
+    #   - elasticsearch
+    ports:
+      - "5000:5000/udp"  # Expose UDP port 5000 for syslog
+      - '9600:9600'
+    environment:
+      - ES_JAVA_OPTS=-Xmx1g -Xms1g
+      - xpack.monitoring.enabled=false
+      # - xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200
+      # - xpack.monitoring.elasticsearch.username=elastic
+      # - xpack.monitoring.elasticsearch.password=LYCGEtv92deGJROBL*lp    
+    networks:
+      - appnetwork
+    volumes:
+      - caddy_logs:/var/log/caddy
+      - django_logs:/app/logs
+      - postgres_logs:/var/log/postgresql
+      - redis_logs:/var/log/redis
+      - grafana_logs:/var/log/grafana
+
+
+  kibana:
+    <<: *common
+    image: kibana:8.17.0
+    container_name: kibana
+    profiles: ["elkprofile"]
+    restart: always       
+    ports:
+    - '5601:5601'
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200  
+      # - ELASTICSEARCH_USERNAME=kibana_system
+      # - ELASTICSEARCH_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Kibana system password
+    #   - xpack.encryptedSavedObjects.encryptionKey=<5880da9738edab6101dc26330c2fafca>
+    #   - xpack.reporting.encryptionKey=<e1921b1a405bc83d11084504c65d8cae>
+    #   - xpack.security.encryptionKey=<789dcf21ca81e07d37c6aa2c23742021>
+    networks:
+      - appnetwork
+    # depends_on:
+    #   elasticsearch:
+    #     condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+#   logstash:
+#     <<: *common
+#     container_name: logstash
+#     build: ./src/elk/logstash
+#     profiles: ["elkprofile"]
+    # networks:
+    #   - appnetwork
+#     volumes:
+#       - logstash-persistence:/bitnami
+#     ports:
+#       - "5044:5044" # Beats input
+#       - "9600:9600" # Logstash API
+#     depends_on:
+#       elasticsearch:
+#         condition: service_healthy
+
+#   kibana:
+#     <<: *common
+#     container_name: kibana
+#     # build: ./src/elk/kibana
+#     image: bitnami/kibana:8.15.0
+#     profiles: ["elkprofile"]
+#     networks:
+#       - appnetwork
+#     environment:
+#       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+#     ports:
+#       - "5601:5601"
+#     depends_on:
+#       elasticsearch:
+#         condition: service_healthy
+#     healthcheck:
+#       test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
 
 volumes:
   caddy_logs: null
@@ -280,15 +469,58 @@ volumes:
   grafana_data: null
   grafana_logs: null
   grafana_provisioning: null
-  loki_logs: null
-  loki-data: null
-  tempo_data: null
-  tempo_logs: null
-  promtail_logs: null
   prometheus_data: null
   portainer-data: null
+  elastic_data: null
+#   logstash-persistence: null
+#   kibana_data: null
+  promtail_logs: null
+
+  # loki_logs: null
+  # loki-data: null
+  # tempo_data: null
+  # tempo_logs: null
 
 networks:
-  transcendence_network:
-    name: transcendence_network
+  appnetwork:
+    name: appnetwork
     driver: bridge
+
+
+  # tempo:
+  #   <<: *common
+  #   build: 
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.tempo
+  #   container_name: tempo
+  #   command: [ "-config.file=/etc/tempo.yml" ]
+  #   volumes:
+  #     - tempo_data:/tmp/tempo
+  #     - tempo_logs:/var/log/tempo
+  #   ports:
+  #     - "3200:3200"   # tempo
+  #     - "4317:4317"   # otlp grpc
+  #     - "4318:4318"   # otlp http
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
+  #     interval: 60s
+  #     timeout: 30s
+  #     retries: 5
+
+    # loki:
+    # <<: *common
+    # build: 
+    #   context: ./src/grafana
+    #   dockerfile: Dockerfile.loki
+    # container_name: loki
+    # ports:
+    #   - "3100:3100"
+    # command: ["-config.file=/etc/loki/local-config.yml"]
+    # volumes:
+    #   # - loki_config:/etc/loki/
+    #   - loki_logs:/var/log/loki 
+    # healthcheck:
+    #   test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
+    #   interval: 60s
+    #   timeout: 660s
+    #   retries: 5
