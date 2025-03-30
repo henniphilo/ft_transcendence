@@ -17,3 +17,11 @@ yellow open   .ds-logs-%{job}-2025.03.23-2025.03.23-000001 kK1cUKu3QWKRfXG7bZRap
 yellow open   logstash-2025.03.23-000001                   334yn6VjRJ-KHOHOFh2dFQ   1   1         12            0     66.3kb         66.3kb
 green  open   .apm-agent-configuration                     A2LJY0z1Qfylim1oCNSUyA   1   0          0            0       226b           226b
 ```
+
+
+The enrollment token is automatically generated when you start Elasticsearch for the first time. You might need to scroll back a bit in the terminal to view it.
+
+To generate a new enrollment token, run the following command from the Elasticsearch installation directory:
+```
+bin/elasticsearch-create-enrollment-token --scope kibana
+```
