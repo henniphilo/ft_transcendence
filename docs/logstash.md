@@ -122,7 +122,16 @@ If logs aren’t reaching Elasticsearch:
 
 ---
 
-
+## Grok
+you will need a grok debugger at a certain point.
+https://grokdebugger.com/
+```grok
+%{IPORHOST:client_ip}:%{POSINT:client_port} - - %{MONTHDAY:d}/%{MONTH:m}/%{YEAR:year}:%{TIME:time}\] \\\"%{WORD:http_method} %{URIPATHPARAM:request_path}.*\" %{NUMBER:http_status} %{NUMBER:response_size}\\r
+```
+will match this
+```log
+172.18.0.2:49524 - - 30/Mar/2025:11:29:24] \"GET /metrics\" 200 19638\r
+```
 ### links
 
 remember it is a bitnami container    
