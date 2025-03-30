@@ -10,38 +10,38 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from opentelemetry import trace
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.django import DjangoInstrumentor
+# from opentelemetry import trace
+# from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+# from opentelemetry.sdk.trace import TracerProvider
+# from opentelemetry.sdk.trace.export import BatchSpanProcessor
+# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+# from opentelemetry.instrumentation.django import DjangoInstrumentor
 
 # Set up tracing
-resource = Resource(attributes={
-    SERVICE_NAME: "ft-transcendence-backend"
-})
+# resource = Resource(attributes={
+#     SERVICE_NAME: "ft-transcendence-backend"
+# })
 
-trace_provider = TracerProvider(resource=resource)
-trace.set_tracer_provider(trace_provider)
+# trace_provider = TracerProvider(resource=resource)
+# trace.set_tracer_provider(trace_provider)
 
-# Configure the OTLP exporter
-otlp_exporter = OTLPSpanExporter(
-    endpoint="tempo:4317",  # Use the service name from docker-compose
-    insecure=True  # Since we're in Docker network, we don't need TLS
-)
+# # Configure the OTLP exporter
+# otlp_exporter = OTLPSpanExporter(
+#     endpoint="tempo:4317",  # Use the service name from docker-compose
+#     insecure=True  # Since we're in Docker network, we don't need TLS
+# )
 
-# Add the exporter to the TracerProvider
-trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+# # Add the exporter to the TracerProvider
+# trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
-# Initialize Django instrumentation
-DjangoInstrumentor().instrument()
+# # Initialize Django instrumentation
+# DjangoInstrumentor().instrument()
 
-# OpenTelemetry configuration
-OTEL_PYTHON_DJANGO_INSTRUMENT = True
-OTEL_PYTHON_SERVICE_NAME = "ft-transcendence-backend"
-OTEL_EXPORTER_OTLP_ENDPOINT = "http://tempo:4317"
-OTEL_EXPORTER_OTLP_PROTOCOL = "grpc"
+# # OpenTelemetry configuration
+# OTEL_PYTHON_DJANGO_INSTRUMENT = True
+# OTEL_PYTHON_SERVICE_NAME = "ft-transcendence-backend"
+# OTEL_EXPORTER_OTLP_ENDPOINT = "http://tempo:4317"
+# OTEL_EXPORTER_OTLP_PROTOCOL = "grpc"
 
 from pathlib import Path
 import os
