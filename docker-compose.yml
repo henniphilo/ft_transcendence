@@ -390,6 +390,7 @@ volumes:
   logstash-persistence: null
   kibana_data: null
   promtail_logs: null
+  elasticsearch_data: null
 
   # loki_logs: null
   # loki-data: null
