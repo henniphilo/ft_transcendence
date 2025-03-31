@@ -53,15 +53,15 @@ export class ThreeJSManager {
         this.camera.lookAt(0, 0, 0);
 
         // Beleuchtung
-        const light = new THREE.PointLight(0xffffff, 2.5, 50);
+        const light = new THREE.PointLight(0xffffff, 0.6, 50);
         light.position.set(0, 10, 10);
         this.scene.add(light);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(ambientLight);
 
         // Spotlight für mehr Kontraste
-        const spotLight = new THREE.SpotLight(0xffffff, 2);
+        const spotLight = new THREE.SpotLight(0xffffff, 0.7);
         spotLight.position.set(0, 10, 0);
         spotLight.angle = Math.PI / 4;
         spotLight.penumbra = 0.2;

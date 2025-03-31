@@ -1134,15 +1134,15 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 
             // Aktualisiere den Inhalt
             listItem.innerHTML = `
-                <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-right: 8px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
-                ${!isCurrentUser && !isAlreadyFriend ? `
-                    <button class="btn btn-sm btn-outline-success add-friend-btn"
-                            data-username="${user.username}">
-                        <i class="bi bi-person-plus"></i> Add Friend
-                    </button>
-                ` : isAlreadyFriend && !isCurrentUser ? `
-                    <span class="badge bg-success">Friend</span>
-                ` : ''}
+                 <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-bottom: 5px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+                 ${!isCurrentUser && !isAlreadyFriend ? `
+                     <button class="btn btn-sm btn-outline-success add-friend-btn"
+                             data-username="${user.username}">
+                         <i class="bi bi-person-plus"></i> Add Friend
+                     </button>
+                 ` : isAlreadyFriend && !isCurrentUser ? `
+                     <span class="badge bg-success">Friend</span>
+                 ` : ''}
             `;
 
             fragment.appendChild(listItem);
@@ -1195,7 +1195,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 // Modifiziere die FriendsHandler.getFriends-Methode, um sicherzustellen, dass sie immer die aktuellen Daten vom Server holt
 FriendsHandler.prototype.getFriends = async function() {
     try {
-        console.log("FriendsHandler: Rufe Freundesliste ab...");
+  //      console.log("FriendsHandler: Rufe Freundesliste ab...");
         const accessToken = localStorage.getItem('accessToken');
         const response = await fetch('/api/users/friends/list/', {
             method: 'GET',
@@ -1211,7 +1211,7 @@ FriendsHandler.prototype.getFriends = async function() {
         }
 
         const data = await response.json();
-        console.log("FriendsHandler: Freundesliste erhalten:", data);
+     //   console.log("FriendsHandler: Freundesliste erhalten:", data);
 
         // Aktualisiere die gespeicherte Freundesliste
         this.friends = data;
@@ -1231,7 +1231,7 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
     const friendsList = document.getElementById('friends-list');
     if (!friendsList) return;
 
-    console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
+ //   console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
 
     // Wenn die Liste leer ist, zeige eine Nachricht an
     if (!friends || friends.length === 0) {
