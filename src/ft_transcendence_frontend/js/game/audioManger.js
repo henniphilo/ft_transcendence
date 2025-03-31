@@ -35,4 +35,8 @@ export class AudioManager {
             sound.stop();
         }
     }
+
+    isPlaying(soundName) {
+        return this.sounds[soundName] && this.sounds[soundName].isPlaying;
+    }
 }
