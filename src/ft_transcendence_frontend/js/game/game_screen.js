@@ -284,13 +284,27 @@ export class GameScreen {
     }
 
     backToMenu() {
+        console.log("Cleaning up game...");
+        
+        // WebSocket schließen
         if (this.ws) {
+            console.log("Closing WebSocket connection...");
             this.ws.close();
+            this.ws = null;
         }
+
+        // Game aufräumen
         this.cleanup();
 
+        // Game Container verstecken
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            console.log("Hiding game container...");
+            gameContainer.style.display = 'none';
+        }
+
         // Template mit userProfile wechseln
-        window.showTemplate('menu', { userProfile: this.userProfile });
+        showTemplate('menu', { userProfile: this.userProfile });
 
         if (this.onBackToMenu) {
             this.onBackToMenu();
