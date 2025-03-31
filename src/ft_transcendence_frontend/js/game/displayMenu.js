@@ -27,7 +27,24 @@ export class MenuDisplay {
         this.userProfile = userProfile; // Speichere Benutzerprofil
         this.elements = {};  // Für DOM-Element-Referenzen
         this.friendsHandler = new FriendsHandler();
+        this.menuHistory = [];  // Speichert die Historie der Menüzustände
+        this.currentMenuState = null;  // Aktueller Menüzustand
+        
+        // Browser-History-Event-Listener hinzufügen
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.menuState) {
+                this.handleHistoryNavigation(event.state.menuState);
+            }
+        });
+
         this.initWebSocket();
+        
+        // Initialen State setzen und zum Browser-Verlauf hinzufügen
+        window.history.pushState(
+            { menuState: 'main' },
+            '',
+            '#main'
+        );
     }
 
     initWebSocket() {
@@ -375,28 +392,89 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
-        console.log("Menu click:", itemId); // Debug log
+        console.log("Menu click:", itemId);
 
+        // Speichere den aktuellen Zustand in der Historie
+        if (this.currentMenuState) {
+            this.menuHistory.push(this.currentMenuState);
+        }
+
+        // Aktualisiere den aktuellen Zustand
+        this.currentMenuState = itemId;
+
+        // Füge den neuen Zustand zur Browser-Historie hinzu
+        window.history.pushState(
+            { menuState: itemId },
+            '',
+            `#${itemId}`
+        );
+
+        // Ursprüngliche Menü-Logik
         if (itemId === 'online') {
-            //this.displaySearchingScreen();
-            // Wichtig: Sende dem Server die Information, dass wir suchen
             this.ws.send(JSON.stringify({
                 action: 'menu_selection',
                 selection: 'online'
             }));
             return;
         }
-        if (itemId === 'back' && this.container.querySelector('.searching-container')) {
-            this.ws.send(JSON.stringify({
-                action: 'menu_selection',
-                selection: 'play_game'
-            }));
-            return;
+        if (itemId === 'back') {
+            // Pop letzten Zustand von der Historie
+            const previousState = this.menuHistory.pop();
+            if (previousState) {
+                this.currentMenuState = previousState;
+            }
+            
+            if (this.container.querySelector('.searching-container')) {
+                this.ws.send(JSON.stringify({
+                    action: 'menu_selection',
+                    selection: 'play_game'
+                }));
+                return;
+            }
         }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
         }));
+    }
+
+    handleHistoryNavigation(menuState) {
+        console.log("=== History Navigation Debug ===");
+        console.log("Navigating to state:", menuState);
+        console.log("Current menu history:", this.menuHistory);
+        console.log("Current menu state:", this.currentMenuState);
+        
+        // Spezielles Handling für null state
+        if (menuState === null) {
+            this.requestMenuItems();
+            return;
+        }
+        
+        if (menuState === 'back') {
+            // Pop letzten Zustand von der Historie
+            const previousState = this.menuHistory.pop();
+            console.log("Found previous state:", previousState);
+            if (previousState) {
+                menuState = previousState;
+            }
+        }
+
+        // Setze den aktuellen Zustand
+        this.currentMenuState = menuState;
+        
+        // Sende die entsprechende Menüauswahl an den Server
+        this.ws.send(JSON.stringify({
+            action: 'menu_selection',
+            selection: menuState
+        }));
+
+        // Wenn wir in einem Suchbildschirm sind, behandle dies speziell
+        if (this.container.querySelector('.searching-container')) {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_game'
+            }));
+        }
     }
 
     handleMenuAction(data) {
