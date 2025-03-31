@@ -52,7 +52,7 @@ jobs:
         run: cat backend.log
 
       - name: Add a delay for the backend
-        run: sleep 30 
+        run: sleep 5 
       
       - name: Capture backend logs 
         run: docker compose logs backend
