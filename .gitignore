@@ -8,3 +8,4 @@ src/nginx/logs/access.log
 src/grafana/config/loki_data
 
 
+.DS_Store
