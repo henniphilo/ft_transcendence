@@ -32,7 +32,7 @@ class Menu:
         self.ai_difficulty_items = [
             {"id": "easy", "text": "Easy"},
             {"id": "medium", "text": "Medium"},
-            {"id": "impossible", "text": "Impossible"},
+            {"id": "impossible", "text": "Hard"},
             {"id": "back", "text": "Back"}
         ]
 
