@@ -26,15 +26,21 @@ services:
     stdin_open: true
     image: "postgres:16"
     container_name: postgres
-    command: -c config_file=/etc/postgresql/postgresql.conf
+    # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      # - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - postgres_logs:/var/log/postgresql
     environment:
+      PGDATA: /var/lib/postgresql/data
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://${LOG_HOST}:12201"
+        tag: "postgres"
     healthcheck:
       test:
         - CMD-SHELL
@@ -44,13 +50,24 @@ services:
       retries: 5
   
   postgres-exporter:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
     image: bitnami/postgres-exporter:latest
     container_name: postgres-exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      DISABLE_DEFAULT_METRICS: "true"
     depends_on:
-      - postgres
-      - prometheus
+      postgres:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
     ports:
     - "9187:9187"
   
@@ -69,7 +86,11 @@ services:
       - 6380:6379
     volumes:
       - redis_data:/data
-      - redis_logs:/var/log/redis
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://${LOG_HOST}:12201"
+        tag: "redis"
     healthcheck:
       test:
         - CMD
@@ -102,6 +123,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+      ETH_PRIVATE_KEY: ${ETH_PRIVATE_KEY}
+
     depends_on:
       - postgres
       - redis
@@ -173,96 +197,41 @@ services:
       timeout: 10s
       retries: 5
   
-  # grafana:
-  #   env_file:
-  #     - .env.ci
-  #   restart: always
-  #   networks:
-  #     - u42network
-  #   init: true
-  #   tty: true
-  #   stdin_open: true
-  #   build:
-  #     context: ./src/grafana
-  #     dockerfile: Dockerfile.grafana
-  #   container_name: grafana
-  #   ports:
-  #     - 3000:3000
-  #   environment:
-  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-  #     - GF_AUTH_BASIC_ENABLED=false
-  #     - ENABLE_LOGS_GRAFANA=true
-  #     - GF_INSTALL_PLUGINS=redis-datasource
-  #     - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
-  #   volumes:
-  #     - grafana_data:/var/lib/grafana
-  #     - grafana_logs:/var/log/grafana
-  #   depends_on:
-  #     - redis
-  #     - loki
-  #   healthcheck:
-  #     test:
-  #       - CMD-SHELL
-  #       - curl -f http://localhost:3000 || exit 1
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
+  grafana:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
+    build:
+      context: ./src/grafana
+      dockerfile: Dockerfile.grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_BASIC_ENABLED=false
+      - ENABLE_LOGS_GRAFANA=true
+      - GF_INSTALL_PLUGINS=redis-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - grafana_logs:/var/log/grafana
+    depends_on:
+      - redis
+      - loki
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -f http://localhost:3000 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  # loki:
-  #   env_file:
-  #     - .env.ci
-  #   restart: always
-  #   networks:
-  #     - u42network
-  #   init: true
-  #   tty: true
-  #   stdin_open: true
-  #   image: grafana/loki:latest
-  #   container_name: loki
-  #   ports:
-  #     - 3100:3100
-  #   command:
-  #     - -config.file=/etc/loki/local-config.yml
-  #   volumes:
-  #     - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
-  #     - ./src/grafana/config/loki_data:/tmp/loki
-  #     - loki_logs:/var/log/loki
-  #     - loki_chunks:/tmp/loki/chunks
-  #   healthcheck:
-  #     test:
-  #       - CMD-SHELL
-  #       - nc -z localhost 3100 || exit 1
-  #     interval: 60s
-  #     timeout: 660s
-  #     retries: 5
-  
-  # tempo:
-  #   env_file:
-  #     - .env.ci
-  #   restart: always
-  #   networks:
-  #     - u42network
-  #   init: true
-  #   tty: true
-  #   stdin_open: true
-  #   image: grafana/tempo:latest
-  #   container_name: tempo
-  #   command:
-  #     - -config.file=/etc/tempo.yml
-  #   volumes:
-  #     - ./src/grafana/config/tempo.yml:/etc/tempo.yml
-  #     - tempo_data:/tmp/tempo/blocks
-  #   ports:
-  #     - 3200:3200
-  #     - 4317:4317
-  #     - 4318:4318
-  #   healthcheck:
-  #     test:
-  #       - CMD-SHELL
-  #       - wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
 
   portainer:
     env_file:
