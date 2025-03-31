@@ -10,6 +10,39 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+# from opentelemetry import trace
+# from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+# from opentelemetry.sdk.trace import TracerProvider
+# from opentelemetry.sdk.trace.export import BatchSpanProcessor
+# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+# from opentelemetry.instrumentation.django import DjangoInstrumentor
+
+# # Set up tracing
+# resource = Resource(attributes={
+#     SERVICE_NAME: "ft-transcendence-backend"
+# })
+
+# trace_provider = TracerProvider(resource=resource)
+# trace.set_tracer_provider(trace_provider)
+
+# # Configure the OTLP exporter
+# otlp_exporter = OTLPSpanExporter(
+#     endpoint="tempo:4317",  # Use the service name from docker-compose
+#     insecure=True  # Since we're in Docker network, we don't need TLS
+# )
+
+# # Add the exporter to the TracerProvider
+# trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
+# # Initialize Django instrumentation
+# DjangoInstrumentor().instrument()
+
+# # OpenTelemetry configuration
+# OTEL_PYTHON_DJANGO_INSTRUMENT = True
+# OTEL_PYTHON_SERVICE_NAME = "ft-transcendence-backend"
+# OTEL_EXPORTER_OTLP_ENDPOINT = "http://tempo:4317"
+# OTEL_EXPORTER_OTLP_PROTOCOL = "grpc"
+
 from pathlib import Path
 import os
 from datetime import timedelta
@@ -19,14 +52,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-#MEDIA_URL = "/media/"
 #MEDIA_ROOT = "/app/users/media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7891*hs6jd=fd_kacvcjx^_o=b1347g5&#8ho#dm^xuh-e+7do'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -51,6 +83,8 @@ INSTALLED_APPS = [
     'channels',
 	'django_prometheus',
     'gamestats',
+    'minimal_chat',
+    'blockchain',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -77,9 +111,8 @@ MIDDLEWARE = [
 ]
 
 # Redis-Konfiguration aus Docker-Compose nutzen
-REDIS_HOST = "redis"
-REDIS_PORT = 6379
-
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -140,6 +173,8 @@ CHANNEL_LAYERS = {
     },
 }
 
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -193,49 +228,58 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp-relay.brevo.com'
-EMAIL_HOST_USER = '849697001@smtp-brevo.com'
-EMAIL_HOST_PASSWORD = 'kOmqRp1jT6KrPbWY'
-EMAIL_USE_TLS = True
-EMAIL_PORT = '587'
 
-# logging configuration
-# using logging.getLogger(__name__) in your modules
-# will give you a logger that is named after the module
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = True
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT"))
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'DEBUG',  # Set the minimum log level
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/app/logs/django.log',  # Specify the log file path
-            'formatter': 'verbose',
+            'filename': '/app/logs/django.log',
+            'formatter': 'json',
+        },
+        'logstash': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.SocketHandler',
+            'host': 'logstash',  # Logstash host (Docker service name)
+            'port': 5000,  # Logstash TCP port
+            'formatter': 'json',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',  # Set the minimum log level for Django logs
+            'handlers': ['file', 'logstash'],
+            'level': 'DEBUG',
             'propagate': True,
         },
-        'game': {  # Replace with your app's name
-            'handlers': ['file'],
-            'level': 'DEBUG',  # Set the minimum log level for your app's logs
+        'game': {
+            'handlers': ['file', 'logstash'],
+            'level': 'DEBUG',
             'propagate': True,
         },
-		'game.pong_game': {
-            'handlers': ['file'],
-            'level': 'DEBUG',  # Set a more specific level for pong_game
+        'game.pong_game': {
+            'handlers': ['file', 'logstash'],
+            'level': 'DEBUG',
             'propagate': True,
         },
     },
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+        'json': {
+            'format': (
+                '{"timestamp": "%(asctime)s", "level": "%(levelname)s", '
+                '"logger": "%(name)s", "module": "%(module)s", '
+                '"process": %(process)d, "thread": %(thread)d, '
+                '"message": "%(message)s"}'
+            ),
+            'style': '%',
         },
     },
 }

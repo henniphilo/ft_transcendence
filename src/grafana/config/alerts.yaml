@@ -1,0 +1,35 @@
+#service-specific alerts
+
+groups:
+  - name: django
+    rules:
+      - alert: DjangoIsDown
+        expr: up{job="backend"} == 0
+        for: 5s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Django is down"
+          description: "Django has not processed any HTTP requests in the last 5 seconds."
+
+  - name: postgresql
+    rules:
+      - alert: PostgresIsDown
+        expr: pg_up == 0
+        for: 5s
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL has been unreachable for more than 5 seconds."
+
+  - name: caddy
+    rules:
+      - alert: CaddyIsDown
+        expr: up{job="caddy"} == 0
+        for: 5s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Caddy is down"
+          description: "Caddy has been unreachable for more than 5 seconds."

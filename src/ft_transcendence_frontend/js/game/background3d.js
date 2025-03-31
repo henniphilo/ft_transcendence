@@ -9,21 +9,20 @@ let cameraSpeed = 0.005;
 let cameraMoveRight = 0.002;
 let cameraMoveUp = 0.001;
 
-function init() {
-    console.log("in init");
+export function initBackground3D(onLoadedCallback) {
+    console.log("in initBackground3D");
     const canvas = document.getElementById('background-canvas');
 
-    // Initialize scene, camera, and renderer
+    // Szene, Kamera und Renderer initialisieren
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Position camera
+    // Kamera-Position setzen
     camera.position.z = 5;
 
-    // Add lighting
+    // Lichtquellen hinzufügen
     const ambientLight = new THREE.AmbientLight(0xfff0e0, 0.7);
     scene.add(ambientLight);
 
@@ -35,7 +34,7 @@ function init() {
     pointLight.position.set(-5, 5, 5);
     scene.add(pointLight);
 
-    // Implement Orbit Controls
+    // Orbit Controls aktivieren
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -44,7 +43,7 @@ function init() {
     controls.maxDistance = 10;
     controls.maxPolarAngle = Math.PI / 2;
 
-    // Load GLB model
+    // Model laden
     const loader = new GLTFLoader();
     loader.load(
         'looks/transform_u-station.glb',
@@ -53,20 +52,26 @@ function init() {
             scene.add(model);
             model.position.set(0, -1, 0);
             model.scale.set(1, 1, 1);
+
+            console.log("✅ 3D Model loaded!");
+            if (onLoadedCallback) {
+                onLoadedCallback(); // Login-Menü jetzt starten!
+            }
         },
         (xhr) => {
-            console.log((xhr.loaded / xhr.total * 100) + '% background loaded');
+   //         console.log((xhr.loaded / xhr.total * 100) + '% background loaded');
         },
         (error) => console.error('Error loading background model:', error)
     );
 
-    // Add particles
+    // Partikel hinzufügen
     addParticles();
 
-    // Add event listeners
+    // Event Listener für Fenstergröße und Mausbewegung
     window.addEventListener('resize', onWindowResize, false);
     document.addEventListener('mousemove', onMouseMove, false);
 
+    // Start der Animation
     animate();
 }
 
@@ -120,7 +125,4 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-export function initBackground3D() {
-    init();
-}
 

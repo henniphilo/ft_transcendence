@@ -1,314 +1,307 @@
-/* General Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
-  }
-
-  /* Global Body Styles */
-  body {
-    background-color: #f4f7fc; /* Alternativ: #f4f4f4 – je nachdem, was dir besser gefällt */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+/* Allgemeine Styles */
+:root {
+  --primary-color: #8c9900;
+  --secondary-color: white;
+  --background-color: #8e8658c0;
+  --login-background: #8e865863;
+  --text-light: white;
+  --text-dark: #333;
+  --highlight-color: #d7eb25;
+  --button-hover: #c8da00;
+  --border-color: white;
+  --shadow-color: rgba(170, 186, 0, 0.2);
 }
 
-#signup-container {
-    background-color: #b9a84cc0;
-    padding: 40px;
-    border-radius: 7px;
-    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
-    width: 100%;
-    max-width: 300px;
-    text-align: center;
-}
-
-#login-container {
-    background-color: #8e8658c0;
-    padding: 40px;
-    border-radius: 7px;
-    box-shadow: 0 4px 10px rgba(246, 162, 102, 0.2);
-    width: 100%;
-    max-width: 300px;
-    text-align: center;
-}
-
-
-h2 {
-    font-size: 24px;
-    margin-bottom: 30px;
-    color: #333;
-  }
-
-  /* Formular-Stile */
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-
-  label {
-    text-align: left;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #333;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="password"] {
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #fff9dedf;
-    border-radius: 6px;
-    font-size: 14px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-input:focus {
-    border-color: #d7eb25;
-    outline: none;
-}
-
-/* Button Styles */
-button {
-    background-color: #8c9900;
-    color: white;
-    padding: 12px;
-    font-size: 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    margin-top: 10px;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #d7eb25;
-}
-
-/* .edit-profile-button {
-  background-color: #8c9900;
-  color: white;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
-  /* border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s, border 0.3s;
-} */
-
-
-.edit-profile-button:hover {
-  background-color: #d7eb25;
-  border-color: white;
-}
-
-/* .edit-profile-button {
-  background-color: #8c9900;
-  color: white;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
-  /* border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s, border 0.3s;
-} */ */
-
-/* .edit-profile-button:hover {
-  background-color: #d7eb25;
-  border-color: white;
-} */
-
-/* .logout-button {
-  background-color: #8c9900;
-  color: white;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid white; /* Falls die anderen Buttons eine Umrandung haben */
-  /* border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s, border 0.3s;
-} */ */
-
-/* .logout-button:hover {
-  background-color: #d7eb25;
-  border-color: white;
-} */
-
-/* 2FA Verification */
-#twofa-container {
-    display: none;
-  }
-
-  #twofa-container h3 {
-    margin-bottom: 20px;
-    font-size: 20px;
-    color: #000000;
-}
-
-#twofa-container input {
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    width: 100%;
-  }
-
-  #twofa-container button {
-    background-color: #78b910;
-    color: white;
-  }
-
-  #twofa-container button:hover {
-    background-color: #4b9605;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-    #signup-container, #login-container {
-        padding: 20px;
-        width: 80%;
-    }
-
-    h2 {
-      font-size: 20px;
-    }
-
-    input, button {
-      font-size: 14px;
-    }
-
-    /* Falls nötig, kann man hier auch den Body flex-direction anpassen */
-    body {
-      flex-direction: column;
-    }
-  }
-
-.searching-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.searching-box {
-    background-color: #1a1a2e;
-    border: 2px solid #8c9900;
-    border-radius: 10px;
-    padding: 30px;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(215, 235, 37, 0.5);
-    max-width: 400px;
-    width: 80%;
-}
-
-.searching-box h2 {
-    color: #fff;
-    margin-bottom: 20px;
-    font-size: 24px;
-}
-
-.searching-box p {
-    color: #ccc;
-    margin: 20px 0;
-    font-size: 16px;
-}
-
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #8c9900;
-    border-top: 5px solid #d7eb25;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.cancel-button {
-    padding: 10px 20px;
-    margin: 5px;
-    background-color: #8c9900f4;
-    border: 2px solid #fffffff4;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.cancel-button:hover {
-    background-color: #d7eb25;
-}
-
-.menu-profile-container {
-    display: flex;
-    justify-content: space-between;
-}
-
-.menu-section {
-    flex: 1;
-    margin-right: 20px;
-}
-
-.controls-info {
-  background: #222;
-  color: white;
-  padding: 8px;
-  border-radius: 6px;
-  width: 220px;  /* Kleinere Breite */
-  font-size: 12px;  /* Kleinere Schrift */
-  text-align: center;
-  margin: 10px auto;
+/* Allgemeine Stile */
+body {
+  background-color: #121212;
+  color: var(--text-light);
   font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-.controls-info h2, .controls-info h3 {
-  margin: 5px 0;
-  font-size: 14px; /* Kleiner, aber noch gut lesbar */
-  color: #ffcc00;
+/* Hintergrund-Canvas */
+#background-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
 }
 
-.control-section {
-  margin: 3px 0;
-  font-size: 12px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.key {
-  background: #444;
-  color: #ffcc00;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 12px;
-  margin: 0 2px;
-}
-
-
-
-.profile-section {
-  flex: 1;
-  max-width: 300px;
-  background-color: #8e8658c0;
-  background-size: cover;
+/* Auth-Container (Signup & Login) */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  background: var(--background-color);
   border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  color: var(--text-light);
+  box-shadow: 0px 4px 10px var(--shadow-color);
+  margin: 50px auto;
+  backdrop-filter: blur(10px);
+}
+
+.auth-container h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: var(--primary-color);
+}
+
+.auth-container .form-control {
+  background: #3f3e3e;
+  border: 1px solid var(--border-color);
+  color: var(--text-light);
+}
+
+.auth-container .form-control:focus {
+  background: #3f3e3e;
+  color: var(--text-light);
+  border-color: var(--primary-color);
+}
+
+/* Button-Styling */
+.btn-primary-custom {
+  background-color: var(--primary-color);
+  border: none;
+  color: var(--text-light);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  border: 2px solid transparent; /* Keine Border anfangs */
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--button-hover); /* Hover-Farbe anpassen */
+  border-color: var(--highlight-color); /* Border beim Hover hinzufügen */
+}
+
+.btn-primary-custom:active {
+  background-color: var(--secondary-color); /* Farbe beim Aktivieren */
+}
+
+.btn-secondary-custom {
+  background-color: var(--secondary-color);
+  border: none;
+  color: var(--text-light);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-secondary-custom:hover {
+  background-color: #005f66;
+  transform: scale(1.05); /* Hover-Effekt für den sekundären Button */
+}
+
+.btn-secondary-custom:active {
+  background-color: #004d56; /* Aktiv-Farbe für sekundären Button */
+  transform: scale(0.98);
+}
+
+.link-light {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.link-light:hover {
+  color: var(--highlight-color);
+}
+
+/* Menü-Styling */
+#menu-container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+#menu-container h2 {
+  font-size: 26px;
+  color: var(--primary-color);
+}
+
+/* Profilbereich */
+.profile-header, .online-players-header, .friends-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
   padding: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  color: #47473b;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Listenelemente mit Primärfarbe */
+.list-group-item {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  margin: 2px;
+  border: none;
+}
+
+/* Hover-Effekt für Listenelemente */
+.list-group-item:hover {
+  background-color: var(--button-hover);
+  color: var(--text-light);
+}
+
+.profile-card {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-radius: 0 0 10px 10px;
+  text-align: center;
+}
+
+/* Match History */
+.match-history-list {
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Profil-Textfarbe auf Weiß setzen */
+.profile-username,
+.profile-details p,
+.profile-details p strong {
+  color: white;
+}
+
+.profile-details p strong {
+  color: var(--highlight-color);
+}
+
+/* Login und Signup spezifische Container */
+#signup-container, #login-container {
+  background: var(--login-background);
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px var(--shadow-color);
+}
+
+#signup-container h2, #login-container h2 {
+  color: var(--highlight-color);
+}
+
+#signup-container .form-control, #login-container .form-control {
+  border: 1px solid var(--primary-color);
+}
+
+#signup-container .btn-primary-custom, #login-container .btn-primary-custom {
+  font-weight: bold;
+}
+
+/* Input-Felder für Username, Email und Password */
+#signup-form input,
+#login-form input {
+  color: var(--primary-color); /* Ändert die Schriftfarbe */
+}
+
+/* Placeholder-Farbe anpassen */
+#signup-form input::placeholder,
+#login-form input::placeholder {
+  color: var(--secondary-color); /* Optionale Anpassung für Platzhalter */
+  opacity: 0.7;
+}
+
+/* Stile für alle Input-Felder */
+input {
+  background-color: #3f3e3e !important; /* Dunkler Hintergrund */
+  color: #c8da00 !important; /* Weiße Schrift */
+  border: 1px solid #3b3b3b !important; /* Dezenter Rand */
+}
+
+/* Spezielle Behandlung für AutoFill-Felder */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: #3f3e3e !important; /* Hintergrund bleibt dunkel */
+  color: #c8da00 !important; /* Schrift bleibt weiß */
+  -webkit-text-fill-color: #c8da00 !important; /* Verhindert schwarze Schrift */
+  transition: background-color 5000s ease-in-out 0s; /* Behält Hintergrundfarbe bei */
+}
+
+
+/* Leaderboard-Karte anpassen */
+.profile-card {
+  background-color: #3f3e3e; /* Dunkler Hintergrund */
+  color: white;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Header (Top 10 Players) farblich hervorheben */
+.profile-header {
+  background-color: var(--primary-color);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Tabelle anpassen */
+.profile-card table {
+  background-color: #252525; /* Dunklerer Hintergrund für die Tabelle */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Tabellenkopf */
+.profile-card table thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Tabellenzeilen */
+.profile-card table tbody tr {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Tabellenzeilen Hover-Effekt */
+.profile-card table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Label-Farbe anpassen (falls Labels hinzugefügt werden) */
+label {
+  color: var(--highlight-color);
+}
+
+#switch-to-login, #switch-to-signup {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+#switch-to-login:hover, #switch-to-signup:hover {
+  color: 'pink';
+  background-color: #d7eb252f; /* Füge einen Hintergrund hinzu, um den Hover-Effekt sichtbarer zu machen */
+  transition: background-color 0.3s ease; /* Optionale Übergangsanimation */
+}
+
+
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px; /* Abstand zwischen den Buttons */
+}
+
+@media (max-width: 400px) {
+  .btn-group {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-avatar {
+      display: block;
+      margin: 0 auto;
+  }
 }

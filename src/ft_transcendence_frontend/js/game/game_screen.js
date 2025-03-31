@@ -21,7 +21,7 @@ export class GameScreen {
         this.ws = null;
         this.keyState = {};
         this.scoreBoard = null;
-        
+
         // Setze den Spielmodus basierend auf der Spielerrolle und den Spielernamen
         if (this.playerRole === 'both') {
             this.gameMode = 'local';
@@ -30,11 +30,6 @@ export class GameScreen {
         } else {
             this.gameMode = 'online';
         }
-        
-        console.log("Spielmodus basierend auf Spielerrolle und Namen:", this.gameMode);
-
-        console.log("Finaler Spielmodus:", this.gameMode);
-        console.log("Spielerrolle:", this.playerRole);
 
         this.threeJSManager = new ThreeJSManager();
 
@@ -73,16 +68,17 @@ export class GameScreen {
         //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
-        
-        // Keine Port-Angabe in der URL - lass den Reverse Proxy das handhaben
-        const wsUrl = `${wsProtocol}${wsHost}/ws/game`;
+        const wsPort = wsProtocol === "ws://" ? ":8001" : ""; // Port nur für ws:// setzen
+
+        const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/game/${this.gameId}`;
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
 
         this.ws = new WebSocket(wsUrl);
 
+
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);
-            
+
             // Sende Benutzerprofilinformationen nach der Verbindung
             if (this.userProfile) {
                 this.ws.send(JSON.stringify({
@@ -239,17 +235,10 @@ export class GameScreen {
 
         const player1Score = this.scoreBoard.querySelector('#player1-score');
         const player2Score = this.scoreBoard.querySelector('#player2-score');
-        
-        console.log("Scoreboard-Elemente:", player1Score, player2Score);
 
         // Bestimme die Spielernamen basierend auf dem Spielmodus
         let player1Name = this.gameState.player1.name;
         let player2Name = this.gameState.player2.name;
-
-        console.log("Ursprüngliche Namen:", player1Name, player2Name);
-        console.log("Spielmodus:", this.gameMode);
-        console.log("Spielerrolle:", this.playerRole);
-        console.log("Benutzerprofil:", this.userProfile);
 
         // Wenn wir ein Benutzerprofil haben, passen wir die Namen an
         if (this.userProfile) {
@@ -272,10 +261,9 @@ export class GameScreen {
             // Im Online-Modus werden die Namen vom Server gesetzt
         }
 
-        console.log("Angepasste Namen:", player1Name, player2Name);
+     //   console.log("Angepasste Namen:", player1Name, player2Name);
 
         if (player1Score && player2Score) {
-            console.log("Aktualisiere Scoreboard-Elemente");
             player1Score.innerHTML = `<strong>${player1Name}:</strong> ${this.gameState.player1.score}`;
             player2Score.innerHTML = `<strong>${player2Name}:</strong> ${this.gameState.player2.score}`;
         } else {

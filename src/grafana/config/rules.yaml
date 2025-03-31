@@ -1,0 +1,9 @@
+groups:
+- name: immediate-test
+  rules:
+  - alert: ImmediateTest
+    expr: vector(1)
+    labels:
+      severity: critical
+    annotations:
+      summary: "Immediate Test Alert"

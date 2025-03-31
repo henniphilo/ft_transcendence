@@ -7,7 +7,7 @@ services:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
@@ -20,11 +20,12 @@ services:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     image: "postgres:16"
+    container_name: postgres
     command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -41,16 +42,29 @@ services:
       interval: 30s
       timeout: 30s
       retries: 5
+  
+  postgres-exporter:
+    image: bitnami/postgres-exporter:latest
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    depends_on:
+      - postgres
+      - prometheus
+    ports:
+    - "9187:9187"
+  
   redis:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build: src/redis
+    container_name: redis
     ports:
       - 6380:6379
     volumes:
@@ -64,24 +78,33 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
   backend:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build: src/ft_transcendence_backend
+    container_name: backend
     environment:
-      TEMPO_HOST: tempo
-      TEMPO_PORT: 4317
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_TO: ${EMAIL_TO}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      EMAIL_PORT: ${EMAIL_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     ports:
       - 8000:8000
     volumes:
@@ -97,16 +120,18 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+
   game:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build: src/ft_transcendence_backend/game
+    container_name: game
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
     ports:
       - 8001:8001
@@ -117,18 +142,20 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   caddy:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build:
       context: ./src/
       dockerfile: caddy/Dockerfile
+    container_name: caddy
     ports:
       - 8080:80
       - 8444:443
@@ -145,103 +172,109 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-  grafana:
-    env_file:
-      - .env.ci
-    restart: always
-    networks:
-      - transcendence_network
-    init: true
-    tty: true
-    stdin_open: true
-    build:
-      context: ./src/grafana
-      dockerfile: Dockerfile.grafana
-    ports:
-      - 3000:3000
-    environment:
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_BASIC_ENABLED=false
-      - ENABLE_LOGS_GRAFANA=true
-      - GF_INSTALL_PLUGINS=redis-datasource
-      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - grafana_logs:/var/log/grafana
-    depends_on:
-      - redis
-      - loki
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - curl -f http://localhost:3000 || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 5
-  loki:
-    env_file:
-      - .env.ci
-    restart: always
-    networks:
-      - transcendence_network
-    init: true
-    tty: true
-    stdin_open: true
-    image: grafana/loki:latest
-    ports:
-      - 3100:3100
-    command:
-      - -config.file=/etc/loki/local-config.yml
-    volumes:
-      - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
-      - ./src/grafana/config/loki_data:/tmp/loki
-      - loki_logs:/var/log/loki
-      - loki_chunks:/tmp/loki/chunks
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - nc -z localhost 3100 || exit 1
-      interval: 60s
-      timeout: 660s
-      retries: 5
-  tempo:
-    env_file:
-      - .env.ci
-    restart: always
-    networks:
-      - transcendence_network
-    init: true
-    tty: true
-    stdin_open: true
-    image: grafana/tempo:latest
-    command:
-      - -config.file=/etc/tempo.yml
-    volumes:
-      - ./src/grafana/config/tempo.yml:/etc/tempo.yml
-      - tempo_data:/tmp/tempo/blocks
-    ports:
-      - 3200:3200
-      - 4317:4317
-      - 4318:4318
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 5
+  
+  # grafana:
+  #   env_file:
+  #     - .env.ci
+  #   restart: always
+  #   networks:
+  #     - u42network
+  #   init: true
+  #   tty: true
+  #   stdin_open: true
+  #   build:
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.grafana
+  #   container_name: grafana
+  #   ports:
+  #     - 3000:3000
+  #   environment:
+  #     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+  #     - GF_AUTH_BASIC_ENABLED=false
+  #     - ENABLE_LOGS_GRAFANA=true
+  #     - GF_INSTALL_PLUGINS=redis-datasource
+  #     - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=redis-datasource
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - grafana_logs:/var/log/grafana
+  #   depends_on:
+  #     - redis
+  #     - loki
+  #   healthcheck:
+  #     test:
+  #       - CMD-SHELL
+  #       - curl -f http://localhost:3000 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+
+  # loki:
+  #   env_file:
+  #     - .env.ci
+  #   restart: always
+  #   networks:
+  #     - u42network
+  #   init: true
+  #   tty: true
+  #   stdin_open: true
+  #   image: grafana/loki:latest
+  #   container_name: loki
+  #   ports:
+  #     - 3100:3100
+  #   command:
+  #     - -config.file=/etc/loki/local-config.yml
+  #   volumes:
+  #     - ./src/grafana/config/loki-config.yml:/etc/loki/local-config.yml
+  #     - ./src/grafana/config/loki_data:/tmp/loki
+  #     - loki_logs:/var/log/loki
+  #     - loki_chunks:/tmp/loki/chunks
+  #   healthcheck:
+  #     test:
+  #       - CMD-SHELL
+  #       - nc -z localhost 3100 || exit 1
+  #     interval: 60s
+  #     timeout: 660s
+  #     retries: 5
+  
+  # tempo:
+  #   env_file:
+  #     - .env.ci
+  #   restart: always
+  #   networks:
+  #     - u42network
+  #   init: true
+  #   tty: true
+  #   stdin_open: true
+  #   image: grafana/tempo:latest
+  #   container_name: tempo
+  #   command:
+  #     - -config.file=/etc/tempo.yml
+  #   volumes:
+  #     - ./src/grafana/config/tempo.yml:/etc/tempo.yml
+  #     - tempo_data:/tmp/tempo/blocks
+  #   ports:
+  #     - 3200:3200
+  #     - 4317:4317
+  #     - 4318:4318
+  #   healthcheck:
+  #     test:
+  #       - CMD-SHELL
+  #       - wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
 
   portainer:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build: src/portainer
+    container_name: portainer
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer-data:/data
@@ -259,18 +292,20 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
   prometheus:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build:
       context: ./src/grafana
       dockerfile: Dockerfile.prometheus
+    container_name: prometheus
     ports:
       - 9090:9090
     volumes:
@@ -283,19 +318,111 @@ services:
       timeout: 10s
       retries: 5
 
+
+  elasticsearch:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
+    image: elasticsearch:8.17.0
+    container_name: elasticsearch
+    volumes:
+    - elastic_data:/usr/share/elasticsearch/data/
+    environment:
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+      - xpack.monitoring.collection.enabled=true
+      - discovery.type=single-node
+      - xpack.security.enabled=false  # Enable security    
+      # - ELASTIC_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Elasticsearch password    
+    ports:
+    - '9200:9200'
+    - '9300:9300'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  logstash:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
+    container_name: logstash
+    build: ./src/elk/logstash
+    profiles: ["elkprofile"]
+    command: logstash -f /logstash_dir/logstash.conf 
+    # depends_on:
+    #   - elasticsearch
+    ports:
+      - "5000:5000/udp"  # Expose UDP port 5000 for syslog
+      - "9600:9600"
+      - "12201:12201/udp"
+    environment:
+      - ES_JAVA_OPTS=-Xmx1g -Xms1g
+      - xpack.monitoring.enabled=true
+      - xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200
+      # - xpack.monitoring.elasticsearch.username=elastic
+      # - xpack.monitoring.elasticsearch.password=LYCGEtv92deGJROBL*lp    
+    volumes:
+      - caddy_logs:/var/log/caddy
+      - django_logs:/app/logs
+      - postgres_logs:/var/log/postgresql
+      - redis_logs:/var/log/redis
+      - grafana_logs:/var/log/grafana
+
+  kibana:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
+    container_name: kibana
+    image: kibana:8.17.0
+    profiles: ["elkprofile"]
+    ports:
+    - '5601:5601'
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200  
+      # - ELASTICSEARCH_USERNAME=kibana_system
+      # - ELASTICSEARCH_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Kibana system password
+    #   - xpack.encryptedSavedObjects.encryptionKey=<5880da9738edab6101dc26330c2fafca>
+    #   - xpack.reporting.encryptionKey=<e1921b1a405bc83d11084504c65d8cae>
+    #   - xpack.security.encryptionKey=<789dcf21ca81e07d37c6aa2c23742021>
+    # depends_on:
+    #   elasticsearch:
+    #     condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   
   node-exporter:
     env_file:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     image: prom/node-exporter:latest
+    container_name: node-exporter
     ports:
-      - 9100:9100
+      - 9101:9100
     healthcheck:
       test:
         - CMD-SHELL
@@ -309,13 +436,14 @@ services:
       - .env.ci
     restart: always
     networks:
-      - transcendence_network
+      - u42network
     init: true
     tty: true
     stdin_open: true
     build:
       context: ./src/grafana
       dockerfile: Dockerfile.promtail
+    container_name: promtail
     volumes:
       - promtail_logs:/app/logs
       - postgres_data:/var/lib/postgresql/data
@@ -325,8 +453,6 @@ services:
       - grafana_logs:/var/log/grafana
     ports:
       - 9080:9080
-    depends_on:
-      - loki
     healthcheck:
       test:
         - CMD-SHELL
@@ -337,8 +463,30 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      
+
+  alertmanager:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./src/grafana/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    environment:
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+    ports:
+      - "9093:9093"
+
 volumes:
+  caddy_logs: null
   postgres_data: null
   postgres_logs: null
   redis_data: null
@@ -346,16 +494,16 @@ volumes:
   django_logs: null
   grafana_data: null
   grafana_logs: null
-  loki_logs: null
-  loki_chunks: null
-  portainer-data: null
-  loki-data: null
-  caddy_logs: null
+  grafana_provisioning: null
   prometheus_data: null
+  portainer-data: null
+  elastic_data: null
+  logstash-persistence: null
+  kibana_data: null
   promtail_logs: null
-  tempo_data: null
+  elasticsearch_data: null
 
 networks:
-  transcendence_network:
-    name: transcendence_network
+  u42network:
+    name: u42_network
     driver: bridge

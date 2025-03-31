@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pong Game</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/game.css" />
@@ -14,46 +18,66 @@
 
   <!-- Templates -->
   <template id="template-signup">
-    <div id="signup-container">
-      <h2>Sign Up</h2>
+    <div id="signup-container" class="card p-4 auth-container">
       <form id="signup-form">
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Sign Up</button>
+        <div class="card-header-custom">
+          <h2 class="text-center">Welcome to Pongbahnhof!</h2>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="username" class="form-control" placeholder="Username" required>
+        </div>
+        <div class="mb-3">
+          <input type="email" id="email" class="form-control" placeholder="Email" required>
+        </div>
+        <div class="mb-3">
+          <input type="password" id="password" class="form-control" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn-primary-custom w-100">Sign Up</button>
       </form>
-      <button id="switch-to-login">Already have an account? Login</button>
+      <button id="switch-to-login" class="link-light mt-3">Already have an account? Login</button>
     </div>
   </template>
 
   <template id="template-verify">
-    <div id="verify-container">
-      <h2>Email Verification</h2>
+    <div id="verify-container" class="card p-4 auth-container">
+      <div class="card-header-custom">
+        <h2 class="text-center">Email Verification</h2>
+      </div>
       <div class="verify-content">
-        <p>Please enter the verification code sent to your email.</p>
-        <input type="text" id="verification-code" placeholder="Enter code" required />
-        <button id="verify-code">Verify Code</button>
-        <button id="resend-code">Resend Code</button>
+        <p class="mb-3 text-white">Please enter the verification code sent to your email.</p>
+        <div class="mb-3">
+          <input type="text" id="verification-code" class="form-control" placeholder="Enter code" required />
+        </div>
+        <div class="d-grid gap-2">
+          <button id="verify-code" class="btn-primary-custom">Verify Code</button>
+          <button id="resend-code" class="btn-secondary-custom mt-2">Resend Code</button>
+        </div>
       </div>
     </div>
   </template>
 
   <template id="template-login">
-    <div id="login-container">
-      <h2>Login</h2>
+    <div id="login-container" class="card p-4 auth-container login-container">
       <form id="login-form">
-        <input type="text" id="login-username" placeholder="Username" required>
-        <input type="password" id="login-password" placeholder="Password" required>
-        <button type="submit">Login</button>
+        <div class="card-header-custom">
+          <h2 class="text-center">Welcome back!</h2>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="login-username" class="form-control" placeholder="Username" required>
+        </div>
+        <div class="mb-3">
+          <input type="password" id="login-password" class="form-control" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn-primary-custom w-100">Login</button>
       </form>
-      <button id="switch-to-signup">Need an account? Sign Up</button>
+      <button id="switch-to-signup" class="link-light mt-3">Need an account? Sign Up</button>
     </div>
   </template>
 
   <template id="template-menu">
-    <div id="menu-container">
-      <h2>Willkommen du da, <span id="profile-username"></span>!</h2>
-      <div id="menu-options">
+    <div id="menu-container" class="container text-center py-4">
+      <h2 class="mb-4" style="color: #8c9900;">Willkommen du da, <span id="profile-username"></span>!</h2>
+      <div id="menu-options" class="d-grid gap-3 col-md-8 mx-auto">
         <!-- Hier werden die Menüelemente von der MenuDisplay-Klasse hinzugefügt -->
       </div>
     </div>
@@ -62,6 +86,69 @@
   <template id="template-game">
     <div id="game-container" style="display: none;">
       <!-- Der GameScreen wird hier angezeigt -->
+    </div>
+  </template>
+
+  <!-- Nach dem template-game Template -->
+  <template id="template-user-profile">
+    <div id="user-profile-container" class="container py-4">
+      <div class="row">
+        <div class="col-md-8 col-md-custom">
+          <div class="card mb-4">
+            <div class="card-header profile-header">
+              <h2 class="mb-0">User Profile</h2>
+            </div>
+            <div class="card-body profile-card">
+              <div class="row">
+                <div class="col-md-4 text-center">
+                  <img id="profile-view-avatar" class="rounded-circle mb-3"
+                       src="/assets/default-avatar.png"
+                       alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
+                </div>
+                <div class="col-md-8 col-md-custom">
+                  <h3 id="profile-view-username" class="mb-3">Username</h3>
+                  <div class="profile-details mb-4">
+                    <p class="mb-2"><strong>Email:</strong> <span id="profile-view-email"></span></p>
+                    <p class="mb-2"><strong>Bio:</strong> <span id="profile-view-bio"></span></p>
+                    <p class="mb-2"><strong>Birthday:</strong> <span id="profile-view-birth-date"></span></p>
+                    <p class="mb-2"><strong>Tournament Name:</strong> <span id="profile-view-tournament-name"></span></p>
+                  </div>
+                  <div class="d-grid gap-2">
+                    <button id="back-to-menu-btn" class="btn btn-primary-custom">Back to Menu</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-md-custom">
+          <div class="card mb-4">
+            <div class="card-header profile-header">
+              <h3 class="mb-0">Match Stats</h3>
+            </div>
+            <div class="card-body profile-card">
+              <div id="match-stats">
+                <p><strong>Wins:</strong> <span id="profile-view-wins">0</span></p>
+                <p><strong>Losses:</strong> <span id="profile-view-losses">0</span></p>
+                <p><strong>Win Rate:</strong> <span id="profile-view-win-rate">0%</span></p>
+                <p><strong>Total Games:</strong> <span id="profile-view-total-games">0</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header profile-header">
+              <h3 class="mb-0">Match History</h3>
+            </div>
+            <div class="card-body profile-card">
+              <div id="match-history" class="match-history-list">
+                <p class="text-center">No matches found</p>
+                <!-- Match history will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </template>
 
@@ -83,14 +170,18 @@
   <!-- Skripte (am Ende des Body platzieren) -->
   <!-- AuthLib muss vor den anderen Skripten geladen werden -->
 
-  <script src="js/signup.js"></script>
+  <script type="module" src="js/game/3dmanager.js"></script>
   <script type="module" src="js/signup.js"></script>
   <script type="module" src="js/game/background3d.js"></script>
-  <script type="module" src="js/game/3dmanager.js"></script>
+  <script type="module" src="js/game/audioManger.js"></script>
   <script type="module" src="js/game/displayLeaderboard.js"></script>
   <script type="module" src="js/game/displayMenu.js"></script>
   <script type="module" src="js/game/game_screen.js"></script>
   <script type="module" src="js/game/main.js"></script>
   <script type="module" src="js/switcher.js"></script>
+
+
+  <!-- Bootstrap JavaScript Bundle mit Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

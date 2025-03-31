@@ -1,7 +1,4 @@
 {
-	servers {
-		metrics
-	}
 	log {
 		output file /var/log/caddy/caddy_main.log {
 			roll_size 100MiB
@@ -55,12 +52,41 @@
 		reverse_proxy game:8001
 	}
 
+	@ws_django {
+    	path /ws_django/chat/*
+	}
+	handle @ws_django {
+    	reverse_proxy backend:8000
+	}
+
 	@media {
 		path /media/*
 	}
 	handle @media {
 		reverse_proxy backend:8000
 	}
+	
+	redir /grafana /grafana/
+
+	handle /grafana/* {
+   	    reverse_proxy grafana:3000 {
+			header_up Host {host}
+			header_up X-Forwarded-For {remote}
+			header_up X-Forwarded-Proto {scheme}
+    	}
+	}
+
+	#the alertmanager emails have links on them but I am behind a reverse proxy
+	# redir /alertmanager /alertmanager/
+	
+	# handle /alertmanager/* {
+	# 	   	    reverse_proxy alertmanager:9093 {
+	# 		header_up Host {host}
+	# 		header_up X-Forwarded-For {remote}
+	# 		header_up X-Forwarded-Proto {scheme}
+	# 	}
+	# }	
+
 	metrics /metrics
 }
 

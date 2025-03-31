@@ -1,6 +1,6 @@
 # views.py
 
-from django.shortcuts import render  # eventuell nicht benötigt
+from django.shortcuts import render, get_object_or_404  # eventuell nicht benötigt
 from rest_framework import generics, serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -65,17 +65,17 @@ urlpatterns = [
 def send_verification_code(request):
     email = request.data.get('email')
     user = CustomUser.objects.filter(email=email).first()
-    
+
     if user:
         user.generate_verification_code()  # nehme an, in models.py definiert
         send_mail(
             'Your Verification Code',
             f'Your code is {user.verification_code}',
-            'supertabaluga@gmail.com',
+            'u-acht@pongbahnhof.de',
             [email]
         )
         return Response({"message": "Verification code sent."})
-    
+
     return Response({"error": "User not found."}, status=400)
 
 @api_view(['POST'])
@@ -89,7 +89,7 @@ def verify_code(request):
         user.verification_code = None  # Code nach Verifikation löschen
         user.save()
         return Response({"message": "User verified."})
-    
+
     return Response({"error": "Invalid code."}, status=400)
 
 # ------------------
@@ -143,14 +143,14 @@ def get_leaderboard(request):
     """Gibt die Top 10 Spieler zurück"""
     users = CustomUser.objects.order_by('-score')[:10]
     leaderboard_data = []
-    
+
     for rank, user in enumerate(users, 1):
         leaderboard_data.append({
             'rank': rank,
             'username': user.username,
             'score': user.score
         })
-    
+
     return Response(leaderboard_data)
 
 @api_view(['GET'])
@@ -160,11 +160,11 @@ def get_current_user_stats(request):
     try:
         # Hole alle User, sortiert nach Score
         all_users = CustomUser.objects.order_by('-score')
-        
+
         # Finde die Position des aktuellen Users
         current_user = request.user
         user_rank = list(all_users.values_list('id', flat=True)).index(current_user.id) + 1
-        
+
         return Response({
             'username': current_user.username,
             'score': current_user.score,
@@ -233,3 +233,50 @@ def get_online_users(request):
             online_users.append(json.loads(user_data))  # 🔥 JSON-String zu Python-Dict umwandeln
 
     return JsonResponse({"online_users": online_users})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_friend(request, username):
+    """ Freundschaft hinzufügen """
+    user = request.user
+    friend = get_object_or_404(CustomUser, username=username)
+
+    if user.is_friend(friend):
+        return Response({"detail": "Ihr seid bereits Freunde."}, status=400)
+
+    user.add_friend(friend)
+    return Response({"detail": f"{friend.username} wurde als Freund hinzugefügt!"})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_friend(request, username):
+    """ Freundschaft entfernen """
+    user = request.user
+    friend = get_object_or_404(CustomUser, username=username)
+
+    if not user.is_friend(friend):
+        return Response({"detail": "Ihr seid keine Freunde."}, status=400)
+
+    user.remove_friend(friend)
+    return Response({"detail": f"{friend.username} wurde als Freund entfernt."})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_friends(request):
+    """ Liste aller Freunde des eingeloggten Users """
+    friends = request.user.friends.all()
+    friend_list = [{"username": f.username, "tournament_name": f.tournament_name} for f in friends]
+    return Response(friend_list)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request, username):
+    """
+    Gibt das Profil eines bestimmten Benutzers zurück
+    """
+    try:
+        user = get_object_or_404(CustomUser, username=username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)

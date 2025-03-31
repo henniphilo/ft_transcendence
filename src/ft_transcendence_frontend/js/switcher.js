@@ -1,6 +1,7 @@
 import { MenuDisplay } from './game/displayMenu.js'; // Importiere die MenuDisplay-Klasse
 import { GameScreen } from './game/game_screen.js'; // Korrigierter Import-Pfad
 import { SignupHandler, VerifyHandler, LoginHandler } from './signup.js';
+import { UserProfileView } from './userProfileView.js'; // Neuer Import
 
 document.addEventListener("DOMContentLoaded", () => {
     const templates = {
@@ -8,7 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
         verify: document.getElementById("template-verify"),
         login: document.getElementById("template-login"),
         menu: document.getElementById("template-menu"),
-        game: document.getElementById("template-game")
+        game: document.getElementById("template-game"),
+        userProfile: document.getElementById("template-user-profile") // Neues Template
     };
     const contentDiv = document.getElementById("content");
     const backgroundCanvas = document.getElementById("background-canvas");
@@ -25,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const clone = template.content.cloneNode(true);
         contentDiv.appendChild(clone);
 
-        if (templateName === "signup" || templateName === "verify" || templateName === "login" || templateName === "menu") {
+        if (templateName === "signup" || templateName === "verify" || templateName === "login" || templateName === "menu" || templateName === "userProfile") {
             backgroundCanvas.style.display = "block";
         } else {
             backgroundCanvas.style.display = "none";
@@ -48,12 +50,32 @@ document.addEventListener("DOMContentLoaded", () => {
             case 'game':
                 setupGameScreen(data);
                 break;
+            case 'userProfile':
+                setupUserProfile(data);
+                break;
         }
     }
 
     function setupMenu(userProfile) {
+        console.log("Menu wird eingerichtet mit Profil:", userProfile);
+        
+        // Stelle sicher, dass ein gültiges Benutzerprofil vorhanden ist
+        if (!userProfile || typeof userProfile !== 'object' || Object.keys(userProfile).length === 0) {
+            console.log("Kein gültiges Profil übergeben, versuche aus localStorage zu laden");
+            // Versuche, das Profil aus dem localStorage zu laden
+            const storedProfile = localStorage.getItem('userProfile');
+            if (storedProfile) {
+                try {
+                    userProfile = JSON.parse(storedProfile);
+                    console.log("Profil aus localStorage geladen:", userProfile);
+                } catch (e) {
+                    console.error("Fehler beim Parsen des gespeicherten Profils:", e);
+                }
+            }
+        }
+        
         // Initialisiere die MenuDisplay-Klasse mit dem Benutzerprofil
-        const menuDisplay = new MenuDisplay(userProfile);
+        window.menuDisplay = new MenuDisplay(userProfile);
     }
 
     function setupGameScreen(data) {
@@ -71,6 +93,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 showTemplate('menu', { userProfile: data.userProfile });
             });
         }
+    }
+    
+    function setupUserProfile(data) {
+        // Initialisiere die UserProfileView mit dem Benutzernamen und dem aktuellen Benutzerprofil
+        new UserProfileView(data.username, data.currentUserProfile);
     }
 
     // Event Listener für Template-Wechsel

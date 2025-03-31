@@ -94,9 +94,68 @@ dockerfile_inline: |
         RUN apt-get update && apt-get install -y curl
 ```
 
+
+# persistence
+
+Yes, your `docker-compose.yml` and `Dockerfile` are correctly configured for Prometheus data persistence.
+
+Here's a breakdown of why it works and some additional points to consider:
+
+**1. `docker-compose.yml` Volume Mount:**
+
+* `volumes: - prometheus_data:/prometheus`: This is the key to persistence.
+    * `prometheus_data` defines a named Docker volume. Docker will manage the storage location for this volume.
+    * `/prometheus`: This is the directory *inside* the Prometheus container where Prometheus stores its time-series database (TSDB).
+    * By mounting the named volume to this directory, you ensure that the TSDB is stored outside the container's ephemeral filesystem.
+    * When the container is stopped or removed, the data in the `prometheus_data` volume will persist.
+    * When the container is restarted, the data will be reattached to the `/prometheus` directory.
+
+**2. `Dockerfile` CMD:**
+
+* `CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]`:
+    * `--storage.tsdb.path=/prometheus`: This tells Prometheus to store its TSDB in the `/prometheus` directory.
+    * This matches the mount point defined in your `docker-compose.yml` file, ensuring that Prometheus uses the persistent volume.
+
+**3. Named Docker Volume:**
+
+* Docker will create and manage the `prometheus_data` volume.
+* The actual location of the data on the host system depends on your Docker configuration.
+* You can inspect the volume using `docker volume inspect prometheus_data`.
+
+**Additional Considerations:**
+
+* **Volume Size:**
+    * Prometheus can consume a significant amount of disk space, especially if you're collecting a lot of metrics.
+    * Monitor the size of your `prometheus_data` volume and adjust your storage configuration as needed.
+* **Storage Performance:**
+    * The performance of your storage can impact Prometheus's performance.
+    * If you're experiencing slow queries or high disk I/O, consider using faster storage.
+* **Data Retention:**
+    * Prometheus has built-in data retention settings.
+    * You can configure how long Prometheus keeps data using the `--storage.tsdb.retention.time` or `--storage.tsdb.retention.size` flags in your `prometheus.yml` file. If you don't set a retention time, Prometheus will keep all data.
+* **Backup:**
+    * While the data is persistent, it's still good practice to back up your `prometheus_data` volume regularly.
+    * You can use Docker volume backups or other backup tools.
+* **Permissions:**
+    * Ensure that the Prometheus container has the necessary permissions to read and write to the `/prometheus` directory. Docker volumes usually handle this automatically, but it's worth checking.
+* **Data Migration:**
+    * If you need to migrate your Prometheus data to a different machine or storage location, you can back up and restore the `prometheus_data` volume.
+
+**In Summary:**
+
+Your current setup with the named Docker volume and the `Dockerfile`'s `CMD` is sufficient for Prometheus data persistence. Just be mindful of disk space, performance, and backups.
+
+
+
 ## links  
 https://prometheus.io/docs/prometheus/latest/getting_started/  
 
 https://github.com/prometheus/prometheus/tree/main?tab=readme-ov-file  
+
+13978 node exporter quickstart and dashboard
 https://grafana.com/grafana/dashboards/13978-node-exporter-quickstart-and-dashboard/  
 
+https://medium.com/@tommyraspati/monitoring-your-django-project-with-prometheus-and-grafana-b06a5ca78744  
+
+id 17658
+https://grafana.com/grafana/dashboards/17658-django/

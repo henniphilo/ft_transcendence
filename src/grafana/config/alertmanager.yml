@@ -1,0 +1,26 @@
+global:
+  resolve_timeout: 1m
+  smtp_smarthost: '${EMAIL_HOST}:${EMAIL_PORT}' 
+  smtp_from: '${EMAIL_FROM}' 
+  smtp_auth_username: '${EMAIL_HOST_USER}'  
+  smtp_auth_password: '${EMAIL_HOST_PASSWORD}'  
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 3h
+  receiver: 'email-notifications'
+
+receivers:
+- name: 'email-notifications'
+  email_configs:
+  - to: '${EMAIL_TO}'  
+    from: '${EMAIL_FROM}'  
+    send_resolved: true
+    headers:
+      subject: '{{ template "email.default.subject" . }}'
+    html: '{{ template "email.default.html" . }}'
+
+#  - to: 'metter2ooo@gmail.com, ohoro@student.42berlin.de, alimpens@student.42berlin.de, hwiemann@student.42berlin.de'
