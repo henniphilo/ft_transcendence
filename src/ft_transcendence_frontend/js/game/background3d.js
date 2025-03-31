@@ -23,14 +23,14 @@ export function initBackground3D(onLoadedCallback) {
     camera.position.z = 5;
 
     // Lichtquellen hinzufügen
-    const ambientLight = new THREE.AmbientLight(0xfff0e0, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xfff0e0, 0.3);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     directionalLight.position.set(5, 10, 7);
     scene.add(directionalLight);
 
-    const pointLight = new THREE.PointLight(0xe0f0ff, 0.5);
+    const pointLight = new THREE.PointLight(0xe0f0ff, 0.4);
     pointLight.position.set(-5, 5, 5);
     scene.add(pointLight);
 
