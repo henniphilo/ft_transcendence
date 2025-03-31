@@ -64,7 +64,7 @@ services:
       - "6380:6379"
     volumes:
       - redis_data:/data
-      - redis_logs:/var/log/redis
+      # - redis_logs:/var/log/redis
     logging:
       driver: gelf
       options:
@@ -146,7 +146,7 @@ services:
       driver: gelf
       options:
         gelf-address: "udp://${LOG_HOST}:12201"
-        tag: "postgres"
+        tag: "caddy"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
       interval: 30s
