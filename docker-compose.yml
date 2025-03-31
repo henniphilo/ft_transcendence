@@ -159,9 +159,9 @@ services:
     container_name: cloudflared
     restart: unless-stopped
     logging:
-      driver: syslog
+      driver: gelf
       options:
-        syslog-address: "udp://localhost:5000"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "cloudflared"
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
   
