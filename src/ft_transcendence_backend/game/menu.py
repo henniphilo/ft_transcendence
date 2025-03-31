@@ -32,7 +32,7 @@ class Menu:
         self.ai_difficulty_items = [
             {"id": "easy", "text": "Easy"},
             {"id": "medium", "text": "Medium"},
-            {"id": "impossible", "text": "Impossible"},
+            {"id": "impossible", "text": "Hard"},
             {"id": "back", "text": "Back"}
         ]
 
@@ -64,14 +64,20 @@ class Menu:
         print(f"Selection: {selection}")
         print(f"Current Menu Stack: {self.current_menu_stack}")
 
-        if selection == "play_game":
+        if selection == "main":
+            # Expliziter Handler für das Hauptmenü
             self.is_tournament = False
-            self.current_menu_stack.append("main")
+            self.current_menu_stack = []  # Reset stack
+            return {"action": "show_main_menu", "menu_items": self.menu_items}
+
+        elif selection == "play_game":
+            self.is_tournament = False
+            self.current_menu_stack.append("main")  # Speichert 'main' als vorherigen Zustand
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
 
         elif selection == "play_tournament":
             self.is_tournament = True
-            self.current_menu_stack.append("main")
+            self.current_menu_stack.append("main")  # Speichert 'main' als vorherigen Zustand
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
 
         elif selection == "leaderboard":

@@ -285,6 +285,16 @@ label {
   transition: background-color 0.3s ease; /* Optionale Übergangsanimation */
 }
 
+.list-group-item {
+  display: flex;
+  flex-direction: column; /* Elemente untereinander anordnen */
+  align-items: flex-start; /* Links ausrichten */
+}
+
+.add-friend-btn {
+  width: auto; /* Automatische Breite für ein natürliches Layout */
+}
+
 
 .btn-group {
   display: flex;

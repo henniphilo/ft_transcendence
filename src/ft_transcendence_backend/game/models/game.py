@@ -17,10 +17,15 @@ if not logger.handlers:
 
 class PongGame:
     def __init__(self, settings: dict, player1: Player, player2: Player):
-        self.ball_speed = settings.get("ball_speed", 5)
+        self.initial_ball_speed = settings.get("ball_speed", 5)  # Speichere initiale Geschwindigkeit
+        self.ball_speed = self.initial_ball_speed  # Aktuelle Geschwindigkeit
         self.paddle_speed = settings.get("paddle_speed", 5)
         self.winning_score = settings.get("winning_score", 5)
         self.owner = settings.get("online_type") == "host"  # Neues Feld für Host/Join
+
+        # Konstanten für Geschwindigkeitserhöhung
+        self.SPEED_INCREASE = 0.2  # 20% schneller nach jedem Treffer
+        self.MAX_BALL_SPEED = 15   # Maximale Geschwindigkeit
 
         # Paddle-Größen-Dictionary (jetzt als absolute Größen)
         self.PADDLE_SIZES = {
@@ -54,6 +59,7 @@ class PongGame:
 
     def reset_ball(self):
         self.ball_pos = [0.0, 0.0]
+        self.ball_speed = self.initial_ball_speed  # Reset auf Anfangsgeschwindigkeit
 
         # Zufällige Startrichtung (±45 Grad, ggf. um 180° gedreht)
         angle = random.uniform(-math.pi/4, math.pi/4)
@@ -64,7 +70,7 @@ class PongGame:
 
         # Logger-Eintrag: Ball zurückgesetzt
         # -------------------------------
-        logger.debug(f"Ball zurückgesetzt: Position={self.ball_pos}, Richtung={self.ball_direction}, Winkel={angle}")
+        logger.debug(f"Ball zurückgesetzt: Position={self.ball_pos}, direction={self.ball_direction}, ball_speed={self.ball_speed}")
         # -------------------------------
 
     def move_paddle(self, player: Player, direction: float):
@@ -119,10 +125,6 @@ class PongGame:
     def update_game_state(self):
         if not self.game_active:
             state = self.get_game_state()
-            # Logger-Eintrag: Spielzustand, wenn Spiel nicht aktiv
-            # -------------------------------
-            logger.info(f"Game State: {state}")
-            # -------------------------------
             return state
 
         scaled_speed = self.ball_speed * self.BALL_SPEED_SCALE
@@ -133,10 +135,6 @@ class PongGame:
         if abs(next_y) >= 1.0:
             self.ball_direction[1] *= -1
             next_y = max(-1.0, min(1.0, next_y))
-            # Logger-Eintrag: Wand-Kollision
-            # -------------------------------
-            logger.debug(f"Wandkollision: Neue vertikale Richtung {self.ball_direction[1]}")
-            # -------------------------------
 
         hit_paddle = False
 
@@ -149,11 +147,9 @@ class PongGame:
 
                 self.ball_direction = [abs(math.cos(bounce_angle)), -math.sin(bounce_angle)]
                 next_x = -self.PADDLE_X + self.PADDLE_WIDTH
-
-                # Logger-Eintrag: Linke Paddle-Kollision
-                # -------------------------------
-                logger.debug(f"Linke Paddle-Kollision: Bounce-Winkel={bounce_angle}, Neue Richtung={self.ball_direction}")
-                # -------------------------------
+                
+                # Erhöhe Geschwindigkeit nach Paddle-Treffer
+                self.increase_ball_speed()
 
         # Rechtes Paddle (verbesserte Kollisionserkennung)
         elif next_x >= self.PADDLE_X:
@@ -164,11 +160,9 @@ class PongGame:
 
                 self.ball_direction = [-abs(math.cos(bounce_angle)), -math.sin(bounce_angle)]
                 next_x = self.PADDLE_X - self.PADDLE_WIDTH
-
-                # Logger-Eintrag: Rechte Paddle-Kollision
-                # -------------------------------
-                logger.debug(f"Rechte Paddle-Kollision: Bounce-Winkel={bounce_angle}, Neue Richtung={self.ball_direction}")
-                # -------------------------------
+                
+                # Erhöhe Geschwindigkeit nach Paddle-Treffer
+                self.increase_ball_speed()
 
         if not hit_paddle:
             if next_x < -1.0:
@@ -176,30 +170,16 @@ class PongGame:
                 self.check_winner()
                 self.reset_ball()
                 state = self.get_game_state()
-                # Logger-Eintrag: Punkt für Spieler 2 und aktueller Spielzustand
-                # -------------------------------
-                logger.info(f"Score: Spieler '{self.player2.name}' erzielt einen Punkt. Neuer Score: {self.player2.score}")
-                logger.info(f"Game State: {state}")
-                # -------------------------------
                 return state
             elif next_x > 1.0:
                 self.player1.score += 1
                 self.check_winner()
                 self.reset_ball()
                 state = self.get_game_state()
-                # Logger-Eintrag: Punkt für Spieler 1 und aktueller Spielzustand
-                # -------------------------------
-                logger.info(f"Score: Spieler '{self.player1.name}' erzielt einen Punkt. Neuer Score: {self.player1.score}")
-                logger.info(f"Game State: {state}")
-                # -------------------------------
                 return state
 
         self.ball_pos = [next_x, next_y]
         state = self.get_game_state()
-        # Logger-Eintrag: Aktueller Spielzustand
-        # -------------------------------
-        logger.info(f"Game State: {state}")
-        # -------------------------------
         return state
 
     def get_paddle_positions(self, player: Player) -> dict:
@@ -215,6 +195,8 @@ class PongGame:
     def get_game_state(self):
         state = {
             "ball": self.ball_pos,
+            "ball_direction": self.ball_direction,
+            "ball_speed": self.ball_speed * self.BALL_SPEED_SCALE,  # Füge Ballgeschwindigkeit hinzu
             "player1": {
                 "paddle": self.get_paddle_positions(self.player1),
                 "score": self.player1.score,
@@ -235,6 +217,14 @@ class PongGame:
             }
 
         return state
+
+    def increase_ball_speed(self):
+        """Erhöht die Ballgeschwindigkeit nach einem Paddle-Treffer"""
+        self.ball_speed = min(
+            self.MAX_BALL_SPEED,
+            self.ball_speed * (1 + self.SPEED_INCREASE)
+        )
+        logger.debug(f"Ball speed increased to: {self.ball_speed}")
 
 
 
