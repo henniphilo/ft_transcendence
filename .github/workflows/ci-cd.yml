@@ -27,6 +27,8 @@ jobs:
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
       DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      ETH_PRIVATE_KEY: ${{secrets.ETH_PRIVATE_KEY}}
+
 
     steps:
       - name: Checkout code
@@ -52,7 +54,7 @@ jobs:
         run: cat backend.log
 
       - name: Add a delay for the backend
-        run: sleep 5 
+        run: sleep 15 
       
       - name: Capture backend logs 
         run: docker compose logs backend
