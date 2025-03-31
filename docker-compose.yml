@@ -97,8 +97,7 @@ services:
     logging:
       driver: gelf
       options:
-        # gelf-address: "udp://${LOG_HOST}:12201"
-        gelf-address: "udp://host.docker.internal:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
@@ -160,9 +159,9 @@ services:
     container_name: cloudflared
     restart: unless-stopped
     logging:
-      driver: syslog
+      driver: gelf
       options:
-        syslog-address: "udp://localhost:5000"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "cloudflared"
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
   
