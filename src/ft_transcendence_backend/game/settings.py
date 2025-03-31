@@ -1,7 +1,7 @@
 class GameSettings:
     def __init__(self):
         print("Initializing GameSettings")
-        self._ball_speed = 2
+        self._ball_speed = 5
         self._paddle_speed = 5
         self._winning_score = 2
         self._paddle_size = "middle"
