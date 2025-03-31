@@ -31,7 +31,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "postgres"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5432"]
@@ -68,7 +68,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "redis"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"] 
@@ -97,7 +97,8 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        # gelf-address: "udp://${LOG_HOST}:12201"
+        gelf-address: "udp://host.docker.internal:12201"
         tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
@@ -116,7 +117,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "game"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8001 || exit 1"]
@@ -144,7 +145,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "postgres"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
@@ -188,7 +189,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "grafana"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
@@ -228,7 +229,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "prometheus"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
@@ -246,7 +247,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "node-exporter"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9100/-/healthy || exit 1"]
@@ -273,7 +274,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://localhost:12201"
+        gelf-address: "udp://${LOG_HOST}:12201"
         tag: "alertmanager"
 
   promtail:
