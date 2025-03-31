@@ -13,7 +13,7 @@ export class MenuDisplay {
         this.container = document.getElementById('menu-container');
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
-        const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
+        const wsPort = window.location.protocol === "https:" ? "" : ":8001";
 
         const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
@@ -22,29 +22,37 @@ export class MenuDisplay {
 
         this.gameMode = null;
         this.playMode = null;
-        this.currentSettings = null;  // Speichere aktuelle Einstellungen
+        this.currentSettings = null;
         this.leaderboardDisplay = null;
-        this.userProfile = userProfile; // Speichere Benutzerprofil
-        this.elements = {};  // Für DOM-Element-Referenzen
+        this.userProfile = userProfile;
+        this.elements = {};
         this.friendsHandler = new FriendsHandler();
-        this.menuHistory = [];  // Speichert die Historie der Menüzustände
-        this.currentMenuState = null;  // Aktueller Menüzustand
+        this.menuHistory = [];
+        this.currentMenuState = null;
         
-        // Browser-History-Event-Listener hinzufügen
-        window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.menuState) {
-                this.handleHistoryNavigation(event.state.menuState);
-            }
-        });
+        // Browser-History-Event-Listener nur hinzufügen, wenn wir im Menü-Template sind
+        if (window.location.hash === '#menu') {
+            window.addEventListener('popstate', (event) => {
+                if (event.state && event.state.menuState) {
+                    this.handleHistoryNavigation(event.state.menuState);
+                }
+            });
+
+            // Initialen State nur setzen, wenn wir tatsächlich im Menü sind
+            setTimeout(() => {
+                // Prüfe ob wir direkt ins Menü navigiert sind (nicht via Back-Button)
+                if (window.location.hash === '#menu' && !window.history.state?.template) {
+                    console.log("Initialisiere Menü-History");
+                    window.history.pushState(
+                        { menuState: 'main' },
+                        '',
+                        '#menu'
+                    );
+                }
+            }, 0);
+        }
 
         this.initWebSocket();
-        
-        // Initialen State setzen und zum Browser-Verlauf hinzufügen
-        window.history.pushState(
-            { menuState: 'main' },
-            '',
-            '#main'
-        );
     }
 
     initWebSocket() {

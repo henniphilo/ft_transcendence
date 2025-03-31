@@ -15,8 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const contentDiv = document.getElementById("content");
     const backgroundCanvas = document.getElementById("background-canvas");
 
-    function showTemplate(templateName, data = {}) {
-        console.log("Template wird gewechselt zu:", templateName);
+    function showTemplate(templateName, data = {}, preventPush = false) {
+        console.log("=== Template Switch ===");
+        console.log("Switching to:", templateName);
+        console.log("With data:", data);
+        
         contentDiv.innerHTML = "";
         const template = templates[templateName];
         if (!template) {
@@ -31,6 +34,48 @@ document.addEventListener("DOMContentLoaded", () => {
             backgroundCanvas.style.display = "block";
         } else {
             backgroundCanvas.style.display = "none";
+        }
+
+        // Füge den neuen Zustand zur Browser-Historie hinzu
+        if (!preventPush) {
+            console.log("=== Saving to History ===");
+            
+            // Erstelle ein neues Objekt nur mit den benötigten Daten
+            let historyData = {};
+            
+            // Kopiere nur die notwendigen Daten für das jeweilige Template
+            if (templateName === 'userProfile') {
+                historyData = {
+                    username: data.username,  // Username des anzuzeigenden Profils
+                    userProfile: data.currentUserProfile  // Profil des eingeloggten Users
+                };
+            } else if (templateName === 'game') {
+                historyData = {
+                    ...data,
+                    userProfile: data.currentUserProfile || data.userProfile
+                };
+            } else if (templateName === 'menu') {
+                // Für das Menü brauchen wir nur das userProfile
+                historyData = {
+                    userProfile: data.currentUserProfile || data.userProfile
+                };
+            }
+
+            // Fallback zum localStorage
+            if (!historyData.userProfile) {
+                const storedProfile = localStorage.getItem('userProfile');
+                if (storedProfile) {
+                    historyData.userProfile = JSON.parse(storedProfile);
+                }
+            }
+
+            console.log("Final history data:", historyData);
+
+            window.history.pushState(
+                { template: templateName, data: historyData },
+                '',
+                `#${templateName}`
+            );
         }
 
         // Initialisiere die entsprechenden Handler
@@ -104,6 +149,46 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('templateChange', (event) => {
         if (event.detail && event.detail.template) {
             showTemplate(event.detail.template, event.detail);
+        }
+    });
+
+    // Popstate Handler
+    window.addEventListener('popstate', (event) => {
+        console.log("=== Browser Navigation ===");
+        console.log("Navigation event state:", event.state);
+        console.log("Current hash:", window.location.hash);
+        
+        if (event.state && event.state.template) {
+            console.log("Template from state:", event.state.template);
+            console.log("Data from state:", event.state.data);
+            
+            let templateData = { ...event.state.data };
+            
+            // Stelle sicher, dass das userProfile verfügbar ist
+            if (event.state.template === 'menu') {
+                console.log("Checking userProfile for menu:");
+                console.log("- From state data:", templateData.userProfile);
+                console.log("- From localStorage:", localStorage.getItem('userProfile'));
+                
+                if (!templateData.userProfile) {
+                    const storedProfile = localStorage.getItem('userProfile');
+                    if (storedProfile) {
+                        templateData.userProfile = JSON.parse(storedProfile);
+                    }
+                }
+                console.log("Final templateData:", templateData);
+            }
+            
+            showTemplate(event.state.template, templateData, true);
+        } else {
+            console.log("No template state found");
+            if (window.location.hash === '#menu') {
+                const storedProfile = localStorage.getItem('userProfile');
+                const data = storedProfile ? { userProfile: JSON.parse(storedProfile) } : {};
+                showTemplate('menu', data);
+            } else {
+                showTemplate('signup');
+            }
         }
     });
 
