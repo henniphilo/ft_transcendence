@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env: 
+    env:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
@@ -29,8 +29,10 @@ jobs:
       DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       ETH_PRIVATE_KEY: ${{secrets.ETH_PRIVATE_KEY}}
 
-
     steps:
+      - name: Debug environment variables
+        run: printenv
+
       - name: Checkout code
         uses: actions/checkout@v3
 
