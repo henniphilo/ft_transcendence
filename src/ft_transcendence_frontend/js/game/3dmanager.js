@@ -30,6 +30,8 @@ export class ThreeJSManager {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.humanModel = null;
         this.paddleModels = []; // Hier werden die Paddle-Objekte gespeichert
+        this.paddleModels2 = []; // Hier werden die Paddle-Objekte gespeichert
+        this.railwayModels = [];
         this.mixer = null; // Animation Mixer
         this.animations = []; // Animations Array
         this.previousRotationY = null;  // Speichert die vorherige Rotation des humanModel
@@ -39,7 +41,7 @@ export class ThreeJSManager {
         this.setupScene();
     }
 
-    setupScene() {
+    async setupScene() {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
 
@@ -70,12 +72,22 @@ export class ThreeJSManager {
         this.scene.add(spotLight);
 
         // Spielfeld
-        const fieldGeometry = new THREE.PlaneGeometry(8, 6);
+        const fieldGeometry = new THREE.PlaneGeometry(8.2, 6);
         const fieldMaterial = new THREE.MeshStandardMaterial({ color: 0x3f3e3e, side: THREE.DoubleSide });
         const field = new THREE.Mesh(fieldGeometry, fieldMaterial);
         field.rotation.x = -Math.PI / 2;
         field.position.set(0, 0, 0);  // Damit das Feld in XZ-Ebene bleibt
         this.scene.add(field);
+
+        // U-Bahn Schienen laden
+        const railsModel = await this.loadModel('looks/railway_transform.glb', {
+            targetSize: 6,
+            addAxesHelper: false
+        });
+        this.railwayModels = [railsModel.clone(), railsModel.clone()];
+        this.railwayModels[0].position.set(-4, -0.01, 0);
+        this.railwayModels[1].position.set(4, -0.01, 0);
+        this.scene.add(this.railwayModels[0], this.railwayModels[1]);
 
         // Mittellinie
         const lineGeometry = new THREE.PlaneGeometry(0.1, 6);
@@ -88,11 +100,11 @@ export class ThreeJSManager {
         // Spielfeld-Begrenzungen
         const borderMaterial = new THREE.MeshStandardMaterial({ color: 'orange' });
 
-        const topBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.1), borderMaterial);
+        const topBorder = new THREE.Mesh(new THREE.BoxGeometry(7.9, 0.2, 0.1), borderMaterial);
         topBorder.position.set(0, 0, 3);
         this.scene.add(topBorder);
 
-        const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(8.2, 0.2, 0.2), borderMaterial);
+        const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(7.9, 0.2, 0.2), borderMaterial);
         bottomBorder.position.set(0, 0, -3);
         this.scene.add(bottomBorder);
     }
@@ -125,15 +137,42 @@ export class ThreeJSManager {
         }
     }
 
+    //to check for ubahn model needs to go eventually
+    createPaddleModels() {
+        const paddleMaterial = new THREE.MeshStandardMaterial({ color: "#ff007f" });
+
+        // Spielfeldgröße als Basis (Breite: 8, Höhe: 6)
+        const paddleWidth = 0.2;
+        const paddleHeight = 0.4; // 1.2 ist ein guter Startwert (ca. 20% des Spielfelds)
+        const paddleDepth = 0.2;
+
+        // Paddle 1 (links)
+        const paddle1Geometry = new THREE.BoxGeometry(paddleHeight,paddleWidth, paddleDepth);
+        const paddle1 = new THREE.Mesh(paddle1Geometry, paddleMaterial);
+        paddle1.position.set(-4, paddleHeight / 2, 0);
+        this.paddleModels2.push(paddle1);
+        this.scene.add(paddle1);
+
+        // Paddle 2 (rechts)
+        const paddle2Geometry = new THREE.BoxGeometry(paddleWidth, paddleDepth, paddleHeight);
+        const paddle2 = new THREE.Mesh(paddle2Geometry, paddleMaterial);
+        paddle2.position.set(4, paddleHeight / 2, 0);
+        this.paddleModels2.push(paddle2);
+        this.scene.add(paddle2);
+    }
+
     async loadModels() {
         try {
             this.controls.dampingFactor = 0.05;
             this.controls.screenSpacePanning = false;
             this.controls.maxPolarAngle = Math.PI / 2;
 
+            // Lade Modelle und Paddles
+            this.createPaddleModels();
+
            // U-Bahn Modell laden
-           const ubahnModel = await this.loadModel('looks/ubahn-bigbig.glb', {
-               targetSize: 3, // Initiale Skalierung
+           const ubahnModel = await this.loadModel('looks/ubahn_wagon.glb', {
+               targetSize: 2, // Initiale Skalierung
                addAxesHelper: false
            });
 
@@ -217,6 +256,17 @@ export class ThreeJSManager {
 
         this.paddleModels[0].position.z= p1Z;
         this.paddleModels[1].position.z= p2Z;
+
+        // Dynamische Paddelgröße basierend auf Spielfeld-Höhe
+        const p1Height = (Math.abs(gameState.player1.paddle.bottom - gameState.player1.paddle.top) * fieldHeight) / 2;
+        this.paddleModels2[0].geometry.dispose();
+        this.paddleModels2[0].geometry = new THREE.BoxGeometry(0.2, 0.2, p1Height,);
+        this.paddleModels2[0].position.set(-4, 0, p1Z);
+
+        const p2Height = (Math.abs(gameState.player2.paddle.bottom - gameState.player2.paddle.top) * fieldHeight) / 2;
+        this.paddleModels2[1].geometry.dispose();
+        this.paddleModels2[1].geometry = new THREE.BoxGeometry(0.2, 0.2, p2Height);
+        this.paddleModels2[1].position.set(4, 0, p2Z);
     }
 
 
