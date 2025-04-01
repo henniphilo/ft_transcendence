@@ -21,10 +21,8 @@ services:
     image: "postgres:16"
     profiles: ["gameprofile"]
     container_name: postgres
-    # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - postgres_logs:/var/log/postgresql
     environment:
       PGDATA: /var/lib/postgresql/data
@@ -64,7 +62,6 @@ services:
       - "6380:6379"
     volumes:
       - redis_data:/data
-      # - redis_logs:/var/log/redis
     logging:
       driver: gelf
       options:
@@ -101,9 +98,9 @@ services:
         tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
-      interval: 10s
+      interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 10 
 
   game:
     <<: *common
@@ -335,8 +332,7 @@ services:
       - ES_JAVA_OPTS=-Xmx256m -Xms256m
       - xpack.monitoring.collection.enabled=true
       - discovery.type=single-node
-      - xpack.security.enabled=false  # Enable security    
-      # - ELASTIC_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Elasticsearch password    
+      - xpack.security.enabled=false 
     ports:
     - '9200:9200'
     - '9300:9300'
@@ -358,7 +354,7 @@ services:
     # depends_on:
     #   - elasticsearch
     ports:
-      - "5000:5000/udp"  # Expose UDP port 5000 for syslog
+      - "5000:5000/udp" 
       - "9600:9600"
       - "12201:12201/udp"
     environment:
@@ -367,12 +363,6 @@ services:
       - xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200
       # - xpack.monitoring.elasticsearch.username=elastic
       # - xpack.monitoring.elasticsearch.password=LYCGEtv92deGJROBL*lp    
-    volumes:
-      - caddy_logs:/var/log/caddy
-      - django_logs:/app/logs
-      - postgres_logs:/var/log/postgresql
-      - redis_logs:/var/log/redis
-      - grafana_logs:/var/log/grafana
 
 volumes:
   caddy_logs: null
@@ -392,51 +382,8 @@ volumes:
   promtail_logs: null
   elasticsearch_data: null
 
-  # loki_logs: null
-  # loki-data: null
-  # tempo_data: null
-  # tempo_logs: null
 
 networks:
   appnetwork:
     name: appnetwork
     driver: bridge
-
-
-  # tempo:
-  #   <<: *common
-  #   build: 
-  #     context: ./src/grafana
-  #     dockerfile: Dockerfile.tempo
-  #   container_name: tempo
-  #   command: [ "-config.file=/etc/tempo.yml" ]
-  #   volumes:
-  #     - tempo_data:/tmp/tempo
-  #     - tempo_logs:/var/log/tempo
-  #   ports:
-  #     - "3200:3200"   # tempo
-  #     - "4317:4317"   # otlp grpc
-  #     - "4318:4318"   # otlp http
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "wget -q -O- http://localhost:3200/metrics >/dev/null 2>&1 || exit 1"]
-  #     interval: 60s
-  #     timeout: 30s
-  #     retries: 5
-
-    # loki:
-    # <<: *common
-    # build: 
-    #   context: ./src/grafana
-    #   dockerfile: Dockerfile.loki
-    # container_name: loki
-    # ports:
-    #   - "3100:3100"
-    # command: ["-config.file=/etc/loki/local-config.yml"]
-    # volumes:
-    #   # - loki_config:/etc/loki/
-    #   - loki_logs:/var/log/loki 
-    # healthcheck:
-    #   test: ["CMD-SHELL", "nc -z localhost 3100 || exit 1"]
-    #   interval: 60s
-    #   timeout: 660s
-    #   retries: 5
