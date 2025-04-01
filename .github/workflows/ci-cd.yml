@@ -44,6 +44,9 @@ jobs:
         run: |
           docker compose -f docker-compose.ci.yml up -d --build
 
+      - name: Debug environment variables
+        run: printenv
+      
       - name: Capture backend logs
         run: docker compose logs backend > backend.log
 
