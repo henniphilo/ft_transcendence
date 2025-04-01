@@ -29,7 +29,16 @@ jobs:
       DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       ETH_PRIVATE_KEY: ${{secrets.ETH_PRIVATE_KEY}}
 
+	  
     steps:
+      - name: Create .env file
+        run: |
+            echo "LOG_HOST=localhost" >> .env
+            echo "PORTAINER_VERSION=2.14.2" >> .env
+            echo "PORTAINER_HOME=/var/lib/portainer" >> .env
+            echo "KUBERNETES_SERVICE_HOST=\"\"" >> .env
+            echo "KUBERNETES_SERVICE_PORT=\"\"" >> .env
+
       - name: Debug environment variables
         run: printenv
 
