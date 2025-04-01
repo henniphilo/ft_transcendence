@@ -13,6 +13,11 @@ services:
     stdin_open: true
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://${LOG_HOST}:12201"
+        tag: "cloudflared"
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
 
   postgres:
@@ -125,7 +130,6 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
       ETH_PRIVATE_KEY: ${ETH_PRIVATE_KEY}
-
     depends_on:
       - postgres
       - redis
@@ -223,7 +227,6 @@ services:
       - grafana_logs:/var/log/grafana
     depends_on:
       - redis
-      - loki
     healthcheck:
       test:
         - CMD-SHELL
