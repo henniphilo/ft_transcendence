@@ -10,41 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-# from opentelemetry import trace
-# from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-# from opentelemetry.sdk.trace import TracerProvider
-# from opentelemetry.sdk.trace.export import BatchSpanProcessor
-# from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-# from opentelemetry.instrumentation.django import DjangoInstrumentor
 
-# # Set up tracing
-# resource = Resource(attributes={
-#     SERVICE_NAME: "ft-transcendence-backend"
-# })
-
-# trace_provider = TracerProvider(resource=resource)
-# trace.set_tracer_provider(trace_provider)
-
-# # Configure the OTLP exporter
-# otlp_exporter = OTLPSpanExporter(
-#     endpoint="tempo:4317",  # Use the service name from docker-compose
-#     insecure=True  # Since we're in Docker network, we don't need TLS
-# )
-
-# # Add the exporter to the TracerProvider
-# trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-
-# # Initialize Django instrumentation
-# DjangoInstrumentor().instrument()
-
-# # OpenTelemetry configuration
-# OTEL_PYTHON_DJANGO_INSTRUMENT = True
-# OTEL_PYTHON_SERVICE_NAME = "ft-transcendence-backend"
-# OTEL_EXPORTER_OTLP_ENDPOINT = "http://tempo:4317"
-# OTEL_EXPORTER_OTLP_PROTOCOL = "grpc"
-
-from pathlib import Path
 import os
+import logging.config
+from pathlib import Path
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -52,7 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-#MEDIA_ROOT = "/app/users/media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -239,47 +207,49 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT"))
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/app/logs/django.log',
-            'formatter': 'json',
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {message}',
+            'style': '{',
         },
-        'logstash': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.SocketHandler',
-            'host': 'logstash',  # Logstash host (Docker service name)
-            'port': 5000,  # Logstash TCP port
-            'formatter': 'json',
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '''
+                %(asctime)s %(levelname)s %(name)s
+                %(module)s %(process)d %(thread)d %(message)s
+            ''',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'gelf': {
+            'class': 'pygelf.GelfUdpHandler',  # UDP is faster than TCP for logs
+            'host': 'logstash',  # Docker service name
+            'port': 12201,       # Default GELF UDP port
+            'formatter': 'json', # JSON format for Logstash
+            'include_extra_fields': True,  # Optional: Adds Django request metadata
+            'compress': True,    # Optional: Compress logs for better performance
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'logstash'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'handlers': ['console', 'gelf'],
+            'level': 'INFO',
+            'propagate': False,
         },
-        'game': {
-            'handlers': ['file', 'logstash'],
+        # Custom app loggers (if needed)
+        'myapp': {
+            'handlers': ['console', 'gelf'],
             'level': 'DEBUG',
-            'propagate': True,
-        },
-        'game.pong_game': {
-            'handlers': ['file', 'logstash'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'propagate': False,
         },
     },
-    'formatters': {
-        'json': {
-            'format': (
-                '{"timestamp": "%(asctime)s", "level": "%(levelname)s", '
-                '"logger": "%(name)s", "module": "%(module)s", '
-                '"process": %(process)d, "thread": %(thread)d, '
-                '"message": "%(message)s"}'
-            ),
-            'style': '%',
-        },
+    'root': {
+        'handlers': ['console', 'gelf'],
+        'level': 'INFO',
     },
 }

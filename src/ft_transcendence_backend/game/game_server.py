@@ -3,10 +3,7 @@ from fastapi import WebSocket
 import json
 from models.game import PongGame
 from models.player import Player, PlayerType, Controls
-import time
 from models.ai_player import AI
-import redis
-import os
 import logging
 from datetime import datetime
 import urllib.request
@@ -14,6 +11,17 @@ import urllib.error
 import urllib.parse
 
 logger = logging.getLogger('game')
+# Static fields (repeated in each log call)
+DEFAULT_EXTRAS = {
+    "_service": "pong_game",
+    "_version": "1.0",
+}
+
+def log_event(event: str, **kwargs):
+    logger.info(
+        event,
+        extra={**DEFAULT_EXTRAS, **kwargs},
+    )
 
 class GameServer:
     def __init__(self):
@@ -25,6 +33,19 @@ class GameServer:
         self.UPDATE_RATE = 1/60  # 60 FPS
         self.API_URL = "http://backend:8000/api/gamestats/"  # URL zum Backend-Container
         self.stats_file = "game_stats.json"
+        # Example usage for game startup
+        logger.info(
+			"Game server starting",
+			extra={
+				**DEFAULT_EXTRAS,  # Include static fields
+				"_port": 8001,
+				"_players_connected": 0,
+			},
+		)
+        # logger.info(
+        #     "TEST GELF LOG",
+        #     extra={"_test": True, "_debug": "Is this reaching Logstash?"},
+        # )
 
     def print_active_games(self):
         print("\n=== Active Games Status ===")
@@ -37,6 +58,7 @@ class GameServer:
 
     async def handle_game(self, websocket: WebSocket, game_id: str, settings: dict):
         await websocket.accept()
+    
         
         print(f"\n=== Game Settings ===")
         print(json.dumps(settings, indent=2))

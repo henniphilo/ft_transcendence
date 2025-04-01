@@ -2,3 +2,6 @@ fastapi
 uvicorn
 websockets 
 redis==4.5.5
+pygelf
+python-json-logger
+

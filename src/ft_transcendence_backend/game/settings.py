@@ -1,3 +1,7 @@
+import os
+import logging.config
+
+
 class GameSettings:
     def __init__(self):
         print("Initializing GameSettings")
@@ -142,37 +146,70 @@ async def update_settings(self, settings_data):
         print(f"Error updating settings: {str(e)}")
         return {"action": "error", "message": str(e)}
 
-import logging.config
 
-# Logging Configuration
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '''
+                %(asctime)s %(levelname)s %(name)s
+                %(module)s %(process)d %(thread)d %(message)s
+            ''',
+        },
+    },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',  # Set the minimum log level
-            'class': 'logging.FileHandler',
-            'filename': '/app/logs/game.log',  # Specify the log file path
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+        },
+        'gelf': {
+            'class': 'pygelf.GelfUdpHandler',
+            'host': 'logstash',  # Docker service name
+            'port': 12201,       # GELF UDP port
+            'formatter': 'json',
+            'include_extra_fields': True,  # Adds extra context (e.g., game_id)
+            'compress': True,     # Optional: Reduces network overhead
         },
     },
     'loggers': {
+        # Uvicorn's core loggers
         'uvicorn': {
-            'handlers': ['file'],
-            'level': 'DEBUG',  # Set the minimum log level for Uvicorn logs
-            'propagate': True,
+            'handlers': ['console', 'gelf'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'uvicorn.error': {
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'uvicorn.access': {
+            'handlers': ['console', 'gelf'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Your game-specific logger
+        'game': {
+            'handlers': ['console', 'gelf'],
+            'level': 'DEBUG',  # Debug for game logic (adjust as needed)
+            'propagate': False,
         },
     },
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
 }
 
-import os
+# Apply the config
+logging.config.dictConfig(LOGGING)
 
 # Ensure the logs directory exists
-if not os.path.exists('/app/logs'):
-    os.makedirs('/app/logs')
+os.makedirs('/app/logs', exist_ok=True)
