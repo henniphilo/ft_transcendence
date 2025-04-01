@@ -1,12 +1,11 @@
-.env
+# Ignore the .env file in the root directory
+/.env
+
+# Allow the .env file in the backend folder
+!src/ft_transcendence_backend/.env
+
 src/nginx/logs/access.log
 src/grafana/config/loki_data
-.env copy
-secrets/grafana_admin_password.txt
-secrets/postgres_db.txt
-secrets/postgres_password.txt
-.gitignore
-.gitignore
-secrets/postgres_user.txt
-.env
-.env
+
+
+.DS_Store

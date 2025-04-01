@@ -132,6 +132,47 @@ will match this
 ```log
 172.18.0.2:49524 - - 30/Mar/2025:11:29:24] \"GET /metrics\" 200 19638\r
 ```
+
+
+## additional debugging
+To check if the GELF server is running on `localhost` on your Mac, follow these steps:
+
+### 1. **Verify if a GELF-compatible server is running**
+   - GELF logs are typically sent to a logging server like **Graylog**, **Logstash**, or similar. Ensure that such a server is installed and running on your machine.
+
+   - If you're using **Logstash**, check if it is configured to listen on `udp://localhost:12201`. For example, in the `logstash.conf` file, you should have something like:
+     ```plaintext
+     input {
+       gelf {
+         host => "0.0.0.0"
+         port => 12201
+       }
+     }
+     ```
+
+### 2. **Check if the port is open**
+   Use the `lsof` command to check if something is listening on port `12201`:
+   ```bash
+   sudo lsof -iUDP -nP | grep 12201
+   ```
+   - If you see output like this:
+     ```
+     java    12345 username   123u  IPv4 0x123456789abcdef  UDP *:12201
+     ```
+     It means a process (e.g., Logstash or Graylog) is listening on port `12201`.
+
+   - If no output is shown, the GELF server is not running or not configured to listen on that port.
+
+### 3. **Test connectivity to the GELF server**
+   Use `nc` (Netcat) to test if the GELF server is reachable:
+   ```bash
+   echo '{"version":"1.1","host":"test","short_message":"test message"}' | nc -u -w1 localhost 12201
+   ```
+   - If the GELF server is running, it should process the test message.
+   - If you get no response or an error, the server is not running or not configured correctly.
+
+
+
 ### links
 
 remember it is a bitnami container    

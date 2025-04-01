@@ -26,15 +26,21 @@ services:
     stdin_open: true
     image: "postgres:16"
     container_name: postgres
-    command: -c config_file=/etc/postgresql/postgresql.conf
+    # command: -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      # - ./src/grafana/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - postgres_logs:/var/log/postgresql
     environment:
+      PGDATA: /var/lib/postgresql/data
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://${LOG_HOST}:12201"
+        tag: "postgres"
     healthcheck:
       test:
         - CMD-SHELL
@@ -44,13 +50,24 @@ services:
       retries: 5
   
   postgres-exporter:
+    env_file:
+      - .env.ci
+    restart: always
+    networks:
+      - u42network
+    init: true
+    tty: true
+    stdin_open: true
     image: bitnami/postgres-exporter:latest
     container_name: postgres-exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      DISABLE_DEFAULT_METRICS: "true"
     depends_on:
-      - postgres
-      - prometheus
+      postgres:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
     ports:
     - "9187:9187"
   
@@ -69,7 +86,11 @@ services:
       - 6380:6379
     volumes:
       - redis_data:/data
-      - redis_logs:/var/log/redis
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://${LOG_HOST}:12201"
+        tag: "redis"
     healthcheck:
       test:
         - CMD
@@ -102,6 +123,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      CLOUDFLARE_TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+      ETH_PRIVATE_KEY: ${ETH_PRIVATE_KEY}
+
     depends_on:
       - postgres
       - redis

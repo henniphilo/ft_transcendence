@@ -13,7 +13,7 @@ logger = logging.getLogger('game')
 logger.debug("GAME! This is a test debug message")
 logger.info("GAME! test Game application starting up...")
 logger.warning("GAME! test This is a warning message")
-logger.error("GAME! test This is an error message")
+# logger.error("GAME! test This is an error message")
 
 app = FastAPI()
 menu = Menu()

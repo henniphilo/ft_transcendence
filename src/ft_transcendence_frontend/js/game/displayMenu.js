@@ -27,7 +27,24 @@ export class MenuDisplay {
         this.userProfile = userProfile; // Speichere Benutzerprofil
         this.elements = {};  // Für DOM-Element-Referenzen
         this.friendsHandler = new FriendsHandler();
+        this.menuHistory = [];  // Speichert die Historie der Menüzustände
+        this.currentMenuState = null;  // Aktueller Menüzustand
+        
+        // Browser-History-Event-Listener hinzufügen
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.menuState) {
+                this.handleHistoryNavigation(event.state.menuState);
+            }
+        });
+
         this.initWebSocket();
+        
+        // Initialen State setzen und zum Browser-Verlauf hinzufügen
+        window.history.pushState(
+            { menuState: 'main' },
+            '',
+            '#main'
+        );
     }
 
     initWebSocket() {
@@ -375,28 +392,89 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
-        console.log("Menu click:", itemId); // Debug log
+        console.log("Menu click:", itemId);
 
+        // Speichere den aktuellen Zustand in der Historie
+        if (this.currentMenuState) {
+            this.menuHistory.push(this.currentMenuState);
+        }
+
+        // Aktualisiere den aktuellen Zustand
+        this.currentMenuState = itemId;
+
+        // Füge den neuen Zustand zur Browser-Historie hinzu
+        window.history.pushState(
+            { menuState: itemId },
+            '',
+            `#${itemId}`
+        );
+
+        // Ursprüngliche Menü-Logik
         if (itemId === 'online') {
-            //this.displaySearchingScreen();
-            // Wichtig: Sende dem Server die Information, dass wir suchen
             this.ws.send(JSON.stringify({
                 action: 'menu_selection',
                 selection: 'online'
             }));
             return;
         }
-        if (itemId === 'back' && this.container.querySelector('.searching-container')) {
-            this.ws.send(JSON.stringify({
-                action: 'menu_selection',
-                selection: 'play_game'
-            }));
-            return;
+        if (itemId === 'back') {
+            // Pop letzten Zustand von der Historie
+            const previousState = this.menuHistory.pop();
+            if (previousState) {
+                this.currentMenuState = previousState;
+            }
+            
+            if (this.container.querySelector('.searching-container')) {
+                this.ws.send(JSON.stringify({
+                    action: 'menu_selection',
+                    selection: 'play_game'
+                }));
+                return;
+            }
         }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
         }));
+    }
+
+    handleHistoryNavigation(menuState) {
+        console.log("=== History Navigation Debug ===");
+        console.log("Navigating to state:", menuState);
+        console.log("Current menu history:", this.menuHistory);
+        console.log("Current menu state:", this.currentMenuState);
+        
+        // Spezielles Handling für null state
+        if (menuState === null) {
+            this.requestMenuItems();
+            return;
+        }
+        
+        if (menuState === 'back') {
+            // Pop letzten Zustand von der Historie
+            const previousState = this.menuHistory.pop();
+            console.log("Found previous state:", previousState);
+            if (previousState) {
+                menuState = previousState;
+            }
+        }
+
+        // Setze den aktuellen Zustand
+        this.currentMenuState = menuState;
+        
+        // Sende die entsprechende Menüauswahl an den Server
+        this.ws.send(JSON.stringify({
+            action: 'menu_selection',
+            selection: menuState
+        }));
+
+        // Wenn wir in einem Suchbildschirm sind, behandle dies speziell
+        if (this.container.querySelector('.searching-container')) {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_game'
+            }));
+        }
     }
 
     handleMenuAction(data) {
@@ -1134,15 +1212,15 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 
             // Aktualisiere den Inhalt
             listItem.innerHTML = `
-                <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-right: 8px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
-                ${!isCurrentUser && !isAlreadyFriend ? `
-                    <button class="btn btn-sm btn-outline-success add-friend-btn"
-                            data-username="${user.username}">
-                        <i class="bi bi-person-plus"></i> Add Friend
-                    </button>
-                ` : isAlreadyFriend && !isCurrentUser ? `
-                    <span class="badge bg-success">Friend</span>
-                ` : ''}
+                 <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-bottom: 5px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+                 ${!isCurrentUser && !isAlreadyFriend ? `
+                     <button class="btn btn-sm btn-outline-success add-friend-btn"
+                             data-username="${user.username}">
+                         <i class="bi bi-person-plus"></i> Add Friend
+                     </button>
+                 ` : isAlreadyFriend && !isCurrentUser ? `
+                     <span class="badge bg-success">Friend</span>
+                 ` : ''}
             `;
 
             fragment.appendChild(listItem);
@@ -1195,7 +1273,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 // Modifiziere die FriendsHandler.getFriends-Methode, um sicherzustellen, dass sie immer die aktuellen Daten vom Server holt
 FriendsHandler.prototype.getFriends = async function() {
     try {
-        console.log("FriendsHandler: Rufe Freundesliste ab...");
+  //      console.log("FriendsHandler: Rufe Freundesliste ab...");
         const accessToken = localStorage.getItem('accessToken');
         const response = await fetch('/api/users/friends/list/', {
             method: 'GET',
@@ -1211,7 +1289,7 @@ FriendsHandler.prototype.getFriends = async function() {
         }
 
         const data = await response.json();
-        console.log("FriendsHandler: Freundesliste erhalten:", data);
+     //   console.log("FriendsHandler: Freundesliste erhalten:", data);
 
         // Aktualisiere die gespeicherte Freundesliste
         this.friends = data;
@@ -1231,7 +1309,7 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
     const friendsList = document.getElementById('friends-list');
     if (!friendsList) return;
 
-    console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
+ //   console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
 
     // Wenn die Liste leer ist, zeige eine Nachricht an
     if (!friends || friends.length === 0) {
