@@ -286,19 +286,27 @@ export class VerifyHandler {
         const code = document.getElementById('verification-code').value;
 
         try {
-            // Nur Code verifizieren, nicht nochmal registrieren
-            await AuthLib.verifyCode(SharedData.formData.email, code);
-            console.log("Code erfolgreich verifiziert");
+            // Verifiziere den Code
+            const response = await AuthLib.verifyCode(SharedData.formData.email, code);
             
-            SharedData.formData = null;
+            console.log("Server response:", response);  // Debug-Log
             
-            alert('Registrierung erfolgreich!');
-            document.dispatchEvent(new CustomEvent('templateChange', {
-                detail: { template: 'login' }
-            }));
+            // Wenn wir eine erfolgreiche Nachricht haben, war die Verifizierung erfolgreich
+            if (response.message) {
+                console.log("Code erfolgreich verifiziert");
+                SharedData.formData = null;
+                
+                alert('Registrierung erfolgreich!');
+                document.dispatchEvent(new CustomEvent('templateChange', {
+                    detail: { template: 'login' }
+                }));
+            } else {
+                // Wenn keine Erfolgsnachricht, dann war der Code ungültig
+                throw new Error('Ungültiger Verifizierungscode');
+            }
         } catch (error) {
             console.error('Fehler bei der Verifizierung:', error);
-            alert(error);
+            alert(error.message || 'Verifizierung fehlgeschlagen. Bitte überprüfen Sie den Code.');
         }
     }
 
