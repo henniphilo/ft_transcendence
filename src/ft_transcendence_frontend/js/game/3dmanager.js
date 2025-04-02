@@ -59,7 +59,7 @@ export class ThreeJSManager {
         light.position.set(0, 10, 10);
         this.scene.add(light);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 3);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 2);
         this.scene.add(ambientLight);
 
         // Spotlight für mehr Kontraste
