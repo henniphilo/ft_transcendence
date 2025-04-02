@@ -16,7 +16,8 @@ def main():
     logger.debug("This is a debug message")
     logger.info("Application starting up...")
     logger.warning("This is a warning message")
-    logger.error("This is an error message")
+    # logger.error("This is an error message")
+    logger.debug("TEST LOG MESSAGE - IS THIS IN JSON?")
 
     try:
         from django.core.management import execute_from_command_line

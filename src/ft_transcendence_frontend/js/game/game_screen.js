@@ -46,13 +46,12 @@ export class GameScreen {
     async setupThreeJS() {
         try {
             await this.threeJSManager.loadModels();
-            this.display(); // Add this line
+            this.display(); // Anzeige des Spiels inkl. Ready-Button
             this.startGameLoop();
         } catch (error) {
             console.error('Failed to load 3D models:', error);
         }
     }
-
 
     startGameLoop() {
         const gameLoop = () => {
@@ -65,7 +64,6 @@ export class GameScreen {
 
     setupWebSocket() {
         console.log("Connecting to game with ID:", this.gameId);
-        //this.ws = new WebSocket(`ws://${window.location.hostname}:8001/ws/game/${this.gameId}`);
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
         const wsPort = wsProtocol === "ws://" ? ":8001" : ""; // Port nur für ws:// setzen
@@ -74,7 +72,6 @@ export class GameScreen {
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
 
         this.ws = new WebSocket(wsUrl);
-
 
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);
@@ -90,7 +87,6 @@ export class GameScreen {
         };
 
         this.ws.onmessage = (event) => {
-  //          console.log("Received game state:", event.data); // Debug-Log
             this.gameState = JSON.parse(event.data);
             this.updateScoreBoard();
             this.threeJSManager.updatePositions(this.gameState);
@@ -144,7 +140,6 @@ export class GameScreen {
                     this.keyState[e.key] = true;
                 }
             }
-            // Keine spezielle Behandlung für AI nötig, da die Steuerung vom Server kommt
         });
 
         document.addEventListener('keyup', (e) => {
@@ -155,6 +150,7 @@ export class GameScreen {
         });
     }
 
+    // Hier fügen wir den Ready-Button in die Anzeige ein
     display() {
         console.log("Game wird angezeigt...");
         const container = document.getElementById('game-container');
@@ -163,16 +159,13 @@ export class GameScreen {
         let player1Name = this.gameState.player1.name;
         let player2Name = this.gameState.player2.name;
 
-        // Wenn wir ein Benutzerprofil haben, passen wir die Namen an
         if (this.userProfile) {
             if (this.gameMode === 'ai') {
-                // Im AI-Modus: Benutzername vs. AI Player
                 if (this.playerRole === 'player1') {
                     player1Name = this.userProfile.username;
                     player2Name = "AI Player";
                 }
             } else if (this.gameMode === 'local') {
-                // Im Local-Modus: Benutzername vs. Local Player
                 if (this.playerRole === 'player1') {
                     player1Name = this.userProfile.username;
                     player2Name = "Local Player";
@@ -181,13 +174,10 @@ export class GameScreen {
                     player2Name = this.userProfile.username;
                 }
             }
-            // Im Online-Modus werden die Namen vom Server gesetzt
         }
 
-        if (this.gameState.winner) {
-            this.displayWinnerScreen();
-        } else {
-            container.innerHTML = `
+        // Hier wird zusätzlich ein Ready-Button eingebaut
+        container.innerHTML = `
             <div class="game-screen">
                 <div class="game-header">
                     <div id="score-board" class="score-board">
@@ -219,13 +209,37 @@ export class GameScreen {
                 </div>
 
                 <div id="three-js-container"></div>
+                <div id="ready-container">
+                    <button id="ready-button">I'm Ready</button>
+                </div>
             </div>
-            `;
-            this.scoreBoard = document.getElementById('score-board');
-            this.threeJSManager.setupRenderer(document.getElementById('three-js-container'));
-        }
+        `;
+        this.scoreBoard = document.getElementById('score-board');
+        this.threeJSManager.setupRenderer(document.getElementById('three-js-container'));
+
+        // Richte den Ready-Button ein, um den Ready-State zu senden
+        this.setupReadyButton();
     }
 
+    setupReadyButton() {
+        const readyButton = document.getElementById("ready-button");
+        if (readyButton) {
+            readyButton.addEventListener("click", () => {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({
+                        action: "player_ready",
+                        player_role: this.playerRole
+                    }));
+                    console.log("Ready state sent for role:", this.playerRole);
+                    // Optional: Button deaktivieren, damit er nicht mehrfach gesendet wird
+                    readyButton.disabled = true;
+                    readyButton.innerText = "Waiting for opponent...";
+                } else {
+                    console.error("WebSocket is not open. Cannot send ready state.");
+                }
+            });
+        }
+    }
 
     updateScoreBoard() {
         if (!this.scoreBoard) {
@@ -236,20 +250,16 @@ export class GameScreen {
         const player1Score = this.scoreBoard.querySelector('#player1-score');
         const player2Score = this.scoreBoard.querySelector('#player2-score');
 
-        // Bestimme die Spielernamen basierend auf dem Spielmodus
         let player1Name = this.gameState.player1.name;
         let player2Name = this.gameState.player2.name;
 
-        // Wenn wir ein Benutzerprofil haben, passen wir die Namen an
         if (this.userProfile) {
             if (this.gameMode === 'ai') {
-                // Im AI-Modus: Benutzername vs. AI Player
                 if (this.playerRole === 'player1') {
                     player1Name = this.userProfile.username;
                     player2Name = "AI Player";
                 }
             } else if (this.gameMode === 'local') {
-                // Im Local-Modus: Benutzername vs. Local Player
                 if (this.playerRole === 'player1') {
                     player1Name = this.userProfile.username;
                     player2Name = "Local Player";
@@ -258,10 +268,7 @@ export class GameScreen {
                     player2Name = this.userProfile.username;
                 }
             }
-            // Im Online-Modus werden die Namen vom Server gesetzt
         }
-
-     //   console.log("Angepasste Namen:", player1Name, player2Name);
 
         if (player1Score && player2Score) {
             player1Score.innerHTML = `<strong>${player1Name}:</strong> ${this.gameState.player1.score}`;
@@ -306,6 +313,7 @@ export class GameScreen {
         // Template mit userProfile wechseln
         showTemplate('menu', { userProfile: this.userProfile });
 
+
         if (this.onBackToMenu) {
             this.onBackToMenu();
         }
@@ -315,7 +323,6 @@ export class GameScreen {
         if (this.ws) {
             this.ws.close();
         }
-        // Wichtig: Interval stoppen wenn das Spiel beendet wird
         if (this.controlInterval) {
             clearInterval(this.controlInterval);
         }

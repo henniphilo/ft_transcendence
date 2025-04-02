@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env: 
+    env:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
@@ -27,13 +27,23 @@ jobs:
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
       DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      ETH_PRIVATE_KEY: ${{secrets.ETH_PRIVATE_KEY}}
 
+	  
     steps:
+      - name: Create .env file
+        run: |
+            echo "LOG_HOST=localhost" >> .env
+            echo "PORTAINER_VERSION=2.14.2" >> .env
+            echo "PORTAINER_HOME=/var/lib/portainer" >> .env
+            echo "KUBERNETES_SERVICE_HOST=\"\"" >> .env
+            echo "KUBERNETES_SERVICE_PORT=\"\"" >> .env
+
+      - name: Debug environment variables
+        run: printenv
+
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Rename env file
-        run: cp .env.ci .env
 
       - name: Log in to Docker Hub
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -43,8 +53,11 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-          docker compose -f docker-compose.ci.yml up -d --build
+          docker compose --env-file .env.ci -f docker-compose.ci.yml up -d --build
 
+      - name: Debug environment variables
+        run: printenv
+      
       - name: Capture backend logs
         run: docker compose logs backend > backend.log
 
@@ -52,7 +65,7 @@ jobs:
         run: cat backend.log
 
       - name: Add a delay for the backend
-        run: sleep 30 
+        run: sleep 15 
       
       - name: Capture backend logs 
         run: docker compose logs backend

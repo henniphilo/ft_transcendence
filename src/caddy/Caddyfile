@@ -5,6 +5,7 @@
 			roll_keep 5
 			roll_keep_for 100d
 		}
+		output stdout
 		format json
 		level INFO
 	}
@@ -17,7 +18,9 @@
 			roll_keep 5
 			roll_keep_for 100d
 		}
-		format json
+        output stdout
+        format json
+		level INFO
 	}
 
 	root * /usr/share/caddy

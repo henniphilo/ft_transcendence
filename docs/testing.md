@@ -1,5 +1,16 @@
 # testing
 
+we have integration tests and unit tests in our backend. These are done with pytest.
+
+For example run it like this:
+```pytest
+docker compose exec backend pytest tests/unit/ -v
+```
+
+
+
+
+
 (from gemini or copilot)
 Lets create a testing strategy and CI/CD pipeline for our Docker Compose project.  
 We can break this down into multiple parts.
