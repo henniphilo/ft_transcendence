@@ -188,11 +188,18 @@ const SharedData = {
 };
 
 // Handler-Klassen für die Template-Logik
-export class SignupHandler {
-    static init() {
+export const SignupHandler = {
+    init() {
         console.log("SignupHandler wird initialisiert");
         const signupForm = document.getElementById('signup-form');
         const switchToLoginBtn = document.getElementById('switch-to-login');
+        const usernameInput = document.getElementById('username');
+        const errorDiv = document.createElement('div');
+        
+        // Füge Error-Div unter dem Username-Input hinzu
+        errorDiv.style.color = 'red';
+        errorDiv.style.display = 'none';
+        usernameInput.parentNode.insertBefore(errorDiv, usernameInput.nextSibling);
         
         if (signupForm) {
             signupForm.addEventListener('submit', this.handleSignup.bind(this));
@@ -205,23 +212,45 @@ export class SignupHandler {
                 }));
             });
         }
-    }
 
-    static async handleSignup(event) {
+        // Validiere Username-Eingabe
+        usernameInput.addEventListener('input', (e) => {
+            const invalidChars = e.target.value.match(/[^a-zA-Z0-9]/g);
+            if (invalidChars) {
+                errorDiv.textContent = 'Username darf nur Buchstaben und Zahlen enthalten';
+                errorDiv.style.display = 'block';
+                signupForm.querySelector('button[type="submit"]').disabled = true;
+            } else {
+                errorDiv.style.display = 'none';
+                signupForm.querySelector('button[type="submit"]').disabled = false;
+            }
+        });
+
+        // Setze das pattern-Attribut für HTML5-Validierung
+        usernameInput.pattern = "[a-zA-Z0-9]+";
+        usernameInput.title = "Username can only contain letters and numbers";
+    },
+
+    async handleSignup(event) {
         event.preventDefault();
         
+        const username = document.getElementById('username').value;
+        // Zusätzliche Validierung vor dem Submit
+        if (username.match(/[^a-zA-Z0-9]/g)) {
+            alert('Username darf nur Buchstaben und Zahlen enthalten');
+            return;
+        }
+        
         SharedData.formData = {
-            username: document.getElementById('username').value,
+            username: username,
             email: document.getElementById('email').value,
             password: document.getElementById('password').value
         };
 
         try {
-            // Erst den User registrieren
             await AuthLib.registerUser(SharedData.formData);
             console.log("User erfolgreich registriert");
             
-            // Dann den Verifizierungscode senden
             await AuthLib.sendVerificationCode(SharedData.formData.email);
             console.log("Verifizierungscode gesendet");
             
@@ -233,7 +262,7 @@ export class SignupHandler {
             alert(error);
         }
     }
-}
+};
 
 export class VerifyHandler {
     static init() {
@@ -257,19 +286,27 @@ export class VerifyHandler {
         const code = document.getElementById('verification-code').value;
 
         try {
-            // Nur Code verifizieren, nicht nochmal registrieren
-            await AuthLib.verifyCode(SharedData.formData.email, code);
-            console.log("Code erfolgreich verifiziert");
+            // Verifiziere den Code
+            const response = await AuthLib.verifyCode(SharedData.formData.email, code);
             
-            SharedData.formData = null;
+            console.log("Server response:", response);  // Debug-Log
             
-            alert('Registrierung erfolgreich!');
-            document.dispatchEvent(new CustomEvent('templateChange', {
-                detail: { template: 'login' }
-            }));
+            // Wenn wir eine erfolgreiche Nachricht haben, war die Verifizierung erfolgreich
+            if (response.message) {
+                console.log("Code erfolgreich verifiziert");
+                SharedData.formData = null;
+                
+                alert('Registrierung erfolgreich!');
+                document.dispatchEvent(new CustomEvent('templateChange', {
+                    detail: { template: 'login' }
+                }));
+            } else {
+                // Wenn keine Erfolgsnachricht, dann war der Code ungültig
+                throw new Error('Ungültiger Verifizierungscode');
+            }
         } catch (error) {
             console.error('Fehler bei der Verifizierung:', error);
-            alert(error);
+            alert(error.message || 'Verifizierung fehlgeschlagen. Bitte überprüfen Sie den Code.');
         }
     }
 

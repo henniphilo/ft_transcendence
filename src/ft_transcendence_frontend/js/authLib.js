@@ -74,14 +74,30 @@ export function registerUser(data) {
  * Überprüft den 2FA-Verifizierungscode.
  */
 export function verifyCode(email, code) {
-    return fetch(`${BASE_URL}/verify/`, {
+    return fetch(`${BASE_URL}/verify`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken'),
         },
         body: JSON.stringify({ email, code }),
-    }).then(response => response.json());
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Backend sendet "message" bei Erfolg, "error" bei Fehler
+        if (data.error) {
+            return Promise.reject(new Error(data.error));
+        }
+        return {
+            verified: true,
+            message: data.message
+        };
+    });
 }
 
 /**
