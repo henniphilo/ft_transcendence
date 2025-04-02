@@ -1,15 +1,15 @@
 export class TournamentScreen {
     constructor(data, onBackToMenu) {
         this.userProfile = data.userProfile;
-        this.numPlayers = data.numPlayers; // 4 oder 8
+        this.numPlayers = data.numPlayers;
         this.onBackToMenu = onBackToMenu;
         this.ws = null;
-        
         this.tournamentId = data.tournament_id;
+        
+        console.log("Tournament Screen initialized with data:", data); // Debug log
         
         this.setupWebSocket();
         this.setupEventListeners();
-        this.updateDisplay();
     }
 
     setupWebSocket() {
@@ -17,7 +17,11 @@ export class TournamentScreen {
         const wsHost = window.location.hostname;
         const wsPort = wsProtocol === "ws://" ? ":8001" : "";
         
-        this.ws = new WebSocket(`${wsProtocol}${wsHost}${wsPort}/ws/tournament`);
+        // Füge tournament_id zur WebSocket-URL hinzu
+        const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/tournament/${this.tournamentId}`;
+        console.log("Connecting to WebSocket URL:", wsUrl); // Debug log
+        
+        this.ws = new WebSocket(wsUrl);
         
         this.ws.onopen = () => {
             console.log("Connected to tournament server");
@@ -29,8 +33,17 @@ export class TournamentScreen {
             }));
         };
 
+        this.ws.onerror = (error) => {
+            console.error("WebSocket error:", error); // Debug log
+        };
+
+        this.ws.onclose = (event) => {
+            console.log("WebSocket closed:", event.code, event.reason); // Debug log
+        };
+
         this.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            console.log("Received tournament data:", data); // Debug log
             this.handleServerMessage(data);
         };
     }
@@ -49,104 +62,71 @@ export class TournamentScreen {
     }
 
     handleServerMessage(data) {
-        switch(data.action) {
-            case 'players_update':
-                this.updatePlayersCount(data.joined, data.needed);
-                break;
-            case 'tournament_start':
-                this.renderBracket(data.matches);
-                break;
-            case 'start_game':
-                this.startGame(data);
-                break;
-            case 'match_update':
-                this.updateMatch(data.matchId, data.result);
-                break;
-            case 'tournament_end':
-                this.handleTournamentEnd(data);
-                break;
+        if (data.action === 'tournament_status') {
+            this.updateTournamentStatus(data);
+        } else if (data.action === 'tournament_start') {
+            this.showTournamentBracket(data.matches);
+        } else if (data.action === 'start_game') {
+            this.startGame(data);
+        } else if (data.action === 'match_update') {
+            this.updateMatch(data.matchId, data.result);
+        } else if (data.action === 'tournament_end') {
+            this.handleTournamentEnd(data);
         }
     }
 
-    updatePlayersCount(joined, needed) {
-        const joinedSpan = document.getElementById('players-joined');
-        const neededSpan = document.getElementById('players-needed');
-        if (joinedSpan && neededSpan) {
-            joinedSpan.textContent = joined;
-            neededSpan.textContent = needed;
-        }
+    updateTournamentStatus(data) {
+        const statusDiv = document.getElementById('tournament-status');
+        const playersJoined = data.players.joined;
+        const playersNeeded = data.players.needed;
+        
+        statusDiv.innerHTML = `
+            <h2>Tournament</h2>
+            <p>Waiting for players... (${playersJoined}/${playersNeeded})</p>
+            <div class="player-list">
+                ${data.players.list.map(player => 
+                    `<div class="player-item">${player.username}</div>`
+                ).join('')}
+            </div>
+        `;
     }
 
-    renderBracket(matches) {
-        const bracketElement = document.getElementById('tournament-bracket');
-        if (!bracketElement) return;
-
-        // Hier implementieren wir die visuelle Darstellung des Turnierbaums
-        // Dies ist ein einfaches Beispiel - Sie können es nach Ihren Bedürfnissen anpassen
-        bracketElement.innerHTML = this.generateBracketHTML(matches);
-    }
-
-    generateBracketHTML(matches) {
-        // Gruppiere Matches nach Runden
-        const roundMatches = {};
+    showTournamentBracket(matches) {
+        const bracketDiv = document.getElementById('tournament-bracket');
+        bracketDiv.style.display = 'block';
+        
+        // Organisiere Matches nach Runden
+        const matchesByRound = {};
         matches.forEach(match => {
-            if (!roundMatches[match.round]) {
-                roundMatches[match.round] = [];
+            if (!matchesByRound[match.round]) {
+                matchesByRound[match.round] = [];
             }
-            roundMatches[match.round].push(match);
+            matchesByRound[match.round].push(match);
         });
 
-        // Generiere HTML für jede Runde
-        return Object.entries(roundMatches)
-            .sort(([a], [b]) => parseInt(a) - parseInt(b))
-            .map(([round, matches]) => `
-                <div class="tournament-round">
-                    <div class="round-title">Round ${round}</div>
-                    ${matches.map(match => `
-                        <div class="tournament-match" data-match-id="${match.id}">
-                            <div class="player ${this.getPlayerClasses(match, match.player1, match.winner)}">
-                                ${match.player1?.username || 'TBD'}
+        // Erstelle HTML für den Turnierbaum
+        bracketDiv.innerHTML = `
+            <div class="tournament-rounds">
+                ${Object.entries(matchesByRound).map(([round, roundMatches]) => `
+                    <div class="round">
+                        <h3>Round ${round}</h3>
+                        ${roundMatches.map(match => `
+                            <div class="match ${match.status}">
+                                <div class="player ${match.winner?.id === match.player1?.id ? 'winner' : ''}">${match.player1?.username || 'TBD'}</div>
+                                <div class="player ${match.winner?.id === match.player2?.id ? 'winner' : ''}">${match.player2?.username || 'TBD'}</div>
                             </div>
-                            <div class="player ${this.getPlayerClasses(match, match.player2, match.winner)}">
-                                ${match.player2?.username || 'TBD'}
-                            </div>
-                            ${match.status === 'in_progress' ? `
-                                <div class="match-status">In Progress</div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('');
-    }
-
-    getPlayerClasses(match, player, winner) {
-        if (!player) return '';
-        
-        const classes = ['active'];
-        
-        if (match.status === 'completed') {
-            if (winner && winner.id === player.id) {
-                classes.push('winner');
-            } else {
-                classes.push('loser');
-            }
-        }
-        
-        return classes.join(' ');
+                        `).join('')}
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 
     updateMatch(matchId, result) {
         const matchElement = document.querySelector(`[data-match-id="${matchId}"]`);
         if (matchElement) {
             // Update match display with results
-            // Implementierung nach Ihren Anforderungen
-        }
-    }
-
-    cleanup() {
-        if (this.ws) {
-            this.ws.close();
-            this.ws = null;
+            this.showTournamentBracket(result.matches);
         }
     }
 
@@ -164,14 +144,6 @@ export class TournamentScreen {
         showTemplate('game', fullGameData);
     }
 
-    returnFromGame() {
-        showTemplate('tournament', {
-            tournament_id: this.tournamentId,
-            userProfile: this.userProfile,
-            numPlayers: this.numPlayers
-        });
-    }
-
     handleTournamentEnd(data) {
         const container = document.getElementById('tournament-container');
         container.innerHTML = `
@@ -183,5 +155,12 @@ export class TournamentScreen {
                 </button>
             </div>
         `;
+    }
+
+    cleanup() {
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
     }
 }

@@ -572,11 +572,11 @@ export class MenuDisplay {
                 console.log('Exiting game...');
                 break;
             case 'show_tournament':
-                // Füge das Benutzerprofil zu den Turnierdaten hinzu
                 const tournamentData = {
-                    ...data,
+                    ...data,  // Enthält jetzt tournament_id vom Backend
                     userProfile: this.userProfile
                 };
+                console.log("Starting tournament with data:", tournamentData);
                 showTemplate('tournament', tournamentData);
                 break;
         }

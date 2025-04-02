@@ -32,7 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const clone = template.content.cloneNode(true);
         contentDiv.appendChild(clone);
 
-        if (templateName === "signup" || templateName === "verify" || templateName === "login" || templateName === "menu" || templateName === "userProfile") {
+        if (templateName === "signup" || templateName === "verify" || 
+            templateName === "login" || templateName === "menu" || 
+            templateName === "userProfile" || templateName === "tournament") {
             backgroundCanvas.style.display = "block";
         } else {
             backgroundCanvas.style.display = "none";
@@ -152,6 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupTournament(data) {
         const tournamentContainer = document.getElementById('tournament-container');
         if (tournamentContainer) {
+            console.log("Setting up tournament with data:", data); // Debug log
             window.tournamentScreen = new TournamentScreen(data, () => {
                 // Callback für "Leave Tournament"
                 showTemplate('menu', { userProfile: data.userProfile });

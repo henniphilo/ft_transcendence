@@ -4,6 +4,7 @@ import uuid
 from models.game import PongGame
 from models.player import Player
 import logging
+import random
 
 logger = logging.getLogger('game')
 
@@ -30,6 +31,7 @@ class Tournament:
         
         # Initialisiere den Turnierbaum
         self.initialize_bracket()
+        logger.info(f"Tournament created: {self.id} for {num_players} players")
 
     def initialize_bracket(self):
         """Erstellt die initiale Struktur des Turnierbaums"""
@@ -67,16 +69,24 @@ class Tournament:
     async def add_player(self, player_data: dict, websocket) -> bool:
         """Fügt einen Spieler zum Turnier hinzu"""
         if len(self.players) >= self.num_players:
+            logger.warning(f"Tournament {self.id} is full, rejecting player {player_data['username']}")
+            return False
+
+        # Prüfe, ob der Spieler bereits im Turnier ist
+        if any(p['id'] == player_data['id'] for p in self.players):
+            logger.warning(f"Player {player_data['username']} already in tournament {self.id}")
             return False
 
         self.players.append(player_data)
         self.websockets[player_data['id']] = websocket
+        logger.info(f"Player {player_data['username']} joined tournament {self.id}")
 
         # Informiere alle Spieler über den neuen Stand
         await self.broadcast_status()
 
         # Wenn alle Spieler da sind, starte das Turnier
         if len(self.players) == self.num_players:
+            logger.info(f"Tournament {self.id} is full, starting...")
             await self.start_tournament()
         
         return True
@@ -85,53 +95,78 @@ class Tournament:
         """Entfernt einen Spieler aus dem Turnier"""
         self.players = [p for p in self.players if p['id'] != player_id]
         self.websockets.pop(player_id, None)
-        await self.broadcast_status()
+        logger.info(f"Player {player_id} left tournament {self.id}")
+
+        if self.status == "waiting":
+            await self.broadcast_status()
+        elif self.status == "in_progress":
+            # Wenn das Turnier läuft und ein Spieler verlässt, muss es abgebrochen werden
+            await self.cancel_tournament()
 
     async def broadcast_status(self):
         """Sendet den aktuellen Turnierstatus an alle Spieler"""
         status_data = {
-            'action': 'players_update',
-            'joined': len(self.players),
-            'needed': self.num_players,
-            'players': self.players,
-            'matches': self.get_matches_data()
+            'action': 'tournament_status',
+            'status': self.status,
+            'players': {
+                'joined': len(self.players),
+                'needed': self.num_players,
+                'list': [
+                    {
+                        'username': p['username'],
+                        'id': p['id']
+                    } for p in self.players
+                ]
+            }
         }
-        
+
+        # Füge Match-Daten hinzu, wenn das Turnier gestartet ist
+        if self.status != "waiting":
+            status_data['matches'] = self.get_matches_data()
+
+        await self.broadcast_message(status_data)
+        logger.debug(f"Status broadcast for tournament {self.id}: {len(self.players)}/{self.num_players} players")
+
+    async def broadcast_message(self, message: dict):
+        """Sendet eine Nachricht an alle verbundenen Spieler"""
         for ws in self.websockets.values():
             try:
-                await ws.send_json(status_data)
+                await ws.send_json(message)
             except Exception as e:
-                logger.error(f"Error broadcasting status: {e}")
+                logger.error(f"Error broadcasting message: {e}")
 
-    def get_matches_data(self) -> List[dict]:
-        """Erstellt eine Liste aller Matches für die Frontend-Anzeige"""
-        return [
-            {
-                'id': match.id,
-                'round': match.round,
-                'player1': match.player1,
-                'player2': match.player2,
-                'winner': match.winner,
-                'status': match.status,
-                'next_match': match.next_match_id
-            }
-            for match in self.matches.values()
-        ]
+    async def cancel_tournament(self):
+        """Bricht das Turnier ab"""
+        self.status = "cancelled"
+        cancel_message = {
+            'action': 'tournament_cancelled',
+            'message': 'Tournament cancelled due to player disconnect'
+        }
+        await self.broadcast_message(cancel_message)
+        logger.warning(f"Tournament {self.id} cancelled")
 
     async def start_tournament(self):
-        """Startet das Turnier und initiiert die ersten Matches"""
+        """Startet das Turnier"""
         self.status = "in_progress"
-        
-        # Mische die Spieler und ordne sie den ersten Matches zu
-        import random
+        logger.info(f"Starting tournament {self.id}")
+
+        # Mische die Spieler zufällig
         random.shuffle(self.players)
         
+        # Setze die ersten Matches
         first_round_matches = [m for m in self.matches.values() if m.round == 1]
         for i in range(0, len(self.players), 2):
             match = first_round_matches[i // 2]
             match.player1 = self.players[i]
             match.player2 = self.players[i + 1]
-            
+        
+        # Informiere alle über den Turnierstart
+        start_data = {
+            'action': 'tournament_start',
+            'matches': self.get_matches_data()
+        }
+        await self.broadcast_message(start_data)
+        
         # Starte die ersten Matches
         await self.start_round_matches(1)
 
@@ -223,3 +258,18 @@ class Tournament:
         }
         
         await self.broadcast_status()
+
+    def get_matches_data(self) -> List[dict]:
+        """Gibt die Match-Daten in einem Frontend-freundlichen Format zurück"""
+        return [
+            {
+                'id': match.id,
+                'round': match.round,
+                'player1': match.player1,
+                'player2': match.player2,
+                'winner': match.winner,
+                'status': match.status,
+                'next_match_id': match.next_match_id
+            }
+            for match in self.matches.values()
+        ]

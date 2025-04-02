@@ -3,6 +3,7 @@ import json
 from settings import GameSettings
 import uuid
 import asyncio
+from tournament import Tournament  # Am Anfang der Datei hinzufügen
 
 class Menu:
     def __init__(self):
@@ -12,6 +13,7 @@ class Menu:
         self.is_tournament = False  # Neuer Flag für Tournament-Modus
         self.searching_players = {}  # {websocket: player_name}
         self.matchmaking_task = None
+        self.active_tournaments = {}  # Neue Variable für aktive Turniere
 
         # Hauptmenü
         self.menu_items = [
@@ -176,9 +178,14 @@ class Menu:
 
         elif selection in ["4_players", "8_players"]:
             num_players = int(selection.split("_")[0])
+            # Erstelle ein neues Tournament
+            tournament = Tournament(num_players)
+            self.active_tournaments[tournament.id] = tournament
+            
             return {
                 "action": "show_tournament",
                 "numPlayers": num_players,
+                "tournament_id": tournament.id,
                 "type": "tournament"
             }
 

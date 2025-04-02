@@ -11,6 +11,7 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/game.css" />
+  <link rel="stylesheet" href="css/tournament.css" />
     <!-- Preload Three.js and submodules -->
 	<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js">
 	<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/loaders/GLTFLoader.js">
@@ -160,20 +161,14 @@
   <!-- Nach dem template-game Template -->
   <template id="template-tournament">
     <div id="tournament-container" class="container py-4">
-      <div class="card">
-        <div class="card-header tournament-header">
-          <h2 class="mb-0">Tournament</h2>
-          <div id="tournament-status" class="text-center mb-3">
-            Waiting for players... (<span id="players-joined">0</span>/<span id="players-needed">0</span>)
-          </div>
+        <div id="tournament-status" class="tournament-status">
+            <h2>Tournament</h2>
+            <p>Waiting for players... (<span id="players-joined">0</span>/<span id="players-needed">0</span>)</p>
         </div>
-        <div class="card-body tournament-card">
-          <div id="tournament-bracket" class="tournament-bracket">
-            <!-- Tournament bracket will be rendered here by tournament.js -->
-          </div>
+        <div id="tournament-bracket" class="tournament-bracket" style="display: none">
+            <!-- Tournament bracket will be rendered here -->
         </div>
-      </div>
-      <button id="leave-tournament" class="btn btn-danger mt-3">Leave Tournament</button>
+        <button id="leave-tournament" class="btn btn-danger mt-3">Leave Tournament</button>
     </div>
   </template>
 
