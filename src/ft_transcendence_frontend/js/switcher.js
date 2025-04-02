@@ -15,8 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const contentDiv = document.getElementById("content");
     const backgroundCanvas = document.getElementById("background-canvas");
 
-    function showTemplate(templateName, data = {}) {
-        console.log("Template wird gewechselt zu:", templateName);
+    function showTemplate(templateName, data = {}, preventPush = false) {
+        console.log("=== Template Switch ===");
+        console.log("Switching to:", templateName);
+        console.log("With data:", data);
+        
         contentDiv.innerHTML = "";
         const template = templates[templateName];
         if (!template) {
@@ -31,6 +34,47 @@ document.addEventListener("DOMContentLoaded", () => {
             backgroundCanvas.style.display = "block";
         } else {
             backgroundCanvas.style.display = "none";
+        }
+
+        // Erstelle historyData vor der Verwendung
+        let historyData = { ...data };
+        
+        // Wenn wir zum Game-Template wechseln, ersetzen wir die History
+        // statt einen neuen Eintrag hinzuzufügen
+        if (templateName === 'game') {
+            window.history.replaceState(
+                { template: templateName, data: historyData },
+                '',
+                `#${templateName}`
+            );
+            // Deaktiviere den Back-Button
+            history.pushState(null, '', window.location.href);
+            window.onpopstate = function(event) {
+                history.pushState(null, '', window.location.href);
+            };
+        } else if (!preventPush) {
+            // Normale History-Behandlung für andere Templates
+            console.log("=== Saving to History ===");
+            
+            // Für Templates mit userProfile
+            if (templateName === 'userProfile' || templateName === 'menu') {
+                if (data.currentUserProfile) {
+                    historyData.userProfile = data.currentUserProfile;
+                } else if (data.userProfile) {
+                    historyData.userProfile = data.userProfile;
+                } else {
+                    const storedProfile = localStorage.getItem('userProfile');
+                    if (storedProfile) {
+                        historyData.userProfile = JSON.parse(storedProfile);
+                    }
+                }
+            }
+
+            window.history.pushState(
+                { template: templateName, data: historyData },
+                '',
+                `#${templateName}`
+            );
         }
 
         // Initialisiere die entsprechenden Handler
@@ -104,6 +148,68 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('templateChange', (event) => {
         if (event.detail && event.detail.template) {
             showTemplate(event.detail.template, event.detail);
+        }
+    });
+
+    // Popstate Handler
+    window.addEventListener('popstate', (event) => {
+        console.log("=== Browser Navigation ===");
+        console.log("Navigation event state:", event.state);
+        console.log("Current hash:", window.location.hash);
+        
+        // Wenn wir im Game-Template sind, verhindern wir jede Navigation
+        if (window.location.hash === '#game') {
+            console.log("Preventing navigation while in game");
+            history.pushState(null, '', window.location.href);
+            return;
+        }
+        
+        if (event.state && event.state.template) {
+            // Verhindere Navigation zurück zum Game-Template
+            if (event.state.template === 'game') {
+                console.log("Preventing navigation back to game template");
+                const storedProfile = localStorage.getItem('userProfile');
+                const data = storedProfile ? { userProfile: JSON.parse(storedProfile) } : {};
+                showTemplate('menu', data);
+                return;
+            }
+
+            console.log("Template from state:", event.state.template);
+            console.log("Data from state:", event.state.data);
+            
+            let templateData = { ...event.state.data };
+            
+            // Stelle sicher, dass das userProfile verfügbar ist
+            if (event.state.template === 'menu') {
+                console.log("Checking userProfile for menu:");
+                console.log("- From state data:", templateData.userProfile);
+                console.log("- From localStorage:", localStorage.getItem('userProfile'));
+                
+                if (!templateData.userProfile) {
+                    const storedProfile = localStorage.getItem('userProfile');
+                    if (storedProfile) {
+                        templateData.userProfile = JSON.parse(storedProfile);
+                    }
+                }
+                console.log("Final templateData:", templateData);
+            }
+            
+            showTemplate(event.state.template, templateData, true);
+        } else {
+            console.log("No template state found");
+            if (window.location.hash === '#game') {
+                // Auch hier: Verhindere Navigation zum Game-Template
+                console.log("Preventing direct navigation to game");
+                const storedProfile = localStorage.getItem('userProfile');
+                const data = storedProfile ? { userProfile: JSON.parse(storedProfile) } : {};
+                showTemplate('menu', data);
+            } else if (window.location.hash === '#menu') {
+                const storedProfile = localStorage.getItem('userProfile');
+                const data = storedProfile ? { userProfile: JSON.parse(storedProfile) } : {};
+                showTemplate('menu', data);
+            } else {
+                showTemplate('signup');
+            }
         }
     });
 
