@@ -1,0 +1,65 @@
+.tournament-bracket {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.tournament-round {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin: 0 20px;
+}
+
+.tournament-match {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 10px 0;
+    width: 200px;
+    position: relative;
+}
+
+.tournament-match::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    width: 20px;
+    height: 2px;
+    background: var(--primary-color);
+}
+
+.tournament-match:last-child::after {
+    display: none;
+}
+
+.player {
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.player.active {
+    background: var(--primary-color);
+}
+
+.player.winner {
+    background: #28a745;
+}
+
+.player.loser {
+    opacity: 0.5;
+}
+
+.tournament-status {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}

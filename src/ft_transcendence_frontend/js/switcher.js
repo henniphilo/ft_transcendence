@@ -2,6 +2,7 @@ import { MenuDisplay } from './game/displayMenu.js'; // Importiere die MenuDispl
 import { GameScreen } from './game/game_screen.js'; // Korrigierter Import-Pfad
 import { SignupHandler, VerifyHandler, LoginHandler } from './signup.js';
 import { UserProfileView } from './userProfileView.js'; // Neuer Import
+import { TournamentScreen } from './game/tournament.js'; // Neuer Import
 
 document.addEventListener("DOMContentLoaded", () => {
     const templates = {
@@ -10,7 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
         login: document.getElementById("template-login"),
         menu: document.getElementById("template-menu"),
         game: document.getElementById("template-game"),
-        userProfile: document.getElementById("template-user-profile") // Neues Template
+        userProfile: document.getElementById("template-user-profile"),
+        tournament: document.getElementById("template-tournament") // Neues Template
     };
     const contentDiv = document.getElementById("content");
     const backgroundCanvas = document.getElementById("background-canvas");
@@ -97,6 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
             case 'userProfile':
                 setupUserProfile(data);
                 break;
+            case 'tournament':
+                setupTournament(data);
+                break;
         }
     }
 
@@ -142,6 +147,16 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupUserProfile(data) {
         // Initialisiere die UserProfileView mit dem Benutzernamen und dem aktuellen Benutzerprofil
         new UserProfileView(data.username, data.currentUserProfile);
+    }
+
+    function setupTournament(data) {
+        const tournamentContainer = document.getElementById('tournament-container');
+        if (tournamentContainer) {
+            window.tournamentScreen = new TournamentScreen(data, () => {
+                // Callback für "Leave Tournament"
+                showTemplate('menu', { userProfile: data.userProfile });
+            });
+        }
     }
 
     // Event Listener für Template-Wechsel

@@ -33,6 +33,9 @@ export class GameScreen {
 
         this.threeJSManager = new ThreeJSManager();
 
+        this.tournamentMode = gameData.tournament?.isActive || false;
+        this.tournamentData = gameData.tournament;
+
         // Sende Inputs zum Server (60 mal pro Sekunde)
         this.setupControls();
 
@@ -93,7 +96,7 @@ export class GameScreen {
             this.threeJSManager.render();
 
             if (this.gameState.winner) {
-                this.displayWinnerScreen();
+                this.handleGameEnd(this.gameState.winner);
             }
         };
 
@@ -319,6 +322,25 @@ export class GameScreen {
         }
     }
 
+    handleGameEnd(winnerData) {
+        if (this.tournamentMode) {
+            // Sende Ergebnis ans Tournament
+            this.ws.send(JSON.stringify({
+                action: 'game_completed',
+                matchId: this.tournamentData.matchId,
+                winnerId: winnerData.id
+            }));
+
+            // Kehre zum Tournament-Screen zurück
+            if (window.tournamentScreen) {
+                window.tournamentScreen.returnFromGame();
+            }
+        } else {
+            // Normale Spielende-Logik
+            this.displayWinnerScreen();
+        }
+    }
+
     cleanup() {
         if (this.ws) {
             this.ws.close();
@@ -327,5 +349,10 @@ export class GameScreen {
             clearInterval(this.controlInterval);
         }
         this.threeJSManager.cleanup();
+
+        // Wenn es ein Tournament-Spiel war, stelle sicher, dass wir zum Tournament zurückkehren
+        if (this.tournamentMode && window.tournamentScreen) {
+            window.tournamentScreen.returnFromGame();
+        }
     }
 }

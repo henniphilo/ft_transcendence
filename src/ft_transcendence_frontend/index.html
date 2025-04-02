@@ -157,6 +157,26 @@
     </div>
   </template>
 
+  <!-- Nach dem template-game Template -->
+  <template id="template-tournament">
+    <div id="tournament-container" class="container py-4">
+      <div class="card">
+        <div class="card-header tournament-header">
+          <h2 class="mb-0">Tournament</h2>
+          <div id="tournament-status" class="text-center mb-3">
+            Waiting for players... (<span id="players-joined">0</span>/<span id="players-needed">0</span>)
+          </div>
+        </div>
+        <div class="card-body tournament-card">
+          <div id="tournament-bracket" class="tournament-bracket">
+            <!-- Tournament bracket will be rendered here by tournament.js -->
+          </div>
+        </div>
+      </div>
+      <button id="leave-tournament" class="btn btn-danger mt-3">Leave Tournament</button>
+    </div>
+  </template>
+
   <!-- Content Div for Dynamic Loading -->
   <div id="content"></div>
 

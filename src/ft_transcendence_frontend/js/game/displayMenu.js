@@ -571,6 +571,14 @@ export class MenuDisplay {
             case 'exit_game':
                 console.log('Exiting game...');
                 break;
+            case 'show_tournament':
+                // Füge das Benutzerprofil zu den Turnierdaten hinzu
+                const tournamentData = {
+                    ...data,
+                    userProfile: this.userProfile
+                };
+                showTemplate('tournament', tournamentData);
+                break;
         }
     }
 

@@ -20,11 +20,18 @@ class Menu:
             {"id": "leaderboard", "text": "Leaderboard"}
         ]
 
-        # Spielmodus-Menü
+        # Spielmodus-Menü (für Single Games)
         self.play_mode_items = [
             {"id": "local", "text": "Play Local"},
             {"id": "ai", "text": "Play vs AI"},
             {"id": "online", "text": "Play Online"},
+            {"id": "back", "text": "Back"}
+        ]
+
+        # Tournament-Menü (neu)
+        self.tournament_mode_items = [
+            {"id": "4_players", "text": "4 Players Tournament"},
+            {"id": "8_players", "text": "8 Players Tournament"},
             {"id": "back", "text": "Back"}
         ]
 
@@ -65,20 +72,19 @@ class Menu:
         print(f"Current Menu Stack: {self.current_menu_stack}")
 
         if selection == "main":
-            # Expliziter Handler für das Hauptmenü
             self.is_tournament = False
             self.current_menu_stack = []  # Reset stack
             return {"action": "show_main_menu", "menu_items": self.menu_items}
 
         elif selection == "play_game":
             self.is_tournament = False
-            self.current_menu_stack.append("main")  # Speichert 'main' als vorherigen Zustand
+            self.current_menu_stack.append("main")
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
 
         elif selection == "play_tournament":
             self.is_tournament = True
-            self.current_menu_stack.append("main")  # Speichert 'main' als vorherigen Zustand
-            return {"action": "show_submenu", "menu_items": self.play_mode_items}
+            self.current_menu_stack.append("main")
+            return {"action": "show_submenu", "menu_items": self.tournament_mode_items}
 
         elif selection == "leaderboard":
             return {
@@ -168,12 +174,12 @@ class Menu:
                 "playerRole": "player1"  # Im AI-Modus ist man immer Spieler 1
             }
 
-        elif selection in ["4_players", "6_players", "8_players"]:
+        elif selection in ["4_players", "8_players"]:
             num_players = int(selection.split("_")[0])
             return {
-                "action": "show_player_names",
-                "num_players": num_players,
-                "tournament": True
+                "action": "show_tournament",
+                "numPlayers": num_players,
+                "type": "tournament"
             }
 
         elif selection == "back":
