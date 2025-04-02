@@ -323,22 +323,64 @@ export class GameScreen {
     }
 
     handleGameEnd(winnerData) {
+        const container = document.getElementById('game-container');
+        
         if (this.tournamentMode) {
-            // Sende Ergebnis ans Tournament
+            // Sende das Ergebnis ans Tournament
             this.ws.send(JSON.stringify({
                 action: 'game_completed',
                 matchId: this.tournamentData.matchId,
-                winnerId: winnerData.id
+                winnerId: this.gameState.winner.id
             }));
 
-            // Kehre zum Tournament-Screen zurück
-            if (window.tournamentScreen) {
-                window.tournamentScreen.returnFromGame();
-            }
+            container.innerHTML = `
+                <div class="winner-screen">
+                    <h1>Game Over!</h1>
+                    <h2>${this.gameState.winner.name} wins!</h2>
+                    <p>Final Score: ${this.gameState.winner.score}</p>
+                    <button class="menu-item" onclick="gameScreen.backToTournament()">
+                        Back to Tournament Grid
+                    </button>
+                </div>
+            `;
         } else {
-            // Normale Spielende-Logik
-            this.displayWinnerScreen();
+            container.innerHTML = `
+                <div class="winner-screen">
+                    <h1>Game Over!</h1>
+                    <h2>${this.gameState.winner.name} wins!</h2>
+                    <p>Final Score: ${this.gameState.winner.score}</p>
+                    <button class="menu-item" onclick="gameScreen.backToMenu()">
+                        Back to Menu
+                    </button>
+                </div>
+            `;
         }
+    }
+
+    backToTournament() {
+        console.log("Cleaning up game and returning to tournament...");
+        
+        // WebSocket schließen
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+
+        // Game aufräumen
+        this.cleanup();
+
+        // Game Container verstecken
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            gameContainer.style.display = 'none';
+        }
+
+        // Zurück zum Tournament mit den ursprünglichen Tournament-Daten
+        showTemplate('tournament', {
+            tournament_id: this.tournamentData.tournamentId,
+            numPlayers: this.numPlayers,
+            userProfile: this.userProfile
+        });
     }
 
     cleanup() {

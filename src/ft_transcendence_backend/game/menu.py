@@ -178,14 +178,29 @@ class Menu:
 
         elif selection in ["4_players", "8_players"]:
             num_players = int(selection.split("_")[0])
-            # Erstelle ein neues Tournament
-            tournament = Tournament(num_players)
-            self.active_tournaments[tournament.id] = tournament
+            
+            # Suche nach einem existierenden Tournament mit der gleichen Spieleranzahl
+            existing_tournament = None
+            for tournament in self.active_tournaments.values():
+                if (tournament.num_players == num_players and 
+                    tournament.status == "waiting" and 
+                    len(tournament.players) < tournament.num_players):
+                    existing_tournament = tournament
+                    break
+            
+            if existing_tournament:
+                # Verwende existierendes Tournament
+                tournament_id = existing_tournament.id
+            else:
+                # Erstelle neues Tournament
+                tournament = Tournament(num_players)
+                tournament_id = tournament.id
+                self.active_tournaments[tournament_id] = tournament
             
             return {
                 "action": "show_tournament",
                 "numPlayers": num_players,
-                "tournament_id": tournament.id,
+                "tournament_id": tournament_id,
                 "type": "tournament"
             }
 

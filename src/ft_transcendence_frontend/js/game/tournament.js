@@ -3,10 +3,14 @@ export class TournamentScreen {
         this.userProfile = data.userProfile;
         this.numPlayers = data.numPlayers;
         this.onBackToMenu = onBackToMenu;
-        this.ws = null;
         this.tournamentId = data.tournament_id;
+        this.ws = null;
         
-        console.log("Tournament Screen initialized with data:", data); // Debug log
+        console.log("Tournament Screen initialized with data:", {
+            tournamentId: this.tournamentId,
+            numPlayers: this.numPlayers,
+            userProfile: this.userProfile
+        });
         
         this.setupWebSocket();
         this.setupEventListeners();
@@ -17,15 +21,14 @@ export class TournamentScreen {
         const wsHost = window.location.hostname;
         const wsPort = wsProtocol === "ws://" ? ":8001" : "";
         
-        // Füge tournament_id zur WebSocket-URL hinzu
         const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/tournament/${this.tournamentId}`;
-        console.log("Connecting to WebSocket URL:", wsUrl); // Debug log
+        console.log("Tournament: Connecting to WebSocket URL:", wsUrl); // Debug log
         
         this.ws = new WebSocket(wsUrl);
         
         this.ws.onopen = () => {
-            console.log("Connected to tournament server");
-            // Sende Initial-Daten
+            console.log("Tournament: WebSocket connected successfully"); // Debug log
+            // Sende initial join message
             this.ws.send(JSON.stringify({
                 action: 'join_tournament',
                 numPlayers: this.numPlayers,
@@ -34,16 +37,16 @@ export class TournamentScreen {
         };
 
         this.ws.onerror = (error) => {
-            console.error("WebSocket error:", error); // Debug log
+            console.error("Tournament: WebSocket error:", error); // Debug log
         };
 
         this.ws.onclose = (event) => {
-            console.log("WebSocket closed:", event.code, event.reason); // Debug log
+            console.log("Tournament: WebSocket closed:", event.code, event.reason); // Debug log
         };
 
         this.ws.onmessage = (event) => {
+            console.log("Tournament: Received message:", event.data); // Debug log
             const data = JSON.parse(event.data);
-            console.log("Received tournament data:", data); // Debug log
             this.handleServerMessage(data);
         };
     }
@@ -52,24 +55,32 @@ export class TournamentScreen {
         const leaveBtn = document.getElementById('leave-tournament');
         if (leaveBtn) {
             leaveBtn.addEventListener('click', () => {
-                if (this.ws) {
-                    this.ws.send(JSON.stringify({ action: 'leave_tournament' }));
-                }
-                this.cleanup();
-                this.onBackToMenu();
+                this.leaveTournament();
             });
         }
     }
 
     handleServerMessage(data) {
+        console.log("Received tournament data:", data);
         if (data.action === 'tournament_status') {
             this.updateTournamentStatus(data);
-        } else if (data.action === 'tournament_start') {
-            this.showTournamentBracket(data.matches);
-        } else if (data.action === 'start_game') {
-            this.startGame(data);
-        } else if (data.action === 'match_update') {
-            this.updateMatch(data.matchId, data.result);
+            if (data.matches) {
+                this.showTournamentBracket(data.matches);
+            }
+        } else if (data.action === 'tournament_cancelled') {
+            alert(data.message);
+            window.showTemplate('menu', { userProfile: this.userProfile });
+        } else if (data.action === 'match_ready') {
+            // Starte das Spiel mit Tournament-Informationen
+            showTemplate('game', {
+                ...data.game_data,
+                tournament: {
+                    isActive: true,
+                    tournamentId: this.tournamentId,
+                    matchId: data.match_id
+                },
+                userProfile: this.userProfile
+            });
         } else if (data.action === 'tournament_end') {
             this.handleTournamentEnd(data);
         }
@@ -77,8 +88,14 @@ export class TournamentScreen {
 
     updateTournamentStatus(data) {
         const statusDiv = document.getElementById('tournament-status');
+        const leaveBtn = document.getElementById('leave-tournament');
         const playersJoined = data.players.joined;
         const playersNeeded = data.players.needed;
+        
+        // Verstecke Leave-Button wenn Turnier gestartet ist
+        if (leaveBtn) {
+            leaveBtn.style.display = data.status === "waiting" ? "block" : "none";
+        }
         
         statusDiv.innerHTML = `
             <h2>Tournament</h2>
@@ -112,14 +129,59 @@ export class TournamentScreen {
                         <h3>Round ${round}</h3>
                         ${roundMatches.map(match => `
                             <div class="match ${match.status}">
-                                <div class="player ${match.winner?.id === match.player1?.id ? 'winner' : ''}">${match.player1?.username || 'TBD'}</div>
-                                <div class="player ${match.winner?.id === match.player2?.id ? 'winner' : ''}">${match.player2?.username || 'TBD'}</div>
+                                <div class="player-row">
+                                    <div class="player ${match.winner?.id === match.player1?.id ? 'winner' : ''}">
+                                        ${match.player1?.username || 'TBD'}
+                                        ${match.status === 'pending' && match.player1?.id === this.userProfile.id && 
+                                          !match.ready_players?.includes(this.userProfile.id) ? `
+                                            <button class="start-match-btn" onclick="window.tournamentScreen.startMatch('${match.id}')">
+                                                Ready
+                                            </button>
+                                        ` : match.ready_players?.includes(match.player1?.id) ? ' (Ready)' : ''}
+                                    </div>
+                                </div>
+                                <div class="player-row">
+                                    <div class="player ${match.winner?.id === match.player2?.id ? 'winner' : ''}">
+                                        ${match.player2?.username || 'TBD'}
+                                        ${match.status === 'pending' && match.player2?.id === this.userProfile.id && 
+                                          !match.ready_players?.includes(this.userProfile.id) ? `
+                                            <button class="start-match-btn" onclick="window.tournamentScreen.startMatch('${match.id}')">
+                                                Ready
+                                            </button>
+                                        ` : match.ready_players?.includes(match.player2?.id) ? ' (Ready)' : ''}
+                                    </div>
+                                </div>
+                                <div class="match-status">
+                                    Players Ready: ${match.ready_players?.length || 0}/2
+                                </div>
                             </div>
                         `).join('')}
                     </div>
                 `).join('')}
             </div>
         `;
+    }
+
+    getMatchReadyStatus(match) {
+        const readyCount = match.ready_players?.length || 0;
+        return `Players Ready: ${readyCount}/2`;
+    }
+
+    startMatch(matchId) {
+        console.log("Tournament: Current WebSocket state:", this.ws?.readyState); // Debug log
+        
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message = {
+                action: 'start_match',
+                tournament_id: this.tournamentId,
+                match_id: matchId,
+                player_id: this.userProfile.id
+            };
+            console.log("Tournament: Sending ready message:", message); // Debug log
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.error("Tournament: WebSocket not connected! State:", this.ws?.readyState);
+        }
     }
 
     updateMatch(matchId, result) {
@@ -157,10 +219,14 @@ export class TournamentScreen {
         `;
     }
 
-    cleanup() {
+    leaveTournament() {
         if (this.ws) {
+            this.ws.send(JSON.stringify({
+                action: 'leave_tournament',
+                userProfile: this.userProfile
+            }));
             this.ws.close();
-            this.ws = null;
         }
+        window.showTemplate('menu', { userProfile: this.userProfile });
     }
 }
