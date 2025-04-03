@@ -27,6 +27,9 @@ export class GameScreen {
             this.gameMode = 'local';
         } else if (gameData.player2 === 'AI Player') {
             this.gameMode = 'ai';
+        } else if (gameData.tournament && gameData.tournament.isActive) {
+            this.gameMode = 'online';  // Behandle Turnierspiele als Online-Spiele
+            console.log("Tournament game detected - using online mode");
         } else {
             this.gameMode = 'online';
         }
@@ -67,6 +70,8 @@ export class GameScreen {
 
     setupWebSocket() {
         console.log("Connecting to game with ID:", this.gameId);
+        console.log("Game mode:", this.gameMode);  // Log game mode for debugging
+        
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
         const wsPort = wsProtocol === "ws://" ? ":8001" : ""; // Port nur für ws:// setzen
@@ -79,14 +84,19 @@ export class GameScreen {
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);
 
-            // Sende Benutzerprofilinformationen nach der Verbindung
-            if (this.userProfile) {
-                this.ws.send(JSON.stringify({
-                    action: 'player_info',
-                    player_role: this.playerRole,
-                    user_profile: this.userProfile
-                }));
-            }
+            // Sende Ready-Signal mit den korrekten Daten
+            const readyMessage = {
+                action: "ready",
+                player_role: this.playerRole,
+                settings: {
+                    ...this.data?.settings,
+                    mode: this.gameMode  // Stelle sicher, dass der korrekte Modus gesendet wird
+                },
+                userProfile: this.userProfile
+            };
+            
+            console.log(`Ready state sent for role: ${this.playerRole} with mode: ${this.gameMode}`);
+            this.ws.send(JSON.stringify(readyMessage));
         };
 
         this.ws.onmessage = (event) => {

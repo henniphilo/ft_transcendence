@@ -71,16 +71,25 @@ export class TournamentScreen {
             alert(data.message);
             window.showTemplate('menu', { userProfile: this.userProfile });
         } else if (data.action === 'match_ready') {
-            // Starte das Spiel mit Tournament-Informationen
-            showTemplate('game', {
-                ...data.game_data,
+            console.log("Match ready received:", data);
+            
+            // Erstelle ein gameData-Objekt im gleichen Format wie bei normalen Spielen
+            const gameData = {
+                game_id: data.game_id,
+                player1: data.player1,
+                player2: data.player2,
+                playerRole: data.playerRole,
+                userProfile: this.userProfile, // Verwende das vorhandene Benutzerprofil
+                settings: data.settings,
                 tournament: {
                     isActive: true,
                     tournamentId: this.tournamentId,
                     matchId: data.match_id
-                },
-                userProfile: this.userProfile
-            });
+                }
+            };
+            
+            console.log("Switching to game with data:", gameData);
+            window.showTemplate('game', gameData);  // Verwende window.showTemplate direkt
         } else if (data.action === 'tournament_end') {
             this.handleTournamentEnd(data);
         }

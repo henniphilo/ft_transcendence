@@ -244,6 +244,7 @@ class Tournament:
         game_data = {
             'action': 'start_game',
             'game_id': game_id,
+            # 'playerRole': 'player1',
             'match_id': match.id,
             'player1': match.player1['username'],
             'player2': match.player2['username'],
@@ -373,7 +374,8 @@ class Tournament:
                 if not self.game_settings:
                     print(f"!!! [Debug] Match {match_id}: self.game_settings not found! Using default settings. !!!")
                     settings = {
-                        'mode': 'tournament',  # Verwende 'tournament' als Modus
+                        'mode': 'online',  # Verwende 'online' als Modus
+                        'is_tournament': True,  # Markiere als Turnierspiel
                         'winning_score': 5,
                         'ball_speed': 5,
                         'paddle_speed': 5,
@@ -382,8 +384,9 @@ class Tournament:
                 else:
                     # Kopiere die Einstellungen, um das Original nicht zu verändern
                     settings = dict(self.game_settings)
-                    # Setze den Modus auf 'tournament'
-                    settings['mode'] = 'tournament'
+                    # Setze den Modus auf 'online' und markiere als Turnierspiel
+                    settings['mode'] = 'online'
+                    settings['is_tournament'] = True
                     print(f"--- [Debug] Match {match_id}: Using game settings: {settings} ---")
 
                 # Prüfe, ob game_server existiert
@@ -421,20 +424,30 @@ class Tournament:
                 print(f"--- [Debug] Match {match_id}: Preparing 'match_ready' message: {game_data} ---")
 
                 # Sende jedem Spieler seine spezifische Rolle und die Game-Daten
-                for i, p_info in enumerate([match.player1, match.player2], 1):
-                    pid = p_info['id']
-                    if pid in self.websockets:
-                        player_specific_data = {
-                            **game_data,
-                            'playerRole': f'player{i}'
-                        }
-                        try:
-                            await self.websockets[pid].send_json(player_specific_data)
-                            print(f"--- [Debug] Match {match_id}: Sent 'match_ready' to player {pid} ({p_info['username']}) ---")
-                        except Exception as e:
-                            print(f"!!! [Debug] Match {match_id}: Error sending 'match_ready' to player {pid}: {e} !!!")
-                    else:
-                        print(f"!!! [Debug] Match {match_id}: WebSocket for player {pid} not found when sending 'match_ready'. !!!")
+                try:
+                    # Sende an Spieler 1
+                    player1_data = {
+                        **game_data,
+                        'playerRole': 'player1',
+                        'userProfile': match.player1
+                    }
+                    await ws1.send_json(player1_data)
+                    print(f"--- [Debug] Match {match_id}: Sent 'match_ready' to player1 ({match.player1['username']}) ---")
+                    
+                    # Sende an Spieler 2
+                    player2_data = {
+                        **game_data,
+                        'playerRole': 'player2',
+                        'userProfile': match.player2
+                    }
+                    await ws2.send_json(player2_data)
+                    print(f"--- [Debug] Match {match_id}: Sent 'match_ready' to player2 ({match.player2['username']}) ---")
+                except Exception as e:
+                    print(f"!!! [Debug] Match {match_id}: Error sending 'match_ready' messages: {e} !!!")
+                    match.status = "pending"
+                    match.ready_players.clear()
+                    await self.broadcast_status()
+                    return
 
             # Aktualisiere den Status für alle
             print(f"--- [Debug] Match {match_id}: Broadcasting status after handling ready signal. ---")

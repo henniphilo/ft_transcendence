@@ -132,6 +132,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupGameScreen(data) {
         const gameContainer = document.getElementById('game-container');
         if (gameContainer) {
+            // Überprüfe, ob die notwendigen Daten vorhanden sind
+            if (!data.game_id) {
+                console.error("Warning: No game_id provided to game screen!");
+            }
+            
+            if (!data.userProfile) {
+                console.error("Warning: No userProfile provided to game screen!");
+            }
+            
             // Cleanup falls ein Spiel läuft
             if (window.gameScreen) {
                 window.gameScreen.cleanup();

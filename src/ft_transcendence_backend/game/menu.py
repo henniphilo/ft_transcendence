@@ -139,19 +139,19 @@ class Menu:
 
             return {"action": "show_main_menu", "menu_items": self.menu_items}
 
-        elif selection in ["host", "join"]:
-            game_settings = self.game_settings.get_settings()
-            game_settings.update({
-                "mode": "online",
-                "online_type": selection,
-                "is_tournament": self.is_tournament
-            })
-            self.current_game_settings = game_settings
+        # elif selection in ["host", "join"]:
+        #     game_settings = self.game_settings.get_settings()
+        #     game_settings.update({
+        #         "mode": "online",
+        #         "online_type": selection,
+        #         "is_tournament": self.is_tournament
+        #     })
+        #     self.current_game_settings = game_settings
 
-            if self.is_tournament:
-                self.current_menu_stack.append("online_mode")
-                return {"action": "show_submenu", "menu_items": self.tournament_size_items}
-            return {"action": "start_game", "settings": game_settings}
+        #     if self.is_tournament:
+        #         self.current_menu_stack.append("online_mode")
+        #         return {"action": "show_submenu", "menu_items": self.tournament_size_items}
+        #     return {"action": "start_game", "settings": game_settings}
 
         elif selection == "ai":
             self.current_menu_stack.append("play_mode")
