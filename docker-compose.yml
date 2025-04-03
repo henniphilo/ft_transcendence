@@ -98,7 +98,7 @@ services:
         tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 10 
 
