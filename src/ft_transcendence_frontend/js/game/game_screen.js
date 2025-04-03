@@ -8,12 +8,27 @@ export class GameScreen {
         // Speichere das Benutzerprofil
         this.userProfile = gameData.userProfile;
 
+        // Extrahiere die Spielernamen - bevorzuge tournament_name falls vorhanden
+        const player1Name = gameData.player1;
+        const player2Name = gameData.player2;
+
         // Nur initiale Werte, werden vom Server überschrieben
         this.gameState = {
-            player1: { name: gameData.player1, score: 0 },
-            player2: { name: gameData.player2, score: 0 },
+            player1: { 
+                name: player1Name, 
+                score: 0,
+                // Wenn wir im Turniermodus sind und userProfile vorhanden ist, füge tournament_name hinzu
+                tournament_name: gameData.tournament?.isActive ? 
+                    (gameData.userProfile?.tournament_name || player1Name) : null
+            },
+            player2: { 
+                name: player2Name, 
+                score: 0,
+                tournament_name: null  // Wird vom Server gesetzt
+            },
             ball: [0, 0]
         };
+        
         this.playerRole = gameData.playerRole;
         this.onBackToMenu = onBackToMenu;
         this.gameId = gameData.game_id;
@@ -96,6 +111,7 @@ export class GameScreen {
             };
             
             console.log(`Ready state sent for role: ${this.playerRole} with mode: ${this.gameMode}`);
+            console.log("User profile sent:", this.userProfile);
             this.ws.send(JSON.stringify(readyMessage));
         };
 
@@ -267,7 +283,24 @@ export class GameScreen {
         let player2Name = this.gameState.player2.name;
 
         if (this.userProfile) {
-            if (this.gameMode === 'ai') {
+            // Im Turniermodus verwenden wir die Turniernamen
+            if (this.tournamentMode) {
+                console.log("Tournament mode detected, using tournament names");
+                
+                // Für Spieler 1
+                if (this.playerRole === 'player1' && this.userProfile.tournament_name) {
+                    player1Name = this.userProfile.tournament_name;
+                    console.log("Using tournament name for player1:", player1Name);
+                }
+                
+                // Für Spieler 2 - wenn wir Spieler 2 sind, verwenden wir unseren Turniernamen
+                if (this.playerRole === 'player2' && this.userProfile.tournament_name) {
+                    player2Name = this.userProfile.tournament_name;
+                    console.log("Using tournament name for player2:", player2Name);
+                }
+            }
+            // Bestehende Logik für andere Spielmodi
+            else if (this.gameMode === 'ai') {
                 if (this.playerRole === 'player1') {
                     player1Name = this.userProfile.username;
                     player2Name = "AI Player";

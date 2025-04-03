@@ -308,3 +308,38 @@ class GameServer:
     # logger.info("Application starting up...")
     # logger.warning("This is a warning message")
     # logger.error("This is an error message")
+
+    async def handle_ready(self, websocket: WebSocket, data: dict):
+        """Verarbeitet das Ready-Signal eines Spielers"""
+        player_role = data.get('player_role')
+        user_profile = data.get('userProfile')
+        
+        # Debug-Ausgabe
+        print(f"=== Ready Signal ===")
+        print(f"Game ID: {self.game_id}")
+        print(f"Player Role: {player_role}")
+        print(f"User Profile: {user_profile}")
+        
+        if not player_role:
+            print("No player role provided")
+            return
+        
+        # Setze den Spieler als bereit
+        if player_role == 'player1':
+            self.player1_ready = True
+            # Wenn ein Benutzerprofil vorhanden ist, setze den Namen
+            if user_profile:
+                # Bevorzuge tournament_name falls vorhanden
+                self.player1_name = user_profile.get('tournament_name', user_profile.get('username', 'Player 1'))
+                print(f"Set player1 name to: {self.player1_name}")
+        elif player_role == 'player2':
+            self.player2_ready = True
+            # Wenn ein Benutzerprofil vorhanden ist, setze den Namen
+            if user_profile:
+                # Bevorzuge tournament_name falls vorhanden
+                self.player2_name = user_profile.get('tournament_name', user_profile.get('username', 'Player 2'))
+                print(f"Set player2 name to: {self.player2_name}")
+        
+        # Wenn beide Spieler bereit sind, starte das Spiel
+        if self.player1_ready and self.player2_ready:
+            await self.start_game()
