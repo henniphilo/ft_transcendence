@@ -62,18 +62,18 @@ class GameServer:
     async def handle_game(self, websocket: WebSocket, game_id: str, settings: dict):
         await websocket.accept()
     
-        
         print(f"\n=== Game Settings ===")
         print(json.dumps(settings, indent=2))
         print("====================\n")
         
         is_ai_mode = settings.get("mode") == "ai"
         is_online_mode = settings.get("mode") == "online"
+        is_tournament_mode = settings.get("mode") == "tournament"  # Neue Prüfung für Tournament-Modus
         player_role = settings.get("player_role")  # z.B. "player1", "player2" oder "both" bei lokal
         
         print(f"\n=== New Game Connection ===")
         print(f"Game ID: {game_id}")
-        print(f"Mode: {'Online' if is_online_mode else 'AI' if is_ai_mode else 'Local'}")
+        print(f"Mode: {'Tournament' if is_tournament_mode else 'Online' if is_online_mode else 'AI' if is_ai_mode else 'Local'}")
         print(f"Player Role: {player_role}")
         
         # Initialisiere Profile und Ready-States
@@ -81,6 +81,11 @@ class GameServer:
             self.game_user_profiles[game_id] = {}
         if game_id not in self.game_ready:
             self.game_ready[game_id] = {}
+        
+        # Behandle Tournament-Modus wie Online-Modus
+        if is_tournament_mode:
+            print(f"Tournament game detected, handling like online game")
+            is_online_mode = True  # Behandle Tournament wie Online für die weitere Verarbeitung
         
         if is_online_mode:
             if game_id in self.active_games:

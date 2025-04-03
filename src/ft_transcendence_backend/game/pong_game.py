@@ -90,7 +90,12 @@ async def websocket_tournament(websocket: WebSocket, tournament_id: str):
         # Hole oder erstelle Tournament
         tournament = active_tournaments.get(tournament_id)
         if not tournament and data['action'] == 'join_tournament':
-            tournament = Tournament(data['numPlayers'])
+            # Hier übergeben wir game_server und menu (für settings) an das Tournament
+            tournament = Tournament(
+                num_players=data['numPlayers'],
+                game_server=game_server,  # Übergebe game_server-Instanz
+                game_settings=menu.get_current_settings()  # Übergebe aktuelle Einstellungen
+            )
             active_tournaments[tournament_id] = tournament
             print(f"Created new tournament: {tournament_id}")
 
