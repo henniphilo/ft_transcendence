@@ -5,14 +5,13 @@ from models.game import PongGame
 from models.player import Player
 import logging
 import random
-from fastapi import WebSocket, FastAPI, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect
 from game_server import GameServer
 from settings import GameSettings  # Import am Anfang der Datei
 
 logger = logging.getLogger('game')
 
-app = FastAPI()
-active_tournaments = {}  # Global dictionary to store active tournaments
+active_tournaments: Dict[str, 'Tournament'] = {}  # Global dictionary to store active tournaments
 
 class TournamentMatch:
     def __init__(self, match_id: str, round_number: int):
@@ -27,7 +26,7 @@ class TournamentMatch:
         self.ready_players = set()  # Neue Property für Ready-Status
 
 class Tournament:
-    def __init__(self, num_players: int):
+    def __init__(self, num_players: int, game_server_instance=None):
         self.id = str(uuid.uuid4())
         self.num_players = num_players
         self.players: List[dict] = []
@@ -35,7 +34,7 @@ class Tournament:
         self.current_round = 1
         self.status = "waiting"  # waiting, in_progress, completed
         self.websockets = {}  # player_id -> websocket
-        self.game_server = GameServer()  # Neue Referenz zum GameServer
+        self.game_server = game_server_instance  # Neue Referenz zum GameServer
         self.game_settings = GameSettings()  # Instanz der GameSettings
         
         # Initialisiere den Turnierbaum
@@ -312,99 +311,153 @@ class Tournament:
 
     async def handle_websocket_message(self, data: dict, websocket: WebSocket):
         """Verarbeitet eingehende WebSocket-Nachrichten"""
-        logger.info(f"Turnament_Backend:Received message: {data}")
+        print(f"--- Tournament {self.id}: handle_websocket_message received: {data} ---") # Print T1
         action = data.get('action')
-        
-        if action == 'start_match':
-            match_id = data.get('match_id')
-            player_id = data.get('player_id')
-            logger.info(f"Tournament {self.id}: Received ready signal from player {player_id} for match {match_id}")
-            await self.handle_start_match(match_id, player_id)
+        player_data = data.get('userProfile') # Für Join
+        player_id = data.get('player_id') # Für Start Match
+
+        try: # Füge einen try-except Block hinzu, um Fehler hier abzufangen
+            if action == 'join_tournament':
+                # ... (Logik für join_tournament mit Prints) ...
+                pass # Platzhalter
+            elif action == 'start_match':
+                match_id = data.get('match_id')
+                if player_id and match_id:
+                    print(f"--- Tournament {self.id}: Handling 'start_match' for player {player_id} and match {match_id} ---") # Print T8
+                    await self.handle_start_match(match_id, player_id)
+                else:
+                    print(f"!!! Tournament {self.id}: 'start_match' received without player_id or match_id. !!!") # Print T9
+            # ... (andere Aktionen wie leave_tournament) ...
+            else:
+                print(f"!!! Tournament {self.id}: Received unknown action: {action} !!!") # Print T13
+        except Exception as e:
+             print(f"!!! Tournament {self.id}: Error in handle_websocket_message for action '{action}': {e} !!!")
+             # Da traceback weg ist, geben wir nur die Exception aus
 
     async def handle_start_match(self, match_id: str, player_id: str):
-        """Behandelt die Anfrage zum Starten eines Matches"""
-        match = self.matches.get(match_id)
-        if not match:
-            logger.error(f"Match {match_id} not found in tournament {self.id}")
-            return
-        if match.status != "pending":
-            logger.warning(f"Match {match_id} is not in pending status (current status: {match.status})")
-            return
-        
-        # Finde den Spielernamen für bessere Logs
-        player_name = next((p['username'] for p in self.players if p['id'] == player_id), 'Unknown')
-        logger.info(f"Tournament {self.id}: Player {player_name} (ID: {player_id}) is ready for match {match_id}")
-        
-        # Initialisiere ready_players wenn noch nicht vorhanden
-        if not hasattr(match, 'ready_players'):
-            match.ready_players = set()
-        
-        # Markiere den Spieler als bereit
-        match.ready_players.add(player_id)
-        ready_players_count = len(match.ready_players)
-        logger.info(f"Match {match_id}: {ready_players_count}/2 players ready")
-        
-        # Wenn beide Spieler bereit sind, starte das Match
-        if len(match.ready_players) == 2:
-            logger.info(f"Both players ready, starting match {match_id}")
-            match.status = "in_progress"
-            
-            # Hole die Settings aus der GameSettings-Instanz
-            settings = self.game_settings.get_settings()
-            settings['mode'] = 'tournament'  # Überschreibe den Modus für Turniere
-            
-            # Starte das Spiel über den GameServer
-            game_id = str(uuid.uuid4())
-            await self.game_server.create_game(
-                game_id=game_id,
-                player1=match.player1,
-                player2=match.player2,
-                settings=settings,
-                websockets={
-                    match.player1['id']: self.websockets[match.player1['id']],
-                    match.player2['id']: self.websockets[match.player2['id']]
-                }
-            )
-            
-            # Erstelle game_data im gleichen Format wie bei Single Player
-            game_data = {
-                'action': 'match_ready',
-                'match_id': match_id,
-                'game_id': game_id,
-                'player1': match.player1['username'],  # Nur Username, wie bei Single Player
-                'player2': match.player2['username'],
-                'settings': settings,
-                'type': 'tournament'
-            }
-            
-            # Sende jedem Spieler seine spezifische Rolle
-            for i, pid in enumerate([match.player1['id'], match.player2['id']], 1):
-                if pid in self.websockets:
-                    player_specific_data = {
-                        **game_data,
-                        'playerRole': f'player{i}'  # player1 oder player2
-                    }
-                    await self.websockets[pid].send_json(player_specific_data)
-        
-        # Aktualisiere den Status für alle
-        await self.broadcast_status()
-@app.websocket("/ws/tournament/{tournament_id}")
-async def websocket_tournament(websocket: WebSocket, tournament_id: str):
-    await websocket.accept()
-    logger.info(f"New WebSocket connection for tournament {tournament_id}")
-    
-    try:
-        tournament = active_tournaments.get(tournament_id)
-        if not tournament:
-            logger.error(f"Tournament {tournament_id} not found")
-            return
-            
-        while True:
-            data = await websocket.receive_json()
-            logger.info(f"Tournament {tournament_id} received message: {data}")
-            await tournament.handle_websocket_message(data, websocket)
+        """Behandelt die Anfrage zum Starten eines Matches (mit Print-Debugging)"""
+        print(f"--- [Debug] Tournament {self.id}: handle_start_match called for match {match_id}, player {player_id} ---") # DEBUG PRINT 1
+        try: # Füge try-except hinzu, um Fehler hier abzufangen
+            match = self.matches.get(match_id)
+            if not match:
+                print(f"!!! [Debug] Tournament {self.id}: Match {match_id} not found! !!!") # DEBUG PRINT 2
+                return
+            if match.status != "pending":
+                print(f"!!! [Debug] Tournament {self.id}: Match {match_id} is not 'pending' (status: {match.status}) !!!") # DEBUG PRINT 3
+                return
 
-    except WebSocketDisconnect:
-        logger.info(f"Client disconnected from tournament {tournament_id}")
-    except Exception as e:
-        logger.error(f"Tournament WebSocket error: {e}")
+            # Finde den Spielernamen für bessere Logs
+            player_name = next((p['username'] for p in self.players if p['id'] == player_id), f'Unknown_ID_{player_id}')
+            print(f"--- [Debug] Tournament {self.id}: Player {player_name} (ID: {player_id}) is ready for match {match_id} ---") # DEBUG PRINT 4
+
+            # Initialisiere ready_players wenn noch nicht vorhanden
+            if not hasattr(match, 'ready_players'):
+                print(f"--- [Debug] Match {match_id}: Initializing 'ready_players' set. ---") # DEBUG PRINT 5
+                match.ready_players = set()
+
+            # Markiere den Spieler als bereit
+            match.ready_players.add(player_id)
+            ready_players_count = len(match.ready_players)
+            # Prüfe, ob player1 und player2 existieren, bevor die Anzahl verglichen wird
+            expected_players = 0
+            if match.player1: expected_players += 1
+            if match.player2: expected_players += 1
+            print(f"--- [Debug] Match {match_id}: Player {player_id} added to ready set. {ready_players_count}/{expected_players} players now ready. ---") # DEBUG PRINT 6
+
+            # Wenn beide Spieler bereit sind UND es zwei Spieler im Match gibt
+            if expected_players == 2 and ready_players_count == 2:
+                print(f"--- [Debug] Match {match_id}: Both players ready, proceeding to start game... ---") # DEBUG PRINT 7
+                match.status = "in_progress" # Status sofort ändern, um doppeltes Starten zu verhindern
+
+                # Hole die Settings aus der GameSettings-Instanz
+                # Stelle sicher, dass self.game_settings existiert und initialisiert wurde
+                if not hasattr(self, 'game_settings') or not self.game_settings:
+                     print(f"!!! [Debug] Match {match_id}: self.game_settings not found! Cannot get settings. !!!") # DEBUG PRINT 8
+                     # Hier ggf. Fehlerbehandlung oder Standardsettings verwenden
+                     settings = {'mode': 'tournament', 'winning_score': 5} # Beispiel-Fallback
+                else:
+                     settings = self.game_settings.get_settings()
+                     settings['mode'] = 'tournament'  # Überschreibe den Modus für Turniere
+                     print(f"--- [Debug] Match {match_id}: Using game settings: {settings} ---") # DEBUG PRINT 9
+
+
+                # Starte das Spiel über den GameServer
+                # Stelle sicher, dass self.game_server existiert
+                if not hasattr(self, 'game_server') or not self.game_server:
+                     print(f"!!! [Debug] Match {match_id}: self.game_server not found! Cannot create game. !!!") # DEBUG PRINT 10
+                     # Hier Fehlerbehandlung: Match zurücksetzen?
+                     match.status = "pending"
+                     match.ready_players.clear()
+                     await self.broadcast_status() # Informieren, dass etwas schief ging
+                     return
+
+                game_id = str(uuid.uuid4())
+                print(f"--- [Debug] Match {match_id}: Requesting game creation via GameServer (Game ID: {game_id}) ---") # DEBUG PRINT 11
+                try:
+                    # Stelle sicher, dass die Websockets für beide Spieler vorhanden sind
+                    ws1 = self.websockets.get(match.player1['id'])
+                    ws2 = self.websockets.get(match.player2['id'])
+                    if not ws1 or not ws2:
+                         print(f"!!! [Debug] Match {match_id}: WebSocket missing for player1 ({bool(ws1)}) or player2 ({bool(ws2)})! Aborting game start. !!!") # DEBUG PRINT 12
+                         match.status = "pending"
+                         match.ready_players.clear()
+                         await self.broadcast_status()
+                         return
+
+                    await self.game_server.create_game(
+                        game_id=game_id,
+                        player1=match.player1,
+                        player2=match.player2,
+                        settings=settings,
+                        websockets={
+                            match.player1['id']: ws1,
+                            match.player2['id']: ws2
+                        },
+                        # Füge Turnierinfos hinzu, damit GameServer das Ergebnis zurückmelden kann
+                        tournament_info={'tournament_id': self.id, 'match_id': match_id}
+                    )
+                    print(f"--- [Debug] Match {match_id}: Game creation request sent successfully. ---") # DEBUG PRINT 13
+                except Exception as e:
+                    print(f"!!! [Debug] Match {match_id}: Error calling game_server.create_game: {e} !!!") # DEBUG PRINT 14
+                    match.status = "pending"
+                    match.ready_players.clear()
+                    await self.broadcast_status()
+                    return
+
+                # Erstelle game_data für die 'match_ready' Nachricht
+                game_data = {
+                    'action': 'match_ready', # Signal an Frontend, zum Spiel zu wechseln
+                    'match_id': match_id,
+                    'game_id': game_id,
+                    'player1': match.player1['username'],
+                    'player2': match.player2['username'],
+                    'settings': settings,
+                    'type': 'tournament'
+                }
+                print(f"--- [Debug] Match {match_id}: Preparing 'match_ready' message: {game_data} ---") # DEBUG PRINT 15
+
+                # Sende jedem Spieler seine spezifische Rolle und die Game-Daten
+                for i, p_info in enumerate([match.player1, match.player2], 1):
+                    pid = p_info['id']
+                    if pid in self.websockets:
+                        player_specific_data = {
+                            **game_data,
+                            'playerRole': f'player{i}'
+                        }
+                        try:
+                            await self.websockets[pid].send_json(player_specific_data)
+                            print(f"--- [Debug] Match {match_id}: Sent 'match_ready' to player {pid} ({p_info['username']}) ---") # DEBUG PRINT 16
+                        except Exception as e:
+                             print(f"!!! [Debug] Match {match_id}: Error sending 'match_ready' to player {pid}: {e} !!!") # DEBUG PRINT 17
+                             # Was tun? Spiel abbrechen? Spieler entfernen?
+                    else:
+                        print(f"!!! [Debug] Match {match_id}: WebSocket for player {pid} not found when sending 'match_ready'. !!!") # DEBUG PRINT 18
+                        # Spiel sollte hier wahrscheinlich abgebrochen werden
+
+            # Aktualisiere den Status für alle (sendet den neuen Match-Status und Ready-Player-Liste)
+            print(f"--- [Debug] Match {match_id}: Broadcasting status after handling ready signal. ---") # DEBUG PRINT 19
+            await self.broadcast_status()
+
+        except Exception as e:
+            print(f"!!! [Debug] Tournament {self.id}: Unhandled error in handle_start_match for match {match_id}: {e} !!!")
+            # traceback.print_exc() # Entfernt

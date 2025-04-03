@@ -168,19 +168,26 @@ export class TournamentScreen {
     }
 
     startMatch(matchId) {
-        console.log("Tournament: Current WebSocket state:", this.ws?.readyState); // Debug log
-        
+        console.log(`Tournament: Attempting to start match ${matchId}`); // Zusätzliches Log
+        console.log("Tournament: Current WebSocket state:", this.ws?.readyState); // Bestehendes Debug log
+
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message = {
                 action: 'start_match',
                 tournament_id: this.tournamentId,
                 match_id: matchId,
-                player_id: this.userProfile.id
+                player_id: this.userProfile.id // Stelle sicher, dass userProfile hier verfügbar und korrekt ist
             };
-            console.log("Tournament: Sending ready message:", message); // Debug log
+            console.log("Tournament: Sending ready message:", message); // Bestehendes Debug log
+
+            // NEUES LOG: Gib das WebSocket-Objekt aus, das zum Senden verwendet wird
+            console.log("Tournament: Sending message via WebSocket object:", this.ws);
+
             this.ws.send(JSON.stringify(message));
+            console.log("Tournament: Ready message sent."); // Zusätzliches Log zur Bestätigung
         } else {
-            console.error("Tournament: WebSocket not connected! State:", this.ws?.readyState);
+            console.error("Tournament: WebSocket not connected or not open! Cannot send ready message."); // Angepasste Fehlermeldung
+            console.log("Tournament: Current WebSocket state:", this.ws?.readyState); // Logge den Status auch im Fehlerfall
         }
     }
 

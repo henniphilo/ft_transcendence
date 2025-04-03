@@ -118,6 +118,16 @@ async def websocket_tournament(websocket: WebSocket, tournament_id: str):
                     data['matchId'],
                     data['winnerId']
                 )
+                
+            # NEUE AKTION: start_match
+            elif data['action'] == 'start_match':
+                print(f"Tournament {tournament_id}: Received 'start_match' action for match {data.get('match_id')}")
+                match_id = data.get('match_id')
+                player_id = data.get('player_id')
+                if match_id and player_id:
+                    await tournament.handle_start_match(match_id, player_id)
+                else:
+                    print(f"Tournament {tournament_id}: Missing match_id or player_id in start_match data")
 
             # Warte auf weitere Nachrichten
             data = await websocket.receive_json()
