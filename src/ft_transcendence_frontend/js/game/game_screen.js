@@ -210,7 +210,7 @@ export class GameScreen {
 
                 <div id="three-js-container"></div>
                 <div id="ready-container">
-                    <button id="ready-button">I'm Ready</button>
+                    <button id="ready-button">Ready!</button>
                 </div>
             </div>
         `;
@@ -231,15 +231,25 @@ export class GameScreen {
                         player_role: this.playerRole
                     }));
                     console.log("Ready state sent for role:", this.playerRole);
-                    // Optional: Button deaktivieren, damit er nicht mehrfach gesendet wird
+
+                    // Deaktiviere den Button und ändere den Text
                     readyButton.disabled = true;
                     readyButton.innerText = "Waiting for opponent...";
+
+                    // Lasse den Button nach kurzer Verzögerung verschwinden
+                    setTimeout(() => {
+                        document.getElementById("ready-container").classList.add("hidden");
+                        setTimeout(() => {
+                            document.getElementById("ready-container").style.display = "none";
+                        }, 500); // Nach der Animation entfernen
+                    }, 1000);
                 } else {
                     console.error("WebSocket is not open. Cannot send ready state.");
                 }
             });
         }
     }
+
 
     updateScoreBoard() {
         if (!this.scoreBoard) {
@@ -291,12 +301,28 @@ export class GameScreen {
     }
 
     backToMenu() {
+        console.log("Cleaning up game...");
+        
+        // WebSocket schließen
         if (this.ws) {
+            console.log("Closing WebSocket connection...");
             this.ws.close();
+            this.ws = null;
         }
+
+        // Game aufräumen
         this.cleanup();
 
-        window.showTemplate('menu', { userProfile: this.userProfile });
+        // Game Container verstecken
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            console.log("Hiding game container...");
+            gameContainer.style.display = 'none';
+        }
+
+        // Template mit userProfile wechseln
+        showTemplate('menu', { userProfile: this.userProfile });
+
 
         if (this.onBackToMenu) {
             this.onBackToMenu();

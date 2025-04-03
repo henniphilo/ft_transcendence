@@ -22,8 +22,8 @@ class CustomUser(AbstractUser):
 
     def generate_tournament_name(self):
         """ Generiert einen eindeutigen Tournament-Namen """
-        adjectives = ["Legendary", "Mighty", "Stealthy", "Fierce", "Epic"]
-        nouns = ["Phoenix", "Dragon", "Warrior", "Ninja", "Samurai"]
+        adjectives = ["Buzzy", "Berliner", "Stealthy", "Fierce", "Epic"]
+        nouns = ["Passenger", "Railer", "Controller", "Engineer", "Conductor"]
         while True:
             name = f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.randint(100, 999)}"
             if not CustomUser.objects.filter(tournament_name=name).exists():
