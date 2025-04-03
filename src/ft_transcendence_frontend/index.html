@@ -185,7 +185,44 @@
   <script type="module" src="js/game/game_screen.js"></script>
   <script type="module" src="js/game/main.js"></script>
   <script type="module" src="js/switcher.js"></script>
+  <script type="module">
+    import { logoutUser } from './js/authLib.js';
 
+    // Handle page unload
+    window.addEventListener('beforeunload', (event) => {
+        if (localStorage.getItem('accessToken')) {
+            console.log('Window closing - attempting logout');
+            const xhr = new XMLHttpRequest();
+            // Use the same base URL as authLib
+            xhr.open('POST', '/api/users/logout/', false);  // Updated path to match backend
+            xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('accessToken'));
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            try {
+                xhr.send(JSON.stringify({
+                    refresh_token: localStorage.getItem('refreshToken')
+                }));
+                console.log('Logout response:', xhr.status);
+                
+                // Clear storage only on successful logout
+                if (xhr.status === 200) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    console.log('Local storage cleared');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+    });
+
+    // Also handle the visibilitychange event as backup
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && localStorage.getItem('accessToken')) {
+            logoutUser().catch(console.error);
+        }
+    });
+  </script>
 
   <!-- Bootstrap JavaScript Bundle mit Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
