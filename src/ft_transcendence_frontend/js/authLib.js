@@ -193,7 +193,27 @@ export function updateProfile(formData) {
  * Meldet den Benutzer ab.
  */
 export function logoutUser() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    console.log('Logout erfolgreich!');
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    return fetch(`${BASE_URL}/logout/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refresh_token: refreshToken })
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Logout failed:', response.status);
+            return Promise.reject('Logout failed');
+        }
+        return response.json();
+    })
+    .finally(() => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        console.log('Logout completed, storage cleared');
+    });
 } 
