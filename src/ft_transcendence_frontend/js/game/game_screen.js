@@ -381,22 +381,32 @@ export class GameScreen {
                     <h1>Game Over!</h1>
                     <h2>${this.gameState.winner.name} wins!</h2>
                     <p>Final Score: ${this.gameState.winner.score}</p>
-                    <button class="menu-item" onclick="gameScreen.backToTournament()">
+                    <button id="back-to-tournament-btn" class="menu-item">
                         Back to Tournament Grid
                     </button>
                 </div>
             `;
+            
+            // Add event listener to the button after creating it
+            document.getElementById('back-to-tournament-btn').addEventListener('click', () => {
+                this.backToTournament();
+            });
         } else {
             container.innerHTML = `
                 <div class="winner-screen">
                     <h1>Game Over!</h1>
                     <h2>${this.gameState.winner.name} wins!</h2>
                     <p>Final Score: ${this.gameState.winner.score}</p>
-                    <button class="menu-item" onclick="gameScreen.backToMenu()">
+                    <button id="back-to-menu-btn" class="menu-item">
                         Back to Menu
                     </button>
                 </div>
             `;
+            
+            // Add event listener to the button after creating it
+            document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+                this.backToMenu();
+            });
         }
     }
 
@@ -419,10 +429,10 @@ export class GameScreen {
         }
 
         // Zurück zum Tournament mit den ursprünglichen Tournament-Daten
-        showTemplate('tournament', {
+        window.showTemplate('tournament', {
             tournament_id: this.tournamentData.tournamentId,
-            numPlayers: this.numPlayers,
-            userProfile: this.userProfile
+            userProfile: this.userProfile,
+            numPlayers: this.numPlayers || 4  // Use stored value or default to 4
         });
     }
 
@@ -436,8 +446,9 @@ export class GameScreen {
         this.threeJSManager.cleanup();
 
         // Wenn es ein Tournament-Spiel war, stelle sicher, dass wir zum Tournament zurückkehren
-        if (this.tournamentMode && window.tournamentScreen) {
-            window.tournamentScreen.returnFromGame();
-        }
+        // Entferne den Aufruf von returnFromGame, da diese Funktion nicht existiert
+        // if (this.tournamentMode && window.tournamentScreen) {
+        //     window.tournamentScreen.returnFromGame();
+        // }
     }
 }
