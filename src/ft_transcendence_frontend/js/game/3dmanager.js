@@ -22,8 +22,14 @@ export class ThreeJSManager {
         this.audioManager = new AudioManager(this.listener);
         this.audioManager.loadSound('bounce', '/sounds/boing-2-44164.mp3');
         this.audioManager.loadSound('win', '/sounds/girl-scream-45657.mp3');
-        this.audioManager.loadSound('start', '/sounds/Mehringdamm.mp3').then(() => {
+        this.audioManager.loadSound('start', '/sounds/Mehringdamm.mp3').then((startSound) => {
             this.audioManager.playSound('start');
+
+            startSound.source.onended = () => {
+                this.audioManager.loadSound('game', '/sounds/ToyCars_©PlasticPigs.mp3').then((gameSound) => {
+                    this.audioManager.playSound('game');
+                });
+            };
         });
 
 
@@ -107,20 +113,6 @@ export class ThreeJSManager {
         const bottomBorder = new THREE.Mesh(new THREE.BoxGeometry(7.9, 0.2, 0.2), borderMaterial);
         bottomBorder.position.set(0, 0, -3);
         this.scene.add(bottomBorder);
-
-        const benchModel = await this.loadModel('looks/bench.glb', {
-            targetSize: 1,
-            addAxesHelper: false
-        });
-        benchModel.position.set(1, 0.25, -3);
-        this.scene.add(benchModel);
-
-        const ticketmachineModel = await this.loadModel('looks/automat_with_ticket.glb', {
-            targetSize: 1,
-            addAxesHelper: false
-        });
-        ticketmachineModel.position.set(-1, 0, 3);
-        this.scene.add(ticketmachineModel);
     }
 
     changeCameraPerspective(event) {

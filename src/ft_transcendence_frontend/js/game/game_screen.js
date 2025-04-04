@@ -289,6 +289,11 @@ export class GameScreen {
     }
 
     displayWinnerScreen() {
+        // Musik stoppen, wenn Spiel vorbei ist
+        if (this.threeJSManager?.audioManager?.isPlaying('game')) {
+            this.threeJSManager.audioManager.stopSound('game');
+        }
+
         const container = document.getElementById('game-container');
         container.innerHTML = `
             <div class="winner-screen">
@@ -299,6 +304,7 @@ export class GameScreen {
             </div>
         `;
     }
+
 
     backToMenu() {
         if (this.ws) {
