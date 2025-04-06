@@ -440,6 +440,13 @@ export class MenuDisplay {
                 return;
             }
         }
+        if (itemId === 'play_tournament') {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_tournament'
+            }));
+            return;
+        }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
@@ -570,6 +577,10 @@ export class MenuDisplay {
                 break;
             case 'exit_game':
                 console.log('Exiting game...');
+                break;
+            case 'tournament_ready':
+                console.log("Tournament is ready to start!");
+                showTemplate('tournament', { userProfile: this.userProfile });
                 break;
         }
     }

@@ -12,6 +12,8 @@ class Menu:
         self.is_tournament = False  # Neuer Flag für Tournament-Modus
         self.searching_players = {}  # {websocket: player_name}
         self.matchmaking_task = None
+        self.tournament_queue = []  # Warteschlange für Turnierspieler
+        self.tournament_task = None  # Task für Turnierstart
 
         # Hauptmenü
         self.menu_items = [
@@ -77,8 +79,14 @@ class Menu:
 
         elif selection == "play_tournament":
             self.is_tournament = True
-            self.current_menu_stack.append("main")  # Speichert 'main' als vorherigen Zustand
-            return {"action": "show_submenu", "menu_items": self.play_mode_items}
+            self.current_menu_stack.append("main")
+            self.tournament_queue.append(websocket)
+
+            # Starte Turnier-Task, falls noch nicht gestartet
+            if not self.tournament_task or self.tournament_task.done():
+                self.tournament_task = asyncio.create_task(self.start_tournament())
+
+            return {"action": "searching_opponent", "message": "Waiting for more players to join the tournament..."}
 
         elif selection == "leaderboard":
             return {
@@ -262,3 +270,22 @@ class Menu:
                 # Falls ein Fehler auftritt, füge die Spieler wieder zur Suchliste hinzu
                 self.searching_players[player1_ws] = player1_name
                 self.searching_players[player2_ws] = player2_name
+
+    async def start_tournament(self):
+        """Startet das Turnier, wenn genügend Spieler vorhanden sind"""
+        print("Starting tournament check loop")
+        while True:
+            if len(self.tournament_queue) >= 4:
+                print("Tournament is ready to start with 4 players")
+                players = [self.tournament_queue.pop(0) for _ in range(4)]
+
+                # Senden Sie eine Nachricht an alle Spieler, dass das Turnier beginnt
+                for player in players:
+                    try:
+                        await player.send_json({
+                            "action": "tournament_ready"
+                        })
+                    except Exception as e:
+                        print(f"Error notifying player: {e}")
+
+            await asyncio.sleep(1)  # Überprüfen Sie jede Sekunde

@@ -10,7 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
         login: document.getElementById("template-login"),
         menu: document.getElementById("template-menu"),
         game: document.getElementById("template-game"),
-        userProfile: document.getElementById("template-user-profile") // Neues Template
+        userProfile: document.getElementById("template-user-profile"), // Neues Template
+        tournament: document.getElementById("template-tournament") // New Tournament Template
     };
     const contentDiv = document.getElementById("content");
     const backgroundCanvas = document.getElementById("background-canvas");
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const clone = template.content.cloneNode(true);
         contentDiv.appendChild(clone);
 
-        if (templateName === "signup" || templateName === "verify" || templateName === "login" || templateName === "menu" || templateName === "userProfile") {
+        if (templateName === "signup" || templateName === "verify" || templateName === "login" || templateName === "menu" || templateName === "userProfile" || templateName === "tournament") {
             backgroundCanvas.style.display = "block";
         } else {
             backgroundCanvas.style.display = "none";
@@ -97,6 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
             case 'userProfile':
                 setupUserProfile(data);
                 break;
+            case 'tournament':
+                setupTournament(data);
+                break;
         }
     }
 
@@ -142,6 +146,22 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupUserProfile(data) {
         // Initialisiere die UserProfileView mit dem Benutzernamen und dem aktuellen Benutzerprofil
         new UserProfileView(data.username, data.currentUserProfile);
+    }
+
+    function setupTournament(data) {
+        console.log("Setting up tournament with data:", data);
+        const tournamentGrid = document.getElementById('tournament-grid');
+        if (tournamentGrid) {
+            // Populate the tournament grid with data
+            tournamentGrid.innerHTML = '<p class="text-center">Tournament is starting soon...</p>';
+        }
+
+        const backToMenuBtn = document.getElementById('back-to-menu');
+        if (backToMenuBtn) {
+            backToMenuBtn.addEventListener('click', () => {
+                showTemplate('menu', { userProfile: data.userProfile });
+            });
+        }
     }
 
     // Event Listener für Template-Wechsel
