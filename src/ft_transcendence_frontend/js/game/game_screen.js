@@ -85,11 +85,11 @@ export class GameScreen {
 
     setupWebSocket() {
         console.log("Connecting to game with ID:", this.gameId);
-        console.log("Game mode:", this.gameMode);  // Log game mode for debugging
+        console.log("Game mode:", this.gameMode);
         
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
-        const wsPort = wsProtocol === "ws://" ? ":8001" : ""; // Port nur für ws:// setzen
+        const wsPort = wsProtocol === "ws://" ? ":8001" : "";
 
         const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/game/${this.gameId}`;
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
@@ -99,13 +99,12 @@ export class GameScreen {
         this.ws.onopen = () => {
             console.log("WebSocket connection established for game:", this.gameId);
 
-            // Sende Ready-Signal mit den korrekten Daten
             const readyMessage = {
                 action: "ready",
                 player_role: this.playerRole,
                 settings: {
                     ...this.data?.settings,
-                    mode: this.gameMode  // Stelle sicher, dass der korrekte Modus gesendet wird
+                    mode: this.gameMode
                 },
                 userProfile: this.userProfile
             };
@@ -115,19 +114,45 @@ export class GameScreen {
             this.ws.send(JSON.stringify(readyMessage));
         };
 
+        // Neue onmessage-Funktion mit besserer Fehlerbehandlung
         this.ws.onmessage = (event) => {
-            this.gameState = JSON.parse(event.data);
-            this.updateScoreBoard();
-            this.threeJSManager.updatePositions(this.gameState);
-            this.threeJSManager.render();
-
-            if (this.gameState.winner) {
-                this.handleGameEnd(this.gameState.winner);
+            try {
+                console.log("Raw message received:", event.data);
+                const data = JSON.parse(event.data);
+                
+                console.log("Parsed message:", data);
+                console.log("game_over:", data.game_over, "type:", typeof data.game_over);
+                console.log("winner:", data.winner, "type:", typeof data.winner);
+                
+                // Aktualisiere den Spielstatus
+                this.gameState = data;
+                
+                // WICHTIG: Überprüfe zuerst, ob das Spiel beendet ist
+                if (data.game_over === true || (data.winner && typeof data.winner === 'object')) {
+                    console.log("GAME OVER DETECTED!");
+                    console.log("Winner data:", data.winner);
+                    
+                    // Rufe handleGameEnd direkt auf
+                    this.handleGameEnd(data.winner || { name: "Unknown", score: 0 });
+                    return;  // Beende die Funktion, um weitere Verarbeitung zu vermeiden
+                }
+                
+                // Normale Spielaktualisierung
+                this.updateScoreBoard();
+                this.threeJSManager.updatePositions(this.gameState);
+                this.threeJSManager.render();
+            } catch (error) {
+                console.error("Error processing WebSocket message:", error);
+                console.error("Raw message:", event.data);
             }
         };
 
         this.ws.onerror = (error) => {
             console.error("WebSocket error:", error);
+        };
+        
+        this.ws.onclose = (event) => {
+            console.log("WebSocket connection closed:", event);
         };
     }
 
@@ -296,18 +321,19 @@ export class GameScreen {
         if (this.userProfile) {
             // Im Turniermodus verwenden wir die Turniernamen
             if (this.tournamentMode) {
-                console.log("Tournament mode detected, using tournament names");
+                // Entferne die häufigen Debug-Ausgaben
+                // console.log("Tournament mode detected, using tournament names");
                 
                 // Für Spieler 1
                 if (this.playerRole === 'player1' && this.userProfile.tournament_name) {
                     player1Name = this.userProfile.tournament_name;
-                    console.log("Using tournament name for player1:", player1Name);
+                    // console.log("Using tournament name for player1:", player1Name);
                 }
                 
                 // Für Spieler 2 - wenn wir Spieler 2 sind, verwenden wir unseren Turniernamen
                 if (this.playerRole === 'player2' && this.userProfile.tournament_name) {
                     player2Name = this.userProfile.tournament_name;
-                    console.log("Using tournament name for player2:", player2Name);
+                    // console.log("Using tournament name for player2:", player2Name);
                 }
             }
             // Bestehende Logik für andere Spielmodi
@@ -335,17 +361,17 @@ export class GameScreen {
         }
     }
 
-    displayWinnerScreen() {
-        const container = document.getElementById('game-container');
-        container.innerHTML = `
-            <div class="winner-screen">
-                <h1>Game Over!</h1>
-                <h2>${this.gameState.winner.name} wins!</h2>
-                <p>Final Score: ${this.gameState.winner.score}</p>
-                <button class="menu-item" onclick="gameScreen.backToMenu()">Back to Menu</button>
-            </div>
-        `;
-    }
+    // displayWinnerScreen() {
+    //     const container = document.getElementById('game-container');
+    //     container.innerHTML = `
+    //         <div class="winner-screen">
+    //             <h1>Game Over!</h1>
+    //             <h2>${this.gameState.winner.name} wins!</h2>
+    //             <p>Final Score: ${this.gameState.winner.score}</p>
+    //             <button class="menu-item" onclick="gameScreen.backToMenu()">Back to Menu</button>
+    //         </div>
+    //     `;
+    // }
 
     backToMenu() {
         console.log("Cleaning up game...");
@@ -377,9 +403,14 @@ export class GameScreen {
     }
 
     handleGameEnd(winnerData) {
+        console.log("=== HANDLE GAME END CALLED ===");
+        console.log("Winner data:", winnerData);
+        
         const container = document.getElementById('game-container');
         
         if (this.tournamentMode) {
+            console.log("Tournament mode detected, showing tournament winner screen");
+            
             // Sende das Ergebnis ans Tournament
             this.ws.send(JSON.stringify({
                 action: 'game_completed',
@@ -398,11 +429,15 @@ export class GameScreen {
                 </div>
             `;
             
+            console.log("Tournament winner screen HTML set");
+            
             // Add event listener to the button after creating it
             document.getElementById('back-to-tournament-btn').addEventListener('click', () => {
                 this.backToTournament();
             });
         } else {
+            console.log("Regular game mode, showing standard winner screen");
+            
             container.innerHTML = `
                 <div class="winner-screen">
                     <h1>Game Over!</h1>
@@ -414,11 +449,15 @@ export class GameScreen {
                 </div>
             `;
             
+            console.log("Standard winner screen HTML set");
+            
             // Add event listener to the button after creating it
             document.getElementById('back-to-menu-btn').addEventListener('click', () => {
                 this.backToMenu();
             });
         }
+        
+        console.log("handleGameEnd completed");
     }
 
     backToTournament() {

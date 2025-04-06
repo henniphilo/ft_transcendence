@@ -226,20 +226,22 @@ class GameServer:
         logger.info(f"Starting game loop for game {game_id}")
         game = self.active_games[game_id]
         previous_winner = None
-        winner_processed = False
+        game_over_sent = False
         
         while game_id in self.active_games:
-            # Update game state
-            if game.game_active:
-                # Falls es ein AI-Spiel ist, berechne den AI-Zug
-                if game_id in self.ai_players:
-                    ai = self.ai_players[game_id]
-                    ai_move = ai.calculate_move(game.get_game_state())
-                    self.handle_input(game, ai_move["keys"])
-
-            # Hole den aktuellen Spielstatus (auch wenn das Spiel nicht mehr aktiv ist)
+            # Update game state - immer den Spielstatus aktualisieren, auch wenn das Spiel nicht mehr aktiv ist
             game_state = game.update_game_state()
             
+            # DEBUG: Zeige den Spielstatus
+            if not game.game_active:
+                print(f"Game {game_id} is not active. Game state: {json.dumps(game_state, indent=2)}")
+            
+            # Falls es ein AI-Spiel ist, berechne den AI-Zug (nur wenn das Spiel aktiv ist)
+            if game.game_active and game_id in self.ai_players:
+                ai = self.ai_players[game_id]
+                ai_move = ai.calculate_move(game_state)
+                self.handle_input(game, ai_move["keys"])
+
             # Prüfe, ob das Spiel beendet wurde und ein Gewinner feststeht
             if not game.game_active and game.winner and previous_winner is None:
                 previous_winner = game.winner
@@ -253,12 +255,37 @@ class GameServer:
                 game_state["game_over"] = True
                 game_state["winner"] = {
                     "name": game.winner.name,
-                    "id": game.winner.id
+                    "id": getattr(game.winner, 'id', None)  # Verwende getattr, um sicher auf id zuzugreifen
                 }
                 
                 # Debug: Zeige den Spielstatus, der an das Frontend gesendet wird
                 print(f"\n=== FINAL GAME STATE ===")
                 print(json.dumps(game_state, indent=2))
+                
+                # Sende eine spezielle Game-Over-Nachricht an alle Clients
+                game_over_message = {
+                    "game_over": True,
+                    "winner": {
+                        "name": game.winner.name,
+                        "id": getattr(game.winner, 'id', None)
+                    },
+                    "player1": {
+                        "name": game.player1.name,
+                        "score": game.player1.score
+                    },
+                    "player2": {
+                        "name": game.player2.name,
+                        "score": game.player2.score
+                    }
+                }
+                
+                print(f"Sending game_over message: {json.dumps(game_over_message, indent=2)}")
+                
+                for ws in self.game_websockets[game_id]:
+                    try:
+                        await ws.send_json(game_over_message)
+                    except Exception as e:
+                        print(f"Error sending game_over message: {e}")
                 
                 # Sende Spielstatistiken an die API
                 if game_id in self.game_user_profiles and len(self.game_user_profiles[game_id]) >= 2:
@@ -341,15 +368,12 @@ class GameServer:
                 else:
                     print(f"This is not a tournament match (no tournament_match_id found)")
             
-            # Markiere, dass der Gewinner verarbeitet wurde
-            winner_processed = True
-        
             # Sende den aktuellen Spielstatus an alle verbundenen Clients
             for ws in self.game_websockets[game_id]:
                 try:
-                    # Debug: Zeige den Spielstatus, der an das Frontend gesendet wird
-                    if not game.game_active and game.winner:
-                        print(f"Sending final game state to client")
+                    # DEBUG: Zeige, dass wir den Spielstatus senden
+                    if not game.game_active:
+                        print(f"Sending game state to client while game is not active")
                     
                     await ws.send_json(game_state)
                 except Exception as e:
@@ -358,11 +382,12 @@ class GameServer:
                     if ws in self.game_websockets[game_id]:
                         self.game_websockets[game_id].remove(ws)
             
-            # Wenn das Spiel beendet ist und wir den Gewinner bereits verarbeitet haben,
-            # warten wir noch 10 Sekunden (länger als vorher), damit der Winning Screen angezeigt werden kann
-            if not game.game_active and winner_processed:
+            # Wenn das Spiel beendet ist und ein Gewinner feststeht, warte noch ein paar Sekunden
+            # und beende dann die Schleife
+            if not game.game_active and previous_winner and not game_over_sent:
+                game_over_sent = True
                 print(f"Game {game_id} completed, waiting 10 seconds before exiting game loop...")
-                await asyncio.sleep(10)  # Warte 10 Sekunden
+                await asyncio.sleep(10)  # Warte 10 Sekunden, damit der Winning Screen angezeigt werden kann
                 print(f"Exiting game loop for game {game_id}")
                 break
             

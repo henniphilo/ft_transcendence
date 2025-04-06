@@ -260,36 +260,70 @@ class Tournament:
         if ws2:
             await ws2.send_json({**game_data, 'playerRole': 'player2'})
 
-    async def handle_match_result(self, match_id: str, winner_id: str):
-        """Verarbeitet das Ergebnis eines Matches und aktualisiert den Turnierbaum"""
-        match = self.matches.get(match_id)
-        if not match:
+    async def handle_match_result(self, match_id, winner_id):
+        """Handle the result of a match."""
+        print(f"\n=== HANDLING MATCH RESULT ===")
+        print(f"\n=== HANDLING MATCH RESULT ===")
+        print(f"\n=== HANDLING MATCH RESULT ===")
+        print(f"\n=== HANDLING MATCH RESULT ===")
+        print(f"\n=== HANDLING MATCH RESULT ===")
+        print(f"Tournament {self.id}: Handling match result for match {match_id}")
+        print(f"Winner ID: {winner_id}")
+        
+        if match_id not in self.matches:
+            print(f"Tournament {self.id}: Match {match_id} not found")
+            print(f"Available matches: {list(self.matches.keys())}")
             return
-
-        # Setze den Gewinner
-        winner = match.player1 if match.player1['id'] == winner_id else match.player2
-        match.winner = winner
-        match.status = "completed"
-
-        # Wenn es ein next_match gibt, füge den Gewinner dort ein
-        if match.next_match_id:
-            next_match = self.matches[match.next_match_id]
-            if not next_match.player1:
-                next_match.player1 = winner
+        
+        match = self.matches[match_id]
+        print(f"Match before update: {match}")
+        
+        # Überprüfe, ob der Gewinner ein gültiger Spieler ist
+        # Konvertiere alle IDs zu Strings für den Vergleich
+        winner_id_str = str(winner_id)
+        player1_id_str = str(match.player1)
+        player2_id_str = str(match.player2)
+        
+        if winner_id_str != player1_id_str and winner_id_str != player2_id_str:
+            print(f"Tournament {self.id}: Invalid winner {winner_id} for match {match_id}")
+            print(f"Player1: {match.player1} (type: {type(match.player1)})")
+            print(f"Player2: {match.player2} (type: {type(match.player2)})")
+            return
+        
+        # Setze den Gewinner und den Status
+        match.winner = winner_id_str
+        match.status = 'completed'
+        
+        print(f"Match after update: {match}")
+        print(f"Tournament {self.id}: Match {match_id} completed with winner {winner_id}")
+        
+        # Überprüfe, ob alle Spiele der aktuellen Runde abgeschlossen sind
+        all_completed = True
+        for m_id, m in self.matches.items():
+            print(f"Match {m_id}: round={m.round}, status={m.status}")
+            if m.round == self.current_round and m.status != 'completed':
+                all_completed = False
+                break
+        
+        print(f"All matches in round {self.current_round} completed: {all_completed}")
+        
+        if all_completed:
+            print(f"Tournament {self.id}: All matches in round {self.current_round} completed")
+            
+            # Wenn wir im Finale sind, ist das Turnier beendet
+            if self.current_round == self.total_rounds:
+                self.status = 'completed'
+                self.winner = winner_id_str
+                print(f"Tournament {self.id}: Tournament completed with winner {winner_id}")
             else:
-                next_match.player2 = winner
-
-        # Prüfe, ob das Turnier beendet ist
-        final_match = self.get_final_match()
-        if final_match and final_match.winner:
-            # Turnier ist beendet
-            await self.broadcast_message({
-                'action': 'tournament_end',
-                'winner': final_match.winner
-            })
-        else:
-            # Aktualisiere den Turnierbaum für alle
-            await self.broadcast_status()
+                # Sonst erstelle die Spiele für die nächste Runde
+                self.current_round += 1
+                await self.create_next_round_matches()
+                print(f"Tournament {self.id}: Moving to round {self.current_round}")
+        
+        # Sende ein Update an alle verbundenen Spieler
+        print(f"Connected players: {list(self.websockets.keys())}")
+        await self.broadcast_tournament_status()
 
     def get_final_match(self):
         """Findet das Finale-Match"""
