@@ -27,13 +27,31 @@ export class TournamentScreen {
         this.ws = new WebSocket(wsUrl);
         
         this.ws.onopen = () => {
-            console.log("Tournament: WebSocket connected successfully"); // Debug log
-            // Sende initial join message
-            this.ws.send(JSON.stringify({
-                action: 'join_tournament',
-                numPlayers: this.numPlayers,
-                userProfile: this.userProfile
-            }));
+            console.log("Tournament: WebSocket connected successfully");
+            
+            // Prüfen, ob wir von einem Spiel zurückkehren
+            const isReturningFromGame = sessionStorage.getItem('returning_from_game') === 'true';
+            
+            if (isReturningFromGame) {
+                console.log("Rejoining tournament after a game");
+                // Wir kehren von einem Spiel zurück, sende rejoin-Nachricht
+                this.ws.send(JSON.stringify({
+                    action: 'rejoin_tournament',
+                    userProfile: this.userProfile,
+                    tournamentId: this.tournamentId
+                }));
+                
+                // Flag zurücksetzen
+                sessionStorage.removeItem('returning_from_game');
+            } else {
+                console.log("Joining tournament for the first time");
+                // Normaler Join
+                this.ws.send(JSON.stringify({
+                    action: 'join_tournament',
+                    userProfile: this.userProfile,
+                    numPlayers: this.numPlayers
+                }));
+            }
         };
 
         this.ws.onerror = (error) => {

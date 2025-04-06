@@ -321,6 +321,41 @@ class Tournament:
             if action == 'join_tournament':
                 # ... (Logik für join_tournament mit Prints) ...
                 pass # Platzhalter
+            elif action == 'rejoin_tournament':
+                # Handle player rejoining after a match
+                user_profile = data.get('userProfile', {})
+                player_id = user_profile.get('id')
+                
+                # Check if player was already in this tournament
+                if player_id and any(p['id'] == player_id for p in self.players):
+                    # Player was in this tournament, allow them to rejoin
+                    self.websockets[player_id] = websocket
+                    print(f"--- Tournament {self.id}: Player {player_id} rejoined tournament ---")
+                    
+                    # Wichtig: Sende explizit den aktuellen Turnierstatus mit allen Matches
+                    tournament_data = {
+                        'action': 'tournament_status',
+                        'status': self.status,
+                        'players': {
+                            'joined': len(self.players),
+                            'needed': self.num_players,
+                            'list': [{'username': p['username'], 'id': p['id']} for p in self.players]
+                        }
+                    }
+                    
+                    # Füge Match-Daten hinzu
+                    if self.status != "waiting":
+                        tournament_data['matches'] = self.get_matches_data()
+                    
+                    # Sende direkt an diesen Spieler
+                    print(f"--- Tournament {self.id}: Sending tournament data to rejoining player: {tournament_data} ---")
+                    await websocket.send_json(tournament_data)
+                else:
+                    # Player wasn't in this tournament
+                    await websocket.send_json({
+                        'action': 'error',
+                        'message': 'You were not part of this tournament'
+                    })
             elif action == 'start_match':
                 match_id = data.get('match_id')
                 if player_id and match_id:
@@ -328,6 +363,15 @@ class Tournament:
                     await self.handle_start_match(match_id, player_id)
                 else:
                     print(f"!!! Tournament {self.id}: 'start_match' received without player_id or match_id. !!!") # Print T9
+            elif action == 'game_completed':
+                # Handle game completion and update tournament bracket
+                match_id = data.get('matchId')
+                winner_id = data.get('winnerId')
+                if match_id and winner_id:
+                    print(f"--- Tournament {self.id}: Game completed for match {match_id}, winner: {winner_id} ---")
+                    await self.handle_match_result(match_id, winner_id)
+                else:
+                    print(f"!!! Tournament {self.id}: 'game_completed' received without matchId or winnerId. !!!")
             # ... (andere Aktionen wie leave_tournament) ...
             else:
                 print(f"!!! Tournament {self.id}: Received unknown action: {action} !!!") # Print T13

@@ -113,6 +113,39 @@ async def websocket_tournament(websocket: WebSocket, tournament_id: str):
                         'message': 'Tournament is full'
                     })
                     break
+            
+            # NEUE AKTION: rejoin_tournament
+            elif data['action'] == 'rejoin_tournament':
+                print(f"Tournament {tournament_id}: Player rejoining tournament")
+                user_profile = data.get('userProfile', {})
+                player_id = user_profile.get('id')
+                
+                # Prüfe, ob der Spieler bereits im Turnier war
+                if player_id and any(p['id'] == player_id for p in tournament.players):
+                    # Spieler war bereits im Turnier, erlaube Rejoin
+                    tournament.websockets[player_id] = websocket
+                    print(f"Tournament {tournament_id}: Player {player_id} rejoined")
+                    
+                    # Sende aktuellen Turnierstatus mit allen Matches
+                    tournament_data = {
+                        'action': 'tournament_status',
+                        'status': tournament.status,
+                        'players': {
+                            'joined': len(tournament.players),
+                            'needed': tournament.num_players,
+                            'list': [{'username': p['username'], 'id': p['id']} for p in tournament.players]
+                        },
+                        'matches': tournament.get_matches_data()  # Immer Matches senden
+                    }
+                    
+                    await websocket.send_json(tournament_data)
+                else:
+                    # Spieler war nicht in diesem Turnier
+                    await websocket.send_json({
+                        'action': 'error',
+                        'message': 'You were not part of this tournament'
+                    })
+                    break
 
             elif data['action'] == 'leave_tournament':
                 await tournament.remove_player(data['userProfile']['id'])

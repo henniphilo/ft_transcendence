@@ -413,6 +413,9 @@ export class GameScreen {
     backToTournament() {
         console.log("Cleaning up game and returning to tournament...");
         
+        // Flag setzen, dass wir von einem Spiel zurückkehren
+        sessionStorage.setItem('returning_from_game', 'true');
+        
         // WebSocket schließen
         if (this.ws) {
             this.ws.close();
@@ -432,7 +435,7 @@ export class GameScreen {
         window.showTemplate('tournament', {
             tournament_id: this.tournamentData.tournamentId,
             userProfile: this.userProfile,
-            numPlayers: this.numPlayers || 4  // Use stored value or default to 4
+            numPlayers: 4  // Wir verwenden jetzt immer 4 Spieler
         });
     }
 
@@ -444,11 +447,5 @@ export class GameScreen {
             clearInterval(this.controlInterval);
         }
         this.threeJSManager.cleanup();
-
-        // Wenn es ein Tournament-Spiel war, stelle sicher, dass wir zum Tournament zurückkehren
-        // Entferne den Aufruf von returnFromGame, da diese Funktion nicht existiert
-        // if (this.tournamentMode && window.tournamentScreen) {
-        //     window.tournamentScreen.returnFromGame();
-        // }
     }
 }

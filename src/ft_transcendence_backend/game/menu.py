@@ -30,26 +30,11 @@ class Menu:
             {"id": "back", "text": "Back"}
         ]
 
-        # Tournament-Menü (neu)
-        self.tournament_mode_items = [
-            {"id": "4_players", "text": "4 Players Tournament"},
-            {"id": "8_players", "text": "8 Players Tournament"},
-            {"id": "back", "text": "Back"}
-        ]
-
         # AI-Schwierigkeitsgrad
         self.ai_difficulty_items = [
             {"id": "easy", "text": "Easy"},
             {"id": "medium", "text": "Medium"},
             {"id": "impossible", "text": "Hard"},
-            {"id": "back", "text": "Back"}
-        ]
-
-        # Turnier-Spieleranzahl
-        self.tournament_size_items = [
-            {"id": "4_players", "text": "4 Players"},
-            {"id": "6_players", "text": "6 Players"},
-            {"id": "8_players", "text": "8 Players"},
             {"id": "back", "text": "Back"}
         ]
 
@@ -86,7 +71,34 @@ class Menu:
         elif selection == "play_tournament":
             self.is_tournament = True
             self.current_menu_stack.append("main")
-            return {"action": "show_submenu", "menu_items": self.tournament_mode_items}
+            
+            # Direkt ein 4-Spieler-Turnier starten, ohne Untermenü
+            num_players = 4
+            
+            # Suche nach einem existierenden Tournament mit 4 Spielern
+            existing_tournament = None
+            for tournament in self.active_tournaments.values():
+                if (tournament.num_players == num_players and 
+                    tournament.status == "waiting" and 
+                    len(tournament.players) < tournament.num_players):
+                    existing_tournament = tournament
+                    break
+            
+            if existing_tournament:
+                # Verwende existierendes Tournament
+                tournament_id = existing_tournament.id
+            else:
+                # Erstelle neues Tournament
+                tournament = Tournament(num_players)
+                tournament_id = tournament.id
+                self.active_tournaments[tournament_id] = tournament
+            
+            return {
+                "action": "show_tournament",
+                "numPlayers": num_players,
+                "tournament_id": tournament_id,
+                "type": "tournament"
+            }
 
         elif selection == "leaderboard":
             return {
@@ -139,20 +151,6 @@ class Menu:
 
             return {"action": "show_main_menu", "menu_items": self.menu_items}
 
-        # elif selection in ["host", "join"]:
-        #     game_settings = self.game_settings.get_settings()
-        #     game_settings.update({
-        #         "mode": "online",
-        #         "online_type": selection,
-        #         "is_tournament": self.is_tournament
-        #     })
-        #     self.current_game_settings = game_settings
-
-        #     if self.is_tournament:
-        #         self.current_menu_stack.append("online_mode")
-        #         return {"action": "show_submenu", "menu_items": self.tournament_size_items}
-        #     return {"action": "start_game", "settings": game_settings}
-
         elif selection == "ai":
             self.current_menu_stack.append("play_mode")
             return {"action": "show_submenu", "menu_items": self.ai_difficulty_items}
@@ -174,34 +172,6 @@ class Menu:
                 "player1": "Player 1",
                 "player2": "AI Player",
                 "playerRole": "player1"  # Im AI-Modus ist man immer Spieler 1
-            }
-
-        elif selection in ["4_players", "8_players"]:
-            num_players = int(selection.split("_")[0])
-            
-            # Suche nach einem existierenden Tournament mit der gleichen Spieleranzahl
-            existing_tournament = None
-            for tournament in self.active_tournaments.values():
-                if (tournament.num_players == num_players and 
-                    tournament.status == "waiting" and 
-                    len(tournament.players) < tournament.num_players):
-                    existing_tournament = tournament
-                    break
-            
-            if existing_tournament:
-                # Verwende existierendes Tournament
-                tournament_id = existing_tournament.id
-            else:
-                # Erstelle neues Tournament
-                tournament = Tournament(num_players)
-                tournament_id = tournament.id
-                self.active_tournaments[tournament_id] = tournament
-            
-            return {
-                "action": "show_tournament",
-                "numPlayers": num_players,
-                "tournament_id": tournament_id,
-                "type": "tournament"
             }
 
         elif selection == "back":
