@@ -142,8 +142,11 @@ class GameServer:
                     pr = data.get("player_role")
                     user_profile = data.get("user_profile")
                     if pr and user_profile:
+                        # WICHTIG: Hier speichern wir das vollständige Benutzerprofil
+                        # Wir müssen sicherstellen, dass tournament_match_id erhalten bleibt
                         self.game_user_profiles[game_id][pr] = user_profile
                         print(f"Received user profile for {pr} in game {game_id}")
+                        print(f"User profile: {user_profile}")  # Debug-Ausgabe
                         if game_id in self.active_games:
                             game = self.active_games[game_id]
                             if pr == "player1" and hasattr(game, "player1"):
@@ -154,6 +157,7 @@ class GameServer:
                 # Verarbeite Ready-Signale
                 elif data["action"] == "player_ready":
                     pr = data.get("player_role")
+                    user_profile = data.get("userProfile")  # Prüfe, ob ein Benutzerprofil mitgesendet wurde
                     if pr:
                         if game_id not in self.game_ready:
                             self.game_ready[game_id] = {}
@@ -164,6 +168,13 @@ class GameServer:
                         else:
                             self.game_ready[game_id][pr] = True
                         print(f"{pr} is ready in game {game_id}")
+                        
+                        # Wenn ein Benutzerprofil mitgesendet wurde, speichere es
+                        if user_profile:
+                            self.game_user_profiles[game_id][pr] = user_profile
+                            print(f"Updated user profile for {pr} in game {game_id}")
+                            print(f"User profile: {user_profile}")  # Debug-Ausgabe
+                        
                         ready = self.game_ready[game_id]
                         if ready.get("player1") and ready.get("player2"):
                             game = self.active_games[game_id]
@@ -215,8 +226,10 @@ class GameServer:
         logger.info(f"Starting game loop for game {game_id}")
         game = self.active_games[game_id]
         previous_winner = None
+        winner_processed = False
         
         while game_id in self.active_games:
+            # Update game state
             if game.game_active:
                 # Falls es ein AI-Spiel ist, berechne den AI-Zug
                 if game_id in self.ai_players:
@@ -224,23 +237,162 @@ class GameServer:
                     ai_move = ai.calculate_move(game.get_game_state())
                     self.handle_input(game, ai_move["keys"])
 
-                game_state = game.update_game_state()
+            # Hole den aktuellen Spielstatus (auch wenn das Spiel nicht mehr aktiv ist)
+            game_state = game.update_game_state()
+            
+            # Prüfe, ob das Spiel beendet wurde und ein Gewinner feststeht
+            if not game.game_active and game.winner and previous_winner is None:
+                previous_winner = game.winner
                 
-                # Prüfe, ob das Spiel beendet wurde und ein Gewinner feststeht
-                if not game.game_active and game.winner and previous_winner is None:
-                    previous_winner = game.winner  # Speichere den Gewinner, um mehrfache API-Aufrufe zu vermeiden
+                print(f"\n=== GAME COMPLETED ===")
+                print(f"Game ID: {game_id}")
+                print(f"Winner: {game.winner.name}")
+                print(f"Score: {game.player1.score} - {game.player2.score}")
+                
+                # Füge explizit Gewinner-Informationen zum Spielstatus hinzu
+                game_state["game_over"] = True
+                game_state["winner"] = {
+                    "name": game.winner.name,
+                    "score": game.winner.score,
+                    "id": getattr(game.winner, 'id', None)
+                }
+                
+                # Debug: Zeige den Spielstatus, der an das Frontend gesendet wird
+                print(f"\n=== FINAL GAME STATE ===")
+                print(json.dumps(game_state, indent=2))
+                
+                # Sende Spielstatistiken an die API
+                if game_id in self.game_user_profiles and len(self.game_user_profiles[game_id]) >= 2:
+                    asyncio.create_task(self.send_game_stats(game_id, game))
+                
+                # DEBUG: Zeige alle Benutzerprofile für dieses Spiel
+                print(f"\n=== USER PROFILES FOR GAME {game_id} ===")
+                if game_id in self.game_user_profiles:
+                    for role, profile in self.game_user_profiles[game_id].items():
+                        print(f"Role: {role}, Profile: {profile}")
+                else:
+                    print("No user profiles found for this game!")
+                
+                # NEU: Informiere das Turnier über das Spielergebnis, falls es ein Turnierspiel ist
+                # Prüfe zuerst, ob tournament_match_id in den Spieleinstellungen vorhanden ist
+                settings = game.settings if hasattr(game, 'settings') else {}
+                match_id = settings.get('tournament_match_id')
+                
+                if not match_id:
+                    # Falls nicht in den Einstellungen, prüfe in den Benutzerprofilen
+                    user_profiles = self.game_user_profiles.get(game_id, {})
+                    for role, profile in user_profiles.items():
+                        print(f"Checking profile for role {role}: {profile}")
+                        if isinstance(profile, dict) and profile.get('tournament_match_id'):
+                            match_id = profile.get('tournament_match_id')
+                            print(f"Found tournament_match_id: {match_id} in profile for role {role}")
+                            break
+                
+                if match_id:
+                    print(f"\n=== TOURNAMENT MATCH DETECTED ===")
+                    print(f"Match ID: {match_id}")
                     
-                    if game_id in self.game_user_profiles and len(self.game_user_profiles[game_id]) >= 2:
-                        asyncio.create_task(self.send_game_stats(game_id, game))
-                
-                for ws in self.game_websockets[game_id]:
-                    try:
-                        await ws.send_json(game_state)
-                    except Exception as e:
-                        print(f"Error sending game state: {e}")
-                        logger.error(f"Error sending game state: {e}")
-                        if ws in self.game_websockets[game_id]:
-                            self.game_websockets[game_id].remove(ws)
+                    winner_id = None
+                    
+                    # Bestimme die ID des Gewinners
+                    user_profiles = self.game_user_profiles.get(game_id, {})
+                    if game.winner.name == game.player1.name and 'player1' in user_profiles:
+                        winner_id = user_profiles['player1'].get('id')
+                        print(f"Winner is player1 with ID: {winner_id}")
+                    elif game.winner.name == game.player2.name and 'player2' in user_profiles:
+                        winner_id = user_profiles['player2'].get('id')
+                        print(f"Winner is player2 with ID: {winner_id}")
+                    else:
+                        print(f"Could not determine winner ID!")
+                        print(f"Game winner name: {game.winner.name}")
+                        print(f"Player1 name: {game.player1.name}")
+                        print(f"Player2 name: {game.player2.name}")
+                    
+                    if winner_id:
+                        print(f"Tournament match {match_id} completed. Winner: {winner_id}")
+                        # Hier müsste ein Aufruf an das Tournament-Objekt erfolgen
+                        # Wir müssen das richtige Tournament-Objekt finden
+                        
+                        # KORRIGIERTER IMPORT: Importiere active_tournaments aus dem richtigen Modul
+                        from .tournament import active_tournaments
+                        
+                        print(f"\n=== SEARCHING FOR TOURNAMENT ===")
+                        print(f"Active tournaments: {list(active_tournaments.keys())}")
+                        
+                        tournament_found = False
+                        for tournament_id, tournament in active_tournaments.items():
+                            print(f"Checking tournament {tournament_id}")
+                            print(f"Tournament matches: {list(tournament.matches.keys())}")
+                            
+                            if match_id in tournament.matches:
+                                print(f"Found match {match_id} in tournament {tournament_id}")
+                                tournament_found = True
+                                try:
+                                    print(f"Calling handle_match_result for match {match_id} with winner {winner_id}")
+                                    await tournament.handle_match_result(match_id, winner_id)
+                                    print(f"handle_match_result completed successfully")
+                                except Exception as e:
+                                    print(f"Error in handle_match_result: {e}")
+                                break
+                        
+                        if not tournament_found:
+                            print(f"No tournament found containing match {match_id}!")
+                    else:
+                        print(f"No winner_id found, cannot update tournament!")
+                else:
+                    print(f"This is not a tournament match (no tournament_match_id found)")
+            
+            # Sende eine spezielle "game_over"-Nachricht an alle Clients
+            game_over_message = {
+                "game_over": True,
+                "winner": {
+                    "name": game.winner.name,
+                    "score": game.winner.score,
+                    "id": getattr(game.winner, 'id', None)
+                },
+                "player1": {
+                    "name": game.player1.name,
+                    "score": game.player1.score
+                },
+                "player2": {
+                    "name": game.player2.name,
+                    "score": game.player2.score
+                }
+            }
+            
+            print(f"Sending game_over message: {json.dumps(game_over_message, indent=2)}")
+            
+            for ws in self.game_websockets[game_id]:
+                try:
+                    await ws.send_json(game_over_message)
+                except Exception as e:
+                    print(f"Error sending game_over message: {e}")
+            
+            # Markiere, dass der Gewinner verarbeitet wurde
+            winner_processed = True
+        
+            # Sende den aktuellen Spielstatus an alle verbundenen Clients
+            for ws in self.game_websockets[game_id]:
+                try:
+                    # Debug: Zeige den Spielstatus, der an das Frontend gesendet wird
+                    if not game.game_active and game.winner:
+                        print(f"Sending final game state to client")
+                    
+                    await ws.send_json(game_state)
+                except Exception as e:
+                    print(f"Error sending game state: {e}")
+                    logger.error(f"Error sending game state: {e}")
+                    if ws in self.game_websockets[game_id]:
+                        self.game_websockets[game_id].remove(ws)
+            
+            # Wenn das Spiel beendet ist und wir den Gewinner bereits verarbeitet haben,
+            # warten wir noch 10 Sekunden (länger als vorher), damit der Winning Screen angezeigt werden kann
+            if not game.game_active and winner_processed:
+                print(f"Game {game_id} completed, waiting 10 seconds before exiting game loop...")
+                await asyncio.sleep(10)  # Warte 10 Sekunden
+                print(f"Exiting game loop for game {game_id}")
+                break
+            
             await asyncio.sleep(self.UPDATE_RATE)
 
     async def send_game_stats(self, game_id: str, game: PongGame):

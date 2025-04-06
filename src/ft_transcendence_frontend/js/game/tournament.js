@@ -91,14 +91,25 @@ export class TournamentScreen {
         } else if (data.action === 'match_ready') {
             console.log("Match ready received:", data);
             
+            // WICHTIG: Stelle sicher, dass tournament_match_id in den Einstellungen bleibt
+            const settings = data.settings || {};
+            
+            // Stelle sicher, dass die tournament_match_id in den Einstellungen ist
+            if (!settings.tournament_match_id && data.match_id) {
+                settings.tournament_match_id = data.match_id;
+            }
+            
             // Erstelle ein gameData-Objekt im gleichen Format wie bei normalen Spielen
             const gameData = {
                 game_id: data.game_id,
                 player1: data.player1,
                 player2: data.player2,
                 playerRole: data.playerRole,
-                userProfile: this.userProfile, // Verwende das vorhandene Benutzerprofil
-                settings: data.settings,
+                userProfile: {
+                    ...this.userProfile,
+                    tournament_match_id: data.match_id  // Füge tournament_match_id zum Benutzerprofil hinzu
+                },
+                settings: settings,
                 tournament: {
                     isActive: true,
                     tournamentId: this.tournamentId,
@@ -107,6 +118,10 @@ export class TournamentScreen {
             };
             
             console.log("Switching to game with data:", gameData);
+            
+            // Setze ein Flag, dass wir zu einem Spiel wechseln
+            sessionStorage.setItem('returning_from_game', 'true');
+            
             window.showTemplate('game', gameData);  // Verwende window.showTemplate direkt
         } else if (data.action === 'tournament_end') {
             this.handleTournamentEnd(data);

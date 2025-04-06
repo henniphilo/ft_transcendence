@@ -12,15 +12,11 @@ logging.config.dictConfig(LOGGING)
 # test logging
 logger = logging.getLogger('game')
 
-
-
 # Example log messages at different levels
 logger.debug("GAME! This is a test debug message")
 logger.info("GAME! test Game application starting up...")
 logger.warning("GAME! test This is a warning message")
 # logger.error("GAME! test This is an error message")
-
-
 
 app = FastAPI()
 menu = Menu()
@@ -32,162 +28,162 @@ active_tournaments: Dict[str, Tournament] = {}
 # Füge eine Basic-Route hinzu
 @app.get("/")
 async def root():
-    print("health check received")
-    return {"status": "Game Server running"}
+	print("health check received")
+	return {"status": "Game Server running"}
 
 @app.websocket("/ws/menu")
 async def websocket_menu(websocket: WebSocket):
-    await websocket.accept()
-    
-    try:
-        while True:
-            data = await websocket.receive_json()
-            print(f"WebSocket received data: {data}")  # Debug
-            
-            if data["action"] == "get_menu_items":
-                menu_items = await menu.get_menu_items()
-                await websocket.send_json({"menu_items": menu_items})
-            
-            elif data["action"] == "update_settings":  # Hier könnte der Fehler sein
-                print(f"Updating settings with: {data}")  # Debug
-                response = await menu.update_settings(data["settings"])
-                await websocket.send_json(response)
-            
-            elif data["action"] == "menu_selection":
-                response = await menu.handle_menu_selection(websocket, data["selection"])
-                await websocket.send_json(response)
-                
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket Error: {e}")  # Debug
-        try:
-            await websocket.close()
-        except RuntimeError:
-            pass
+	await websocket.accept()
+	
+	try:
+		while True:
+			data = await websocket.receive_json()
+			print(f"WebSocket received data: {data}")  # Debug
+			
+			if data["action"] == "get_menu_items":
+				menu_items = await menu.get_menu_items()
+				await websocket.send_json({"menu_items": menu_items})
+			
+			elif data["action"] == "update_settings":  # Hier könnte der Fehler sein
+				print(f"Updating settings with: {data}")  # Debug
+				response = await menu.update_settings(data["settings"])
+				await websocket.send_json(response)
+			
+			elif data["action"] == "menu_selection":
+				response = await menu.handle_menu_selection(websocket, data["selection"])
+				await websocket.send_json(response)
+				
+	except WebSocketDisconnect:
+		pass
+	except Exception as e:
+		print(f"WebSocket Error: {e}")  # Debug
+		try:
+			await websocket.close()
+		except RuntimeError:
+			pass
 
 @app.websocket("/ws/game/{game_id}")
 async def websocket_game(websocket: WebSocket, game_id: str):
-    # Die Settings vom Menü direkt verwenden, nicht neu holen
-    settings = menu.get_current_settings()
-    
-    # Debug print
-    print("\n=== Websocket Game Settings ===")
-    print(f"Settings being passed to game: {settings}")
-    
-    await game_server.handle_game(websocket, game_id, settings) 
+	# Die Settings vom Menü direkt verwenden, nicht neu holen
+	settings = menu.get_current_settings()
+	
+	# Debug print
+	print("\n=== Websocket Game Settings ===")
+	print(f"Settings being passed to game: {settings}")
+	
+	await game_server.handle_game(websocket, game_id, settings) 
 
 @app.websocket("/ws/tournament/{tournament_id}")
 async def websocket_tournament(websocket: WebSocket, tournament_id: str):
-    await websocket.accept()
-    
-    try:
-        data = await websocket.receive_json()
-        print(f"\n=== Tournament WebSocket Data ===")
-        print(f"Tournament ID: {tournament_id}")
-        print(f"Received data: {data}")
+	await websocket.accept()
+	
+	try:
+		data = await websocket.receive_json()
+		print(f"\n=== Tournament WebSocket Data ===")
+		print(f"Tournament ID: {tournament_id}")
+		print(f"Received data: {data}")
 
-        # Hole oder erstelle Tournament
-        tournament = active_tournaments.get(tournament_id)
-        if not tournament and data['action'] == 'join_tournament':
-            # Hier übergeben wir game_server und menu (für settings) an das Tournament
-            tournament = Tournament(
-                num_players=data['numPlayers'],
-                game_server=game_server,  # Übergebe game_server-Instanz
-                game_settings=menu.get_current_settings()  # Übergebe aktuelle Einstellungen
-            )
-            active_tournaments[tournament_id] = tournament
-            print(f"Created new tournament: {tournament_id}")
+		# Hole oder erstelle Tournament
+		tournament = active_tournaments.get(tournament_id)
+		if not tournament and data['action'] == 'join_tournament':
+			# Hier übergeben wir game_server und menu (für settings) an das Tournament
+			tournament = Tournament(
+				num_players=data['numPlayers'],
+				game_server=game_server,  # Übergebe game_server-Instanz
+				game_settings=menu.get_current_settings()  # Übergebe aktuelle Einstellungen
+			)
+			active_tournaments[tournament_id] = tournament
+			print(f"Created new tournament: {tournament_id}")
 
-        if not tournament:
-            await websocket.close()
-            return
+		if not tournament:
+			await websocket.close()
+			return
 
-        # Handle verschiedene Tournament-Aktionen
-        while True:
-            if data['action'] == 'join_tournament':
-                success = await tournament.add_player(data['userProfile'], websocket)
-                if not success:
-                    await websocket.send_json({
-                        'action': 'error',
-                        'message': 'Tournament is full'
-                    })
-                    break
-            
-            # NEUE AKTION: rejoin_tournament
-            elif data['action'] == 'rejoin_tournament':
-                print(f"Tournament {tournament_id}: Player rejoining tournament")
-                user_profile = data.get('userProfile', {})
-                player_id = user_profile.get('id')
-                
-                # Prüfe, ob der Spieler bereits im Turnier war
-                if player_id and any(p['id'] == player_id for p in tournament.players):
-                    # Spieler war bereits im Turnier, erlaube Rejoin
-                    tournament.websockets[player_id] = websocket
-                    print(f"Tournament {tournament_id}: Player {player_id} rejoined")
-                    
-                    # Sende aktuellen Turnierstatus mit allen Matches
-                    tournament_data = {
-                        'action': 'tournament_status',
-                        'status': tournament.status,
-                        'players': {
-                            'joined': len(tournament.players),
-                            'needed': tournament.num_players,
-                            'list': [{'username': p['username'], 'id': p['id']} for p in tournament.players]
-                        },
-                        'matches': tournament.get_matches_data()  # Immer Matches senden
-                    }
-                    
-                    await websocket.send_json(tournament_data)
-                else:
-                    # Spieler war nicht in diesem Turnier
-                    await websocket.send_json({
-                        'action': 'error',
-                        'message': 'You were not part of this tournament'
-                    })
-                    break
+		# Handle verschiedene Tournament-Aktionen
+		while True:
+			if data['action'] == 'join_tournament':
+				success = await tournament.add_player(data['userProfile'], websocket)
+				if not success:
+					await websocket.send_json({
+						'action': 'error',
+						'message': 'Tournament is full'
+					})
+					break
+			
+			# NEUE AKTION: rejoin_tournament
+			elif data['action'] == 'rejoin_tournament':
+				print(f"Tournament {tournament_id}: Player rejoining tournament")
+				user_profile = data.get('userProfile', {})
+				player_id = user_profile.get('id')
+				
+				# Prüfe, ob der Spieler bereits im Turnier war
+				if player_id and any(p['id'] == player_id for p in tournament.players):
+					# Spieler war bereits im Turnier, erlaube Rejoin
+					tournament.websockets[player_id] = websocket
+					print(f"Tournament {tournament_id}: Player {player_id} rejoined")
+					
+					# Sende aktuellen Turnierstatus mit allen Matches
+					tournament_data = {
+						'action': 'tournament_status',
+						'status': tournament.status,
+						'players': {
+							'joined': len(tournament.players),
+							'needed': tournament.num_players,
+							'list': [{'username': p['username'], 'id': p['id']} for p in tournament.players]
+						},
+						'matches': tournament.get_matches_data()  # Immer Matches senden
+					}
+					
+					await websocket.send_json(tournament_data)
+				else:
+					# Spieler war nicht in diesem Turnier
+					await websocket.send_json({
+						'action': 'error',
+						'message': 'You were not part of this tournament'
+					})
+					break
 
-            elif data['action'] == 'leave_tournament':
-                await tournament.remove_player(data['userProfile']['id'])
-                break
+			elif data['action'] == 'leave_tournament':
+				await tournament.remove_player(data['userProfile']['id'])
+				break
 
-            elif data['action'] == 'game_completed':
-                await tournament.handle_match_result(
-                    data['matchId'],
-                    data['winnerId']
-                )
-                
-            # NEUE AKTION: start_match
-            elif data['action'] == 'start_match':
-                print(f"Tournament {tournament_id}: Received 'start_match' action for match {data.get('match_id')}")
-                match_id = data.get('match_id')
-                player_id = data.get('player_id')
-                if match_id and player_id:
-                    await tournament.handle_start_match(match_id, player_id)
-                else:
-                    print(f"Tournament {tournament_id}: Missing match_id or player_id in start_match data")
+			elif data['action'] == 'game_completed':
+				await tournament.handle_match_result(
+					data['matchId'],
+					data['winnerId']
+				)
+				
+			# NEUE AKTION: start_match
+			elif data['action'] == 'start_match':
+				print(f"Tournament {tournament_id}: Received 'start_match' action for match {data.get('match_id')}")
+				match_id = data.get('match_id')
+				player_id = data.get('player_id')
+				if match_id and player_id:
+					await tournament.handle_start_match(match_id, player_id)
+				else:
+					print(f"Tournament {tournament_id}: Missing match_id or player_id in start_match data")
 
-            # Warte auf weitere Nachrichten
-            data = await websocket.receive_json()
+			# Warte auf weitere Nachrichten
+			data = await websocket.receive_json()
 
-    except WebSocketDisconnect:
-        # Wenn ein Spieler die Verbindung verliert
-        if tournament:
-            player_id = next((p['id'] for p in tournament.players 
-                            if tournament.websockets.get(p['id']) == websocket), None)
-            if player_id:
-                await tournament.remove_player(player_id)
-                
-        print(f"Client disconnected from tournament {tournament_id}")
+	except WebSocketDisconnect:
+		# Wenn ein Spieler die Verbindung verliert
+		if tournament:
+			player_id = next((p['id'] for p in tournament.players 
+							if tournament.websockets.get(p['id']) == websocket), None)
+			if player_id:
+				await tournament.remove_player(player_id)
+				
+		print(f"Client disconnected from tournament {tournament_id}")
 
-    except Exception as e:
-        logger.error(f"Tournament WebSocket Error: {e}")
-        try:
-            await websocket.close()
-        except RuntimeError:
-            pass
+	except Exception as e:
+		logger.error(f"Tournament WebSocket Error: {e}")
+		try:
+			await websocket.close()
+		except RuntimeError:
+			pass
 
-    finally:
-        # Cleanup wenn das Tournament leer ist
-        if tournament and not tournament.players:
-            del active_tournaments[tournament_id]
+	finally:
+		# Cleanup wenn das Tournament leer ist
+		if tournament and not tournament.players:
+			del active_tournaments[tournament_id]

@@ -255,11 +255,22 @@ export class GameScreen {
         if (readyButton) {
             readyButton.addEventListener("click", () => {
                 if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    // Stelle sicher, dass das Benutzerprofil die tournament_match_id enthält
+                    if (this.tournamentMode && this.tournamentData && this.tournamentData.matchId) {
+                        if (!this.userProfile.tournament_match_id) {
+                            this.userProfile.tournament_match_id = this.tournamentData.matchId;
+                        }
+                    }
+                    
                     this.ws.send(JSON.stringify({
                         action: "player_ready",
-                        player_role: this.playerRole
+                        player_role: this.playerRole,
+                        userProfile: this.userProfile
                     }));
+                    
                     console.log("Ready state sent for role:", this.playerRole);
+                    console.log("User profile sent:", this.userProfile);
+                    
                     // Optional: Button deaktivieren, damit er nicht mehrfach gesendet wird
                     readyButton.disabled = true;
                     readyButton.innerText = "Waiting for opponent...";
