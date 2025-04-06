@@ -253,8 +253,7 @@ class GameServer:
                 game_state["game_over"] = True
                 game_state["winner"] = {
                     "name": game.winner.name,
-                    "score": game.winner.score,
-                    "id": getattr(game.winner, 'id', None)
+                    "id": game.winner.id
                 }
                 
                 # Debug: Zeige den Spielstatus, der an das Frontend gesendet wird
@@ -341,32 +340,6 @@ class GameServer:
                         print(f"No winner_id found, cannot update tournament!")
                 else:
                     print(f"This is not a tournament match (no tournament_match_id found)")
-            
-            # Sende eine spezielle "game_over"-Nachricht an alle Clients
-            game_over_message = {
-                "game_over": True,
-                "winner": {
-                    "name": game.winner.name,
-                    "score": game.winner.score,
-                    "id": getattr(game.winner, 'id', None)
-                },
-                "player1": {
-                    "name": game.player1.name,
-                    "score": game.player1.score
-                },
-                "player2": {
-                    "name": game.player2.name,
-                    "score": game.player2.score
-                }
-            }
-            
-            print(f"Sending game_over message: {json.dumps(game_over_message, indent=2)}")
-            
-            for ws in self.game_websockets[game_id]:
-                try:
-                    await ws.send_json(game_over_message)
-                except Exception as e:
-                    print(f"Error sending game_over message: {e}")
             
             # Markiere, dass der Gewinner verarbeitet wurde
             winner_processed = True
