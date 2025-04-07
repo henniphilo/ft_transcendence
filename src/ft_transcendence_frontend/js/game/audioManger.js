@@ -39,4 +39,9 @@ export class AudioManager {
     isPlaying(soundName) {
         return this.sounds[soundName] && this.sounds[soundName].isPlaying;
     }
+
+    getSound(name) {
+        return this.sounds[name];
+    }
+
 }

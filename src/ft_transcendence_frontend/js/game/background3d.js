@@ -30,7 +30,8 @@ export function initBackground3D(onLoadedCallback) {
     // Sound laden
     backgroundAudioManager = new AudioManager(listener); // nur diese eine Instanz!
 
-    backgroundAudioManager.loadSound('background', '/sounds/HeavyJam_©PlasticPigs.mp3').then(() => {
+    backgroundAudioManager.loadSound('background', '/sounds/HeavyJam_©PlasticPigs.mp3', {
+        loop: true }).then(() => {
         document.addEventListener('click', () => {
             backgroundAudioManager.playSound('background');
         }, { once: true });

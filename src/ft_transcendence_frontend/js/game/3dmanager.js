@@ -26,7 +26,8 @@ export class ThreeJSManager {
             this.audioManager.playSound('start');
 
             startSound.source.onended = () => {
-                this.audioManager.loadSound('game', '/sounds/ToyCars_©PlasticPigs.mp3').then((gameSound) => {
+                this.audioManager.loadSound('game', '/sounds/ToyCars_©PlasticPigs.mp3', {
+                    loop: true }).then((gameSound) => {
                     this.audioManager.playSound('game');
                 });
             };
