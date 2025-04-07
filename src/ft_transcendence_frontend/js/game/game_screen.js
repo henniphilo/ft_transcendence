@@ -1,4 +1,6 @@
 import { ThreeJSManager } from "./3dmanager.js";
+import { backgroundAudioManager } from './background3d.js';
+
 
 export class GameScreen {
     constructor(gameData, onBackToMenu) {
@@ -155,6 +157,12 @@ export class GameScreen {
         console.log("Game wird angezeigt...");
         const container = document.getElementById('game-container');
 
+
+        // Background Musik stoppen, wenn Spiel angezeigt wird
+        if (backgroundAudioManager?.isPlaying('background')) {
+            backgroundAudioManager.stopSound('background');
+        }
+
         // Bestimme die Spielernamen basierend auf dem Spielmodus
         let player1Name = this.gameState.player1.name;
         let player2Name = this.gameState.player2.name;
@@ -292,6 +300,7 @@ export class GameScreen {
         // Musik stoppen, wenn Spiel vorbei ist
         if (this.threeJSManager?.audioManager?.isPlaying('game')) {
             this.threeJSManager.audioManager.stopSound('game');
+            backgroundAudioManager.playSound('background');
         }
 
         const container = document.getElementById('game-container');

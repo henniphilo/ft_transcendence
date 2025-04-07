@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import { AudioManager } from './audioManger.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 
 let scene, camera, renderer, controls;
 let model;
@@ -8,6 +10,8 @@ let particles;
 let cameraSpeed = 0.005;
 let cameraMoveRight = 0.002;
 let cameraMoveUp = 0.001;
+
+export let backgroundAudioManager = null;
 
 export function initBackground3D(onLoadedCallback) {
     console.log("in initBackground3D");
@@ -18,6 +22,20 @@ export function initBackground3D(onLoadedCallback) {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // // Background Musik starten
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    // Sound laden
+    backgroundAudioManager = new AudioManager(listener); // nur diese eine Instanz!
+
+    backgroundAudioManager.loadSound('background', '/sounds/HeavyJam_©PlasticPigs.mp3').then(() => {
+        document.addEventListener('click', () => {
+            backgroundAudioManager.playSound('background');
+        }, { once: true });
+    });
+
 
     // Kamera-Position setzen
     camera.position.z = 5;
