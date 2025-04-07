@@ -1,5 +1,8 @@
 import { initBackground3D } from './background3d.js';
+import { backgroundAudioManager } from './background3d.js';
 import { MenuDisplay } from './displayMenu.js';
+
+let musicEnabled = true;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM fully loaded");
@@ -17,5 +20,25 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("✅ Initializing Menu System...");
         new MenuDisplay();
     });
+
+    const toggleButton = document.getElementById('toggle-music-button');
+
+    if (toggleButton) {
+        toggleButton.addEventListener('click', () => {
+            const music = backgroundAudioManager.getSound('background');
+            if (!music) return;
+
+            if (music.isPlaying) {
+                music.pause();
+                toggleButton.textContent = '🔇 Musik: Aus';
+                musicEnabled = false;
+            } else {
+                music.play();
+                toggleButton.textContent = '🔊 Musik: An';
+                musicEnabled = true;
+            }
+        });
+    }
 });
+
 

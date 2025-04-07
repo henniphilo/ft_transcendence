@@ -63,6 +63,24 @@ body {
   border-color: var(--primary-color);
 }
 
+.music-toggle-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999; /* 💥 Wichtig: über dem Canvas */
+  padding: 10px 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #222;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.8;
+}
+.music-toggle-button:hover {
+  opacity: 1;
+}
+
 /* Button-Styling */
 .btn-primary-custom {
   background-color: var(--primary-color);
