@@ -6,7 +6,6 @@ export function fillProfileFields(data) {
         username: document.getElementById('profile-username') || document.querySelector('.profile-username'),
         email: document.getElementById('profile-email') || document.querySelector('.profile-email'),
         bio: document.getElementById('profile-bio') || document.querySelector('.profile-bio'),
-        birthDate: document.getElementById('profile-birth_date') || document.querySelector('.profile-birth-date'),
         tournamentName: document.getElementById('profile-tournament-name') || document.querySelector('.profile-tournament-name'),
         avatar: document.getElementById('profile-avatar') || document.querySelector('.profile-avatar')
     };
@@ -15,7 +14,6 @@ export function fillProfileFields(data) {
     if (elements.username) elements.username.textContent = data.username || '';
     if (elements.email) elements.email.textContent = data.email || '';
     if (elements.bio) elements.bio.textContent = data.bio || '';
-    if (elements.birthDate) elements.birthDate.textContent = data.birth_date || '';
     if (elements.tournamentName) elements.tournamentName.textContent = data.tournament_name || '';
     
     if (elements.avatar) {
