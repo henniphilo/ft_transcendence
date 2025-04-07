@@ -445,6 +445,10 @@ export class MenuDisplay {
                 action: 'menu_selection',
                 selection: 'play_tournament'
             }));
+            this.updateSearchStatus("ACHTUNG!!! 2 von 4 Spielern gefunden...");
+            console.log("ACHTUNG!!!Tournament started");
+            // console.log all player details
+            console.log("Tournament started with players:", this.userProfile);
             return;
         }
         this.ws.send(JSON.stringify({
@@ -579,7 +583,7 @@ export class MenuDisplay {
                 console.log('Exiting game...');
                 break;
             case 'tournament_ready':
-                console.log("Tournament is ready to start!");
+                console.log("YES!!!Tournament is ready to start!");
                 showTemplate('tournament', { userProfile: this.userProfile });
                 break;
         }
@@ -666,7 +670,7 @@ export class MenuDisplay {
                         <h2 class="mb-0">Searching for Opponent</h2>
                     </div>
                     <div class="card-body profile-card py-5">
-                        <h3 class="mb-4">${message || 'Searching for opponent...'}</h3>
+                        <h3 class="mb-4" id="search-status-message">${message || 'Searching for opponent...'}</h3>
                         <div class="spinner-border mx-auto mb-4" style="width: 3rem; height: 3rem; color: var(--primary-color);" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
@@ -685,6 +689,14 @@ export class MenuDisplay {
             this.cancelSearch();
         });
     }
+
+    updateSearchStatus(newMessage) {
+        const statusElement = this.container.querySelector('#search-status-message');
+        if (statusElement) {
+            statusElement.textContent = newMessage;
+        }
+    }
+    
 
     cancelSearch() {
         console.log("Canceling search...");

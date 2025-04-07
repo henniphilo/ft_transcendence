@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const tournamentGrid = document.getElementById('tournament-grid');
         if (tournamentGrid) {
             // Populate the tournament grid with data
-            tournamentGrid.innerHTML = '<p class="text-center">Tournament is starting soon...</p>';
+            tournamentGrid.innerHTML = '<p class="text-center">we are 4 players now waiting, this is from the template-tournament</p>';
         }
 
         const backToMenuBtn = document.getElementById('back-to-menu');

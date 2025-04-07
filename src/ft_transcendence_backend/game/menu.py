@@ -83,6 +83,7 @@ class Menu:
             self.tournament_queue.append(websocket)
 
             # Starte Turnier-Task, falls noch nicht gestartet
+            # d.h. der erste der joined startet das Turnier
             if not self.tournament_task or self.tournament_task.done():
                 self.tournament_task = asyncio.create_task(self.start_tournament())
 
@@ -131,6 +132,8 @@ class Menu:
         elif selection == "cancel_search":
             if websocket in self.searching_players:
                 del self.searching_players[websocket]
+            if self.tournament_queue and websocket in self.tournament_queue:
+                self.tournament_queue.remove(websocket)
 
             # Wenn keine Spieler mehr suchen, stoppe den Matchmaking-Loop
             if not self.searching_players and self.matchmaking_task:
@@ -275,7 +278,8 @@ class Menu:
         """Startet das Turnier, wenn genügend Spieler vorhanden sind"""
         print("Starting tournament check loop")
         while True:
-            if len(self.tournament_queue) >= 4:
+           # if len(self.tournament_queue) >= 4:
+            if len(self.tournament_queue) == 4:
                 print("Tournament is ready to start with 4 players")
                 players = [self.tournament_queue.pop(0) for _ in range(4)]
 
@@ -283,6 +287,7 @@ class Menu:
                 for player in players:
                     try:
                         await player.send_json({
+                            # das fuehrt die action tournament_ready aus
                             "action": "tournament_ready"
                         })
                     except Exception as e:
