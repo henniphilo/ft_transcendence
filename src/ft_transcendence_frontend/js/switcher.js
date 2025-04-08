@@ -152,10 +152,35 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Setting up tournament with data:", data);
         const tournamentGrid = document.getElementById('tournament-grid');
         if (tournamentGrid) {
-            // Populate the tournament grid with data
-            tournamentGrid.innerHTML = '<p class="text-center">we are 4 players now waiting, this is from the template-tournament</p>';
+            const players = data.players || [];
+            const round = data.round || 1;
+            const totalRounds = data.total_rounds || 1;
+    
+            const playerList = players.map((p, index) =>
+                `<li class="list-group-item">Player ${index + 1}: ${p.tournament_name}</li>`
+            ).join("");
+    
+            const matchups = `
+                <p class="text-center"><strong>Matchups:</strong></p>
+                <p class="text-center">${players[0]?.tournament_name} vs ${players[1]?.tournament_name}</p>
+                <p class="text-center">${players[2]?.tournament_name} vs ${players[3]?.tournament_name}</p>
+            `;
+    
+            tournamentGrid.innerHTML = `
+                <div class="card my-4">
+                    <div class="card-header text-center">
+                        <h4>🏆 Tournament Round ${round} of ${totalRounds}</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group mb-4">
+                            ${playerList}
+                        </ul>
+                        ${matchups}
+                    </div>
+                </div>
+            `;
         }
-
+    
         const backToMenuBtn = document.getElementById('back-to-menu');
         if (backToMenuBtn) {
             backToMenuBtn.addEventListener('click', () => {
@@ -163,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
+    
 
     // Event Listener für Template-Wechsel
     document.addEventListener('templateChange', (event) => {

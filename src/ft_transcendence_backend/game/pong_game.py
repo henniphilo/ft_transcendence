@@ -45,8 +45,10 @@ async def websocket_menu(websocket: WebSocket):
                 await websocket.send_json(response)
             
             elif data["action"] == "menu_selection":
-                response = await menu.handle_menu_selection(websocket, data["selection"])
-                await websocket.send_json(response)
+                    user_profile = data.get("userProfile")  # <- UserProfile wird aus der Nachricht geholt
+                    response = await menu.handle_menu_selection(websocket, data["selection"], userProfile=user_profile)
+                    await websocket.send_json(response)
+
                 
     except WebSocketDisconnect:
         pass

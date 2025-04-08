@@ -442,13 +442,15 @@ export class MenuDisplay {
         }
         if (itemId === 'play_tournament') {
             this.ws.send(JSON.stringify({
-                action: 'menu_selection',
-                selection: 'play_tournament'
+            action: 'menu_selection',
+            selection: 'play_tournament',
+            userProfile: this.userProfile
             }));
             this.updateSearchStatus("ACHTUNG!!! 2 von 4 Spielern gefunden...");
-            console.log("ACHTUNG!!!Tournament started");
-            // console.log all player details
+            console.log("ACHTUNG!!! Tournament started");
+            // Log all player details
             console.log("Tournament started with players:", this.userProfile);
+            console.log("works! ",this.userProfile.tournament_name);
             return;
         }
         this.ws.send(JSON.stringify({
@@ -584,8 +586,14 @@ export class MenuDisplay {
                 break;
             case 'tournament_ready':
                 console.log("YES!!!Tournament is ready to start!");
-                showTemplate('tournament', { userProfile: this.userProfile });
+                showTemplate('tournament', {
+                userProfile: this.userProfile,
+                players: data.players,
+                round: data.round,
+                total_rounds: data.total_rounds
+                });
                 break;
+                
         }
     }
 

@@ -1,19 +1,21 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import WebSocket
 import json
-from settings import GameSettings
 import uuid
 import asyncio
+from settings import GameSettings
+from models.player import Player, PlayerType, Controls
+
 
 class Menu:
     def __init__(self):
         self.game_settings = GameSettings()
         self.current_menu_stack = []
         self.current_game_settings = None
-        self.is_tournament = False  # Neuer Flag für Tournament-Modus
+        self.is_tournament = False
         self.searching_players = {}  # {websocket: player_name}
         self.matchmaking_task = None
-        self.tournament_queue = []  # Warteschlange für Turnierspieler
-        self.tournament_task = None  # Task für Turnierstart
+        self.tournament_queue = []  # list of {"websocket": ..., "player": Player}
+        self.tournament_task = None
 
         # Hauptmenü
         self.menu_items = [
@@ -54,36 +56,49 @@ class Menu:
         ]
 
     async def start_matchmaking_loop(self):
-        """Startet eine kontinuierliche Überprüfung nach möglichen Matches"""
-        print("Starting matchmaking loop")  # Neuer Debug-Print
+        print("Starting matchmaking loop")
         while True:
-            print(f"Current searching players: {[name for name in self.searching_players.values()]}")  # Neuer Debug-Print
+            print(f"Current searching players: {[name for name in self.searching_players.values()]}")
             await self.match_players()
-            await asyncio.sleep(1)  # Überprüfe jede Sekunde
+            await asyncio.sleep(1)
 
-    async def handle_menu_selection(self, websocket: WebSocket, selection: str):
+    async def handle_menu_selection(self, websocket: WebSocket, selection: str, userProfile=None):
         print(f"\n=== Menu Selection ===")
         print(f"Selection: {selection}")
         print(f"Current Menu Stack: {self.current_menu_stack}")
 
         if selection == "main":
-            # Expliziter Handler für das Hauptmenü
             self.is_tournament = False
-            self.current_menu_stack = []  # Reset stack
+            self.current_menu_stack = []
             return {"action": "show_main_menu", "menu_items": self.menu_items}
 
         elif selection == "play_game":
             self.is_tournament = False
-            self.current_menu_stack.append("main")  # Speichert 'main' als vorherigen Zustand
+            self.current_menu_stack.append("main")
             return {"action": "show_submenu", "menu_items": self.play_mode_items}
 
         elif selection == "play_tournament":
             self.is_tournament = True
             self.current_menu_stack.append("main")
-            self.tournament_queue.append(websocket)
 
-            # Starte Turnier-Task, falls noch nicht gestartet
-            # d.h. der erste der joined startet das Turnier
+            tournament_name = "Unknown"
+            if userProfile and "tournament_name" in userProfile:
+                tournament_name = userProfile["tournament_name"]
+
+            print(f"Adding tournament player: {tournament_name}")
+
+            player = Player(
+                id=str(uuid.uuid4()),
+                name=tournament_name,
+                player_type=PlayerType.HUMAN,
+                controls=Controls.ARROWS
+            )
+
+            self.tournament_queue.append({
+                "websocket": websocket,
+                "player": player
+            })
+
             if not self.tournament_task or self.tournament_task.done():
                 self.tournament_task = asyncio.create_task(self.start_tournament())
 
@@ -99,28 +114,22 @@ class Menu:
 
         elif selection == "local":
             game_settings = self.game_settings.get_settings()
-            game_settings.update({
-                "mode": selection,
-                "is_tournament": self.is_tournament
-            })
+            game_settings.update({"mode": selection, "is_tournament": self.is_tournament})
             self.current_game_settings = game_settings
 
-            # Neue Struktur für lokales Spiel
             return {
                 "action": "game_found",
                 "game_id": str(uuid.uuid4()),
                 "settings": game_settings,
                 "player1": "Player 1",
                 "player2": "Player 2",
-                "playerRole": "both"  # Spezieller Wert für lokales Spiel
+                "playerRole": "both"
             }
 
         elif selection == "online":
-            print(f"New player searching for game: {websocket}")  # Neuer Debug-Print
-            player_name = "Player"  # Hier später den echten Spielernamen verwenden
+            player_name = "Player"
             self.searching_players[websocket] = player_name
 
-            # Starte Matchmaking-Loop, falls noch nicht gestartet
             if not self.matchmaking_task or self.matchmaking_task.done():
                 self.matchmaking_task = asyncio.create_task(self.start_matchmaking_loop())
 
@@ -132,10 +141,10 @@ class Menu:
         elif selection == "cancel_search":
             if websocket in self.searching_players:
                 del self.searching_players[websocket]
-            if self.tournament_queue and websocket in self.tournament_queue:
-                self.tournament_queue.remove(websocket)
+            self.tournament_queue = [
+                entry for entry in self.tournament_queue if entry["websocket"] != websocket
+            ]
 
-            # Wenn keine Spieler mehr suchen, stoppe den Matchmaking-Loop
             if not self.searching_players and self.matchmaking_task:
                 self.matchmaking_task.cancel()
                 self.matchmaking_task = None
@@ -169,14 +178,13 @@ class Menu:
             })
             self.current_game_settings = game_settings
 
-            # Neue Struktur für AI Spiel
             return {
                 "action": "game_found",
                 "game_id": str(uuid.uuid4()),
                 "settings": game_settings,
                 "player1": "Player 1",
                 "player2": "AI Player",
-                "playerRole": "player1"  # Im AI-Modus ist man immer Spieler 1
+                "playerRole": "player1"
             }
 
         elif selection in ["4_players", "6_players", "8_players"]:
@@ -191,48 +199,36 @@ class Menu:
             if self.current_menu_stack:
                 last_menu = self.current_menu_stack.pop()
                 if last_menu == "main":
-                    self.is_tournament = False  # Reset tournament flag when going back to main
+                    self.is_tournament = False
                     return {"action": "show_main_menu", "menu_items": self.menu_items}
                 elif last_menu == "play_mode":
                     return {"action": "show_submenu", "menu_items": self.play_mode_items}
-                elif last_menu in ["mode", "difficulty"]:
-                    return {"action": "show_submenu", "menu_items": self.play_mode_items}
-            self.is_tournament = False  # Reset tournament flag when going back to main
+            self.is_tournament = False
             return {"action": "show_main_menu", "menu_items": self.menu_items}
 
+
     async def update_settings(self, settings_data):
-        print(f"Menu update_settings called with: {settings_data}")  # Debug
+        print(f"Menu update_settings called with: {settings_data}")
         return await self.game_settings.update_settings(settings_data)
 
     async def get_menu_items(self):
         return self.menu_items
 
-    def display_settings(self, settings):
-        # This method is not provided in the original file or the code block
-        # It's assumed to exist as it's called in the code block
-        # Implementation of display_settings method
-        pass
-
     def get_current_settings(self):
-        # Verwende die gespeicherten Spiel-Settings, falls vorhanden
         if self.current_game_settings is not None:
             print(f"Using current game settings: {self.current_game_settings}")
             return self.current_game_settings
-        # Ansonsten Standard-Settings
         return self.game_settings.get_settings()
 
     async def match_players(self):
-        """Versucht, zwei suchende Spieler zu matchen"""
         print(f"Checking for matches... Current players: {len(self.searching_players)}")
 
         if len(self.searching_players) >= 2:
-            # Nimm die ersten zwei Spieler
             player1_ws, player1_name = list(self.searching_players.items())[0]
             player2_ws, player2_name = list(self.searching_players.items())[1]
 
             print(f"Found match: {player1_name} vs {player2_name}")
 
-            # Entferne sie aus der Suchliste
             del self.searching_players[player1_ws]
             del self.searching_players[player2_ws]
 
@@ -257,40 +253,39 @@ class Menu:
                     "player2": player2_name,
                 }
 
-                await player1_ws.send_json({
-                    **match_data,
-                    "playerRole": "player1"
-                })
+                await player1_ws.send_json({**match_data, "playerRole": "player1"})
+                await player2_ws.send_json({**match_data, "playerRole": "player2"})
 
-                await player2_ws.send_json({
-                    **match_data,
-                    "playerRole": "player2"
-                })
-
-                print(f"Game {game_id} created and both players notified with the same ID")
+                print(f"Game {game_id} created and both players notified")
             except Exception as e:
                 print(f"Error notifying players: {e}")
-                # Falls ein Fehler auftritt, füge die Spieler wieder zur Suchliste hinzu
                 self.searching_players[player1_ws] = player1_name
                 self.searching_players[player2_ws] = player2_name
 
     async def start_tournament(self):
-        """Startet das Turnier, wenn genügend Spieler vorhanden sind"""
         print("Starting tournament check loop")
         while True:
-           # if len(self.tournament_queue) >= 4:
             if len(self.tournament_queue) == 4:
                 print("Tournament is ready to start with 4 players")
-                players = [self.tournament_queue.pop(0) for _ in range(4)]
+                entries = [self.tournament_queue.pop(0) for _ in range(4)]
 
-                # Senden Sie eine Nachricht an alle Spieler, dass das Turnier beginnt
-                for player in players:
+                player_infos = [
+                    {"tournament_name": entry["player"].name}
+                    for entry in entries
+                ]
+
+                current_round = 1
+                total_rounds = 2
+
+                for entry in entries:
                     try:
-                        await player.send_json({
-                            # das fuehrt die action tournament_ready aus
-                            "action": "tournament_ready"
+                        await entry["websocket"].send_json({
+                            "action": "tournament_ready",
+                            "players": player_infos,
+                            "round": current_round,
+                            "total_rounds": total_rounds
                         })
                     except Exception as e:
                         print(f"Error notifying player: {e}")
 
-            await asyncio.sleep(1)  # Überprüfen Sie jede Sekunde
+            await asyncio.sleep(1)
