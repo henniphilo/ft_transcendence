@@ -94,10 +94,6 @@ export class MenuDisplay {
                                     <textarea id="edit-bio" class="form-control">${this.userProfile.bio || ''}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="edit-birth-date" class="form-label">Birthday:</label>
-                                    <input type="date" id="edit-birth-date" class="form-control" value="${this.userProfile.birth_date || ''}">
-                                </div>
-                                <div class="mb-3">
                                     <label for="edit-tournament-name" class="form-label">Tournament Name:</label>
                                     <input type="text" id="edit-tournament-name" class="form-control" value="${this.userProfile.tournament_name || ''}">
                                 </div>
@@ -124,25 +120,21 @@ export class MenuDisplay {
         // Event-Listener für den Save-Button
         document.getElementById('save-profile').addEventListener('click', async () => {
             const bio = document.getElementById('edit-bio').value;
-            const birthDate = document.getElementById('edit-birth-date').value;
             const tournamentName = document.getElementById('edit-tournament-name').value;
 
             try {
                 const formData = new FormData();
                 formData.append('bio', bio);
-                formData.append('birth_date', birthDate);
                 formData.append('tournament_name', tournamentName);
 
                 const result = await ProfileHandler.updateProfile(formData);
 
                 // Aktualisiere die lokalen Daten
                 this.userProfile.bio = bio;
-                this.userProfile.birth_date = birthDate;
                 this.userProfile.tournament_name = tournamentName;
 
                 // Aktualisiere die Anzeige
                 if (this.elements.bio) this.elements.bio.textContent = bio;
-                if (this.elements.birthDate) this.elements.birthDate.textContent = birthDate;
                 if (this.elements.tournamentName) this.elements.tournamentName.textContent = tournamentName;
 
                 modal.hide();
@@ -162,7 +154,6 @@ export class MenuDisplay {
     updateProfileDisplay(profileData) {
         if (this.elements.bio) this.elements.bio.textContent = profileData.bio || '';
         if (this.elements.email) this.elements.email.textContent = profileData.email || '';
-        if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
         if (this.elements.tournamentName) this.elements.tournamentName.textContent = profileData.tournament_name || '';
         if (this.elements.avatar) {
             this.elements.avatar.src = profileData.avatar
@@ -206,7 +197,6 @@ export class MenuDisplay {
                                         <div class="profile-details mb-3">
                                             <p class="mb-2"><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
                                             <p class="mb-2"><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
-                                            <p class="mb-2"><strong>Birthday:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
                                             <p class="mb-2"><strong>Tournament Name:</strong> <span class="profile-tournament-name">${this.userProfile.tournament_name || ''}</span></p>
                                         </div>
                                         <div class="d-grid gap-2">
@@ -250,7 +240,6 @@ export class MenuDisplay {
         this.elements = {
             bio: this.container.querySelector('.profile-bio'),
             email: this.container.querySelector('.profile-email'),
-            birthDate: this.container.querySelector('.profile-birth-date'),
             tournamentName: this.container.querySelector('.profile-tournament-name'),
             avatar: this.container.querySelector('.profile-avatar'),
             avatarInput: this.container.querySelector('.avatar-input'),
@@ -1152,7 +1141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         avatar: "path/to/avatar.jpg",
         email: "benutzer@example.com",
         bio: "Kurze Bio",
-        birth_date: "01.01.1990"
     };
     menuDisplay = new MenuDisplay(userProfile);
 

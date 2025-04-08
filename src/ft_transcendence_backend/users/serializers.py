@@ -8,7 +8,7 @@ class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(allow_null=True, required=False)
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'avatar', 'bio', 'birth_date', 'tournament_name', 'password')
+        fields = ('id', 'username', 'email', 'avatar', 'bio', 'tournament_name', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):

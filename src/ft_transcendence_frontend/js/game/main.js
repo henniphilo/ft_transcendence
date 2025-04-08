@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (music.isPlaying) {
                 music.pause();
-                toggleButton.textContent = '🔇 Musik: Aus';
+                toggleButton.textContent = '🔇 Music: Off';
                 musicEnabled = false;
             } else {
                 music.play();
-                toggleButton.textContent = '🔊 Musik: An';
+                toggleButton.textContent = '🔊 Music: On';
                 musicEnabled = true;
             }
         });
