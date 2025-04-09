@@ -125,6 +125,10 @@ class PongGame:
     def update_game_state(self):
         if not self.game_active:
             state = self.get_game_state()
+            # Logger for maptplotlib
+            # -------------------------------
+            logger.info(f"Game State: {state}")
+            # -------------------------------
             return state
 
         scaled_speed = self.ball_speed * self.BALL_SPEED_SCALE
@@ -135,6 +139,10 @@ class PongGame:
         if abs(next_y) >= 1.0:
             self.ball_direction[1] *= -1
             next_y = max(-1.0, min(1.0, next_y))
+            # Logger for maptplotlib
+            # -------------------------------
+            logger.debug(f"Wandkollision: Neue vertikale Richtung {self.ball_direction[1]}")
+            # -------------------------------
 
         hit_paddle = False
 
@@ -147,6 +155,10 @@ class PongGame:
 
                 self.ball_direction = [abs(math.cos(bounce_angle)), -math.sin(bounce_angle)]
                 next_x = -self.PADDLE_X + self.PADDLE_WIDTH
+                # Logger for maptplotlib
+                # -------------------------------
+                logger.debug(f"Linke Paddle-Kollision: Bounce-Winkel={bounce_angle}, Neue Richtung={self.ball_direction}")
+                # -------------------------------
                 
                 # Erhöhe Geschwindigkeit nach Paddle-Treffer
                 self.increase_ball_speed()
@@ -160,7 +172,10 @@ class PongGame:
 
                 self.ball_direction = [-abs(math.cos(bounce_angle)), -math.sin(bounce_angle)]
                 next_x = self.PADDLE_X - self.PADDLE_WIDTH
-                
+                # Logger for maptplotlib
+                # -------------------------------
+                logger.debug(f"Rechte Paddle-Kollision: Bounce-Winkel={bounce_angle}, Neue Richtung={self.ball_direction}")
+                # -------------------------------
                 # Erhöhe Geschwindigkeit nach Paddle-Treffer
                 self.increase_ball_speed()
 
@@ -170,16 +185,30 @@ class PongGame:
                 self.check_winner()
                 self.reset_ball()
                 state = self.get_game_state()
+                # Logger for maptplotlib
+                # -------------------------------
+                logger.info(f"Score: Spieler '{self.player2.name}' erzielt einen Punkt. Neuer Score: {self.player2.score}")
+                logger.info(f"Game State: {state}")
+                # -------------------------------
                 return state
             elif next_x > 1.0:
                 self.player1.score += 1
                 self.check_winner()
                 self.reset_ball()
                 state = self.get_game_state()
+                # Logger for maptplotlib
+                # -------------------------------
+                logger.info(f"Score: Spieler '{self.player1.name}' erzielt einen Punkt. Neuer Score: {self.player1.score}")
+                logger.info(f"Game State: {state}")
+                # -------------------------------
                 return state
 
         self.ball_pos = [next_x, next_y]
         state = self.get_game_state()
+        # Logger for maptplotlib
+        # -------------------------------
+        logger.info(f"Game State: {state}")
+        # -------------------------------
         return state
 
     def get_paddle_positions(self, player: Player) -> dict:
@@ -225,12 +254,3 @@ class PongGame:
             self.ball_speed * (1 + self.SPEED_INCREASE)
         )
         logger.debug(f"Ball speed increased to: {self.ball_speed}")
-
-
-
-
-
-
-
-
-
