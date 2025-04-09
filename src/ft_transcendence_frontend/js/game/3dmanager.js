@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { AudioManager, setGlobalAudioManager } from './audioManger.js';
+import { AudioManager, setGlobalAudioManager, getGlobalAudioManager } from './audioManger.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -21,10 +21,13 @@ export class ThreeJSManager {
         this.listener = new THREE.AudioListener();
         this.camera.add(this.listener);
 
-        this.audioManager = new AudioManager(this.listener);
-        setGlobalAudioManager(this.audioManager);
+        this.audioManager = getGlobalAudioManager();
+        if (!this.audioManager) {
+            this.audioManager = new AudioManager(this.listener);
+            setGlobalAudioManager(this.audioManager);
+        }
 
-        // Sounds
+        // Sounds laden
         this.audioManager.loadSound('bounce', '/sounds/boing-2-44164.mp3');
         this.audioManager.loadSound('win', '/sounds/girl-scream-45657.mp3');
         this.audioManager.loadSound('start', '/sounds/Mehringdamm.mp3').then((startSound) => {

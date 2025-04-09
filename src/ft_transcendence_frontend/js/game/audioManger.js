@@ -25,24 +25,33 @@ export class AudioManager {
         });
     }
 
-    // Alle Sounds stoppen (Lautstärke auf 0 setzen, um stummzuschalten)
+    // Alle Sounds muten (nur Lautstärke auf 0 setzen, nicht stoppen)
     stopAllSounds() {
         Object.keys(this.sounds).forEach(name => {
             const sound = this.sounds[name];
-            sound.setVolume(0); // Lautstärke auf 0 setzen, um "stumm" zu schalten
-        });
-    }
-
-    // Alle Sounds abspielen
-    playAllSounds() {
-        Object.keys(this.sounds).forEach(name => {
-            const sound = this.sounds[name];
-            if (!sound.isPlaying && !this.isMuted) {
-                sound.play();
-                sound.setVolume(sound.originalVolume); // Wieder die ursprüngliche Lautstärke setzen
+            if (sound.isPlaying) {
+                sound.setVolume(0);
+                console.log(`🔇 Muted sound "${name}"`);
             }
         });
     }
+
+
+    // Alle Sounds abspielen (nur Lautstärke wiederherstellen bei bereits laufenden Sounds)
+    playAllSounds() {
+        Object.keys(this.sounds).forEach(name => {
+            const sound = this.sounds[name];
+            const volume = sound.originalVolume ?? 1;
+
+            if (sound.isPlaying) {
+                sound.setVolume(volume);
+                console.log(`🔊 Unmuted sound "${name}" – volume restored to ${volume}`);
+            } else {
+                console.log(`⏸️ Sound "${name}" is not playing – volume remains muted`);
+            }
+        });
+    }
+
 
     // Pausiere alle Sounds
     pauseAllSounds() {
@@ -54,13 +63,22 @@ export class AudioManager {
         });
     }
 
-    // Toggle-Logik: Stummschalten oder Wiederherstellen der Lautstärke
-    toggleAllSounds(enable) {
-        this.isMuted = !enable; // Schaltet zwischen mute und unmute um
-        if (enable) {
-            this.playAllSounds(); // Wenn aktiv, spiele alle Sounds mit ursprünglicher Lautstärke ab
+    mute() {
+        this.isMuted = true;
+        this.stopAllSounds();
+    }
+
+    unmute() {
+        this.isMuted = false;
+        this.playAllSounds();
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.isMuted) {
+            this.stopAllSounds();
         } else {
-            this.stopAllSounds(); // Wenn deaktiviert, setze Lautstärke auf 0
+            this.playAllSounds();
         }
     }
 

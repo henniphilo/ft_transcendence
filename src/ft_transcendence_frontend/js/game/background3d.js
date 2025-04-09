@@ -3,9 +3,6 @@ import { AudioManager, getGlobalAudioManager, setGlobalAudioManager } from './au
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-let backgroundAudioManager = null;
-export { backgroundAudioManager };
-
 let scene, camera, renderer, controls;
 let model;
 let particles;
@@ -27,20 +24,17 @@ export function initBackground3D(onLoadedCallback) {
     const listener = new THREE.AudioListener();
     camera.add(listener);
 
-    let globalManager = getGlobalAudioManager();
-    if (!globalManager) {
-        console.warn("⚠️ Kein globaler AudioManager gefunden, neue Instanz wird erstellt.");
-        backgroundAudioManager = new AudioManager(listener);
-        setGlobalAudioManager(backgroundAudioManager);
-    } else {
-        backgroundAudioManager = globalManager;
+    let audioManager = getGlobalAudioManager();
+    if (!audioManager) {
+        audioManager = new AudioManager(listener);
+        setGlobalAudioManager(audioManager);
     }
 
-    backgroundAudioManager.loadSound('background', '/sounds/HeavyJam_©PlasticPigs.mp3', {
+    audioManager.loadSound('background', '/sounds/HeavyJam_©PlasticPigs.mp3', {
         loop: true
     }).then(() => {
         document.addEventListener('click', () => {
-            backgroundAudioManager.playSound('background');
+            audioManager.playSound('background');
         }, { once: true });
 
         if (onLoadedCallback) onLoadedCallback();
