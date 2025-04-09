@@ -100,11 +100,6 @@ export class UserProfileView {
 			bioElement.textContent = profileData.bio || 'No bio provided';
 		}
 		
-		const birthDateElement = document.getElementById('profile-view-birth-date');
-		if (birthDateElement) {
-			birthDateElement.textContent = profileData.birth_date || 'Not provided';
-		}
-		
 		const tournamentNameElement = document.getElementById('profile-view-tournament-name');
 		if (tournamentNameElement) {
 			tournamentNameElement.textContent = profileData.tournament_name || 'Not provided';

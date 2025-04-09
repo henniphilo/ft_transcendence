@@ -98,7 +98,7 @@ services:
         tag: "backend"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/metrics || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 10 
 
@@ -310,9 +310,11 @@ services:
     #   - xpack.encryptedSavedObjects.encryptionKey=<5880da9738edab6101dc26330c2fafca>
     #   - xpack.reporting.encryptionKey=<e1921b1a405bc83d11084504c65d8cae>
     #   - xpack.security.encryptionKey=<789dcf21ca81e07d37c6aa2c23742021>
-    # depends_on:
-    #   elasticsearch:
-    #     condition: service_healthy
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - kibana_data:/usr/share/kibana/data 
     healthcheck:
       test: ["CMD-SHELL", "curl -s -f http://localhost:5601/api/status || exit 1"]
       interval: 30s

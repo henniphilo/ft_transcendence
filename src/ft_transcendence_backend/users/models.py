@@ -6,7 +6,6 @@ import string
 class CustomUser(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio = models.TextField(blank=True, null=True)
-    birth_date = models.DateField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)  # 2FA aktiviert?
     verification_code = models.CharField(max_length=6, blank=True, null=True)  # 6-stelliger Code
     score = models.IntegerField(default=0)  # Neues Feld für den Score
@@ -22,8 +21,8 @@ class CustomUser(AbstractUser):
 
     def generate_tournament_name(self):
         """ Generiert einen eindeutigen Tournament-Namen """
-        adjectives = ["Legendary", "Mighty", "Stealthy", "Fierce", "Epic"]
-        nouns = ["Phoenix", "Dragon", "Warrior", "Ninja", "Samurai"]
+        adjectives = ["Buzzy", "Berliner", "Stealthy", "Fierce", "Epic"]
+        nouns = ["Passenger", "Railer", "Controller", "Engineer", "Conductor"]
         while True:
             name = f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.randint(100, 999)}"
             if not CustomUser.objects.filter(tournament_name=name).exists():

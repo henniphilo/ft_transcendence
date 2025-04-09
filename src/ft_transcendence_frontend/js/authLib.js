@@ -74,14 +74,30 @@ export function registerUser(data) {
  * Überprüft den 2FA-Verifizierungscode.
  */
 export function verifyCode(email, code) {
-    return fetch(`${BASE_URL}/verify/`, {
+    return fetch(`${BASE_URL}/verify`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken'),
         },
         body: JSON.stringify({ email, code }),
-    }).then(response => response.json());
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Backend sendet "message" bei Erfolg, "error" bei Fehler
+        if (data.error) {
+            return Promise.reject(new Error(data.error));
+        }
+        return {
+            verified: true,
+            message: data.message
+        };
+    });
 }
 
 /**
@@ -177,7 +193,27 @@ export function updateProfile(formData) {
  * Meldet den Benutzer ab.
  */
 export function logoutUser() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    console.log('Logout erfolgreich!');
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    return fetch(`${BASE_URL}/logout/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refresh_token: refreshToken })
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Logout failed:', response.status);
+            return Promise.reject('Logout failed');
+        }
+        return response.json();
+    })
+    .finally(() => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        console.log('Logout completed, storage cleared');
+    });
 } 
