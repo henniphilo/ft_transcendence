@@ -1,5 +1,5 @@
 import { ThreeJSManager } from "./3dmanager.js";
-import { backgroundAudioManager } from './background3d.js';
+import { getGlobalAudioManager } from './audioManger.js';
 
 export class GameScreen {
     constructor(gameData, onBackToMenu) {
@@ -129,11 +129,36 @@ export class GameScreen {
         console.log("Displaying game...");
         const container = document.getElementById('game-container');
 
-        if (backgroundAudioManager?.isPlaying('background')) {
-            backgroundAudioManager.stopSound('background');
+
+
+        // Hintergrundmusik stoppen, wenn das Spiel startet
+        const globalAudioManager = getGlobalAudioManager();
+        if (globalAudioManager?.isPlaying && globalAudioManager.isPlaying('background')) {
+            globalAudioManager.stopSound('background');
         }
 
-        const { player1Name, player2Name } = this.getPlayerNames();
+
+        // Bestimme die Spielernamen basierend auf dem Spielmodus
+        let player1Name = this.gameState.player1.name;
+        let player2Name = this.gameState.player2.name;
+
+        if (this.userProfile) {
+            if (this.gameMode === 'ai') {
+                if (this.playerRole === 'player1') {
+                    player1Name = this.userProfile.username;
+                    player2Name = "AI Player";
+                }
+            } else if (this.gameMode === 'local') {
+                if (this.playerRole === 'player1') {
+                    player1Name = this.userProfile.username;
+                    player2Name = "Local Player";
+                } else {
+                    player1Name = "Local Player";
+                    player2Name = this.userProfile.username;
+                }
+            }
+        }
+
 
         container.innerHTML = `
             <div class="game-screen">
@@ -228,18 +253,13 @@ export class GameScreen {
     }
 
     displayWinnerScreen() {
-        this.keyState = {
-            'a': false,
-            'd': false,
-            'ArrowLeft': false,
-            'ArrowRight': false
-        };
 
-        this.cleanupControls();
+        const globalAudioManager = getGlobalAudioManager();
 
-        if (this.threeJSManager?.audioManager?.isPlaying('game')) {
-            this.threeJSManager.audioManager.stopSound('game');
-            backgroundAudioManager.playSound('background');
+        // Musik stoppen, wenn Spiel vorbei ist
+        if (globalAudioManager?.isPlaying('game')) {
+            globalAudioManager.stopSound('game');
+            globalAudioManager.playSound('background');
         }
 
         const container = document.getElementById('game-container');
