@@ -104,7 +104,9 @@ class Menu:
             if not self.tournament_task or self.tournament_task.done():
                 self.tournament_task = asyncio.create_task(self.start_tournament())
 
-            return {"action": "searching_opponent", "message": "Waiting for more players to join the tournament..."}
+            await self.broadcast_tournament_queue_update()
+            return None  # da die Nachricht schon direkt gesendet wurde
+
 
         elif selection == "leaderboard":
             return {
@@ -263,6 +265,20 @@ class Menu:
                 print(f"Error notifying players: {e}")
                 self.searching_players[player1_ws] = player1_name
                 self.searching_players[player2_ws] = player2_name
+
+    async def broadcast_tournament_queue_update(self):
+        names = [entry["player"].name for entry in self.tournament_queue]
+        message = f"Waiting for more players to join the tournament: {', '.join(names)}"
+        
+        for entry in self.tournament_queue:
+            try:
+                await entry["websocket"].send_json({
+                    "action": "searching_opponent",
+                    "message": message
+                })
+            except Exception as e:
+                print(f"Fehler beim Senden an {entry['player'].name}: {e}")
+
 
     async def start_tournament(self):
         print("Starting tournament check loop")
