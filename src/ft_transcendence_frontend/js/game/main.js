@@ -2,8 +2,6 @@ import { initBackground3D } from './background3d.js';
 import { backgroundAudioManager } from './background3d.js';
 import { MenuDisplay } from './displayMenu.js';
 
-let musicEnabled = true;
-
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM fully loaded");
 
@@ -25,20 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (toggleButton) {
         toggleButton.addEventListener('click', () => {
-            const music = backgroundAudioManager.getSound('background');
-            if (!music) return;
+            const isCurrentlyMuted = backgroundAudioManager?.isMuted;
 
-            if (music.isPlaying) {
-                music.pause();
-                toggleButton.textContent = '🔇 Musik: Aus';
-                musicEnabled = false;
+            if (isCurrentlyMuted) {
+                backgroundAudioManager.toggleAllSounds(true);
+                toggleButton.textContent = '🔊 Musik: On';
             } else {
-                music.play();
-                toggleButton.textContent = '🔊 Musik: An';
-                musicEnabled = true;
+                backgroundAudioManager.toggleAllSounds(false);
+                toggleButton.textContent = '🔇 Musik: Off';
             }
         });
     }
 });
-
-

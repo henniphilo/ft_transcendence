@@ -1,8 +1,10 @@
 import * as THREE from 'three';
-import { AudioManager } from './audioManger.js';
+import { AudioManager, getGlobalAudioManager, setGlobalAudioManager } from './audioManger.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+let backgroundAudioManager = null;
+export { backgroundAudioManager };
 
 let scene, camera, renderer, controls;
 let model;
@@ -10,8 +12,6 @@ let particles;
 let cameraSpeed = 0.005;
 let cameraMoveRight = 0.002;
 let cameraMoveUp = 0.001;
-
-export let backgroundAudioManager = null;
 
 export function initBackground3D(onLoadedCallback) {
     console.log("in initBackground3D");
@@ -27,14 +27,23 @@ export function initBackground3D(onLoadedCallback) {
     const listener = new THREE.AudioListener();
     camera.add(listener);
 
-    // Sound laden
-    backgroundAudioManager = new AudioManager(listener); // nur diese eine Instanz!
+    let globalManager = getGlobalAudioManager();
+    if (!globalManager) {
+        console.warn("⚠️ Kein globaler AudioManager gefunden, neue Instanz wird erstellt.");
+        backgroundAudioManager = new AudioManager(listener);
+        setGlobalAudioManager(backgroundAudioManager);
+    } else {
+        backgroundAudioManager = globalManager;
+    }
 
     backgroundAudioManager.loadSound('background', '/sounds/HeavyJam_©PlasticPigs.mp3', {
-        loop: true }).then(() => {
+        loop: true
+    }).then(() => {
         document.addEventListener('click', () => {
             backgroundAudioManager.playSound('background');
         }, { once: true });
+
+        if (onLoadedCallback) onLoadedCallback();
     });
 
 
