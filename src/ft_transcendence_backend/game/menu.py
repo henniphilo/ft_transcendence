@@ -5,6 +5,8 @@ import asyncio
 from settings import GameSettings
 from models.player import Player, PlayerType, Controls
 from tournament_manager import TournamentManager
+from game_server import GameServer
+
 
 
 class Menu:
@@ -18,6 +20,7 @@ class Menu:
         self.tournament_queue = []  # list of {"websocket": ..., "player": Player}
         self.tournament_task = None
         self.tournament_manager = None
+        self.game_server = GameServer()
 
         # Hauptmenü
         self.menu_items = [
