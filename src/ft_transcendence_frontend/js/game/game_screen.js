@@ -150,17 +150,17 @@ export class GameScreen {
                         <h2>Controls</h2>
                         <div class="control-section">
                             <strong>Player 1:</strong>
-                            <span class="key">A</span> Left | <span class="key">D</span> Right
+                            <span class="key">[A]</span> Left | <span class="key">[D]</span> Right
                         </div>
                         <div class="control-section">
                             <strong>Player 2:</strong>
-                            <span class="key">←</span> Left | <span class="key">→</span> Right
+                            <span class="key">[←]</span> Left | <span class="key">[→]</span> Right
                         </div>
                         <h3>Change Perspective</h3>
                         <div class="control-section">
-                            <span class="key">1</span> Player 1 View |
-                            <span class="key">2</span> Player 2 View |
-                            <span class="key">3</span> Top View
+                            <span class="key">[1]</span> Player 1 View |
+                            <span class="key">[2]</span> Player 2 View |
+                            <span class="key">[3]</span> Top View
                         </div>
                     </div>
                 </div>
