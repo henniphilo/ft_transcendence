@@ -7,6 +7,8 @@ export class GameScreen {
         console.log("GameScreen loaded!");
         console.log("Game Data:", gameData);  // Debug-Ausgabe der gesamten gameData
 
+        this.settings = gameData.settings || {}; // 👈 HINZUGEFÜGT!
+
         // Speichere das Benutzerprofil
         this.userProfile = gameData.userProfile;
 
@@ -76,6 +78,7 @@ export class GameScreen {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
+            console.log("🎯 Settings werden mitgeschickt:", this.settings);
             console.log("WebSocket connection established for game:", this.gameId);
 
             // Sende Benutzerprofilinformationen nach der Verbindung
@@ -83,7 +86,8 @@ export class GameScreen {
                 this.ws.send(JSON.stringify({
                     action: 'player_info',
                     player_role: this.playerRole,
-                    user_profile: this.userProfile
+                    user_profile: this.userProfile,
+                    settings: this.settings
                 }));
             }
         };
