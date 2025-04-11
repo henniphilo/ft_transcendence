@@ -1,20 +1,18 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from menu import Menu
 from game_server import GameServer
 import uuid
-from fastapi import WebSocketDisconnect
 import logging
 from settings import LOGGING
+
 # Configure logging
 logging.config.dictConfig(LOGGING)
-# test logging
 logger = logging.getLogger('game')
 
-# Example log messages at different levels
+# Test logging
 logger.debug("GAME! This is a test debug message")
 logger.info("GAME! test Game application starting up...")
 logger.warning("GAME! test This is a warning message")
-# logger.error("GAME! test This is an error message")
 
 app = FastAPI()
 menu = Menu()
@@ -39,21 +37,25 @@ async def websocket_menu(websocket: WebSocket):
                 menu_items = await menu.get_menu_items()
                 await websocket.send_json({"menu_items": menu_items})
             
-            elif data["action"] == "update_settings":  # Hier könnte der Fehler sein
-                print(f"Updating settings with: {data}")  # Debug
+            elif data["action"] == "update_settings":
+                print(f"Updating settings with: {data}")
                 response = await menu.update_settings(data["settings"])
                 await websocket.send_json(response)
-            
+
             elif data["action"] == "menu_selection":
-                    user_profile = data.get("userProfile")  # <- UserProfile wird aus der Nachricht geholt
-                    response = await menu.handle_menu_selection(websocket, data["selection"], userProfile=user_profile)
+                user_profile = data.get("userProfile")
+                response = await menu.handle_menu_selection(websocket, data["selection"], userProfile=user_profile)
+                if response:
                     await websocket.send_json(response)
 
-                
+            elif data["action"] == "start_tournament_now":
+                print("🎯 Received start_tournament_now")
+                await menu.start_tournament_matches()
+
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        print(f"WebSocket Error: {e}")  # Debug
+        print(f"WebSocket Error: {e}")
         try:
             await websocket.close()
         except RuntimeError:
@@ -68,5 +70,4 @@ async def websocket_game(websocket: WebSocket, game_id: str):
     print("\n=== Websocket Game Settings ===")
     print(f"Settings being passed to game: {settings}")
     
-    await game_server.handle_game(websocket, game_id, settings) 
-    
+    await game_server.handle_game(websocket, game_id, settings)

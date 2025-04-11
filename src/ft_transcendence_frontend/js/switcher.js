@@ -187,6 +187,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 showTemplate('menu', { userProfile: data.userProfile });
             });
         }
+
+        const startTournamentBtn = document.getElementById('start-tournament-btn');
+            if (startTournamentBtn) {
+                startTournamentBtn.addEventListener('click', () => {
+                    const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
+                    
+                    socket.onopen = () => {
+                        console.log("📡 Tournament Start Button WebSocket verbunden");
+                        socket.send(JSON.stringify({
+                            action: "start_tournament_now"
+                        }));
+                    };
+
+                    socket.onmessage = (event) => {
+                        console.log("Serverantwort:", event.data);
+                        socket.close();
+                    };
+
+                    socket.onerror = (error) => {
+                        console.error("Fehler beim Senden des Startsignals:", error);
+                    };
+                });
+            }
+
     }
     
 

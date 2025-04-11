@@ -288,11 +288,14 @@ class Menu:
         while True:
             print(f"Tournament Queue: {len(self.tournament_queue)} Spieler")
             if len(self.tournament_queue) == 4:
-                print("Tournament is ready to start with 4 players")
+                print("Tournament is ready to show grid with 4 players")
                 entries = [self.tournament_queue.pop(0) for _ in range(4)]
 
-                # Sende "tournament_ready" an alle
+                # Speichere Entries im Manager, aber starte noch nicht
+                self.tournament_manager = TournamentManager(entries)
+
                 player_infos = [{"tournament_name": e["player"].name} for e in entries]
+
                 for entry in entries:
                     try:
                         await entry["websocket"].send_json({
@@ -304,52 +307,59 @@ class Menu:
                     except Exception as e:
                         print(f"Fehler beim Senden an Spieler: {e}")
 
-                # Initialisiere den TournamentManager
-                self.tournament_manager = TournamentManager(entries)
-                matchups = self.tournament_manager.create_matchups()
-
-                # Starte für jedes Match ein Spiel
-                for p1_entry, p2_entry in matchups:
-                    game_id = str(uuid.uuid4())
-                    settings = self.game_settings.get_settings()
-                    settings.update({
-                        "mode": "online",
-                        "is_tournament": True,
-                        "game_id": game_id,
-                        "player1_name": p1_entry["player"].name,
-                        "player2_name": p2_entry["player"].name,
-                    })
-
-                    # Übergib die Profile an den GameServer
-                    self.game_server.game_user_profiles[game_id] = {
-                        "player1": {"id": None, "username": p1_entry["player"].name},
-                        "player2": {"id": None, "username": p2_entry["player"].name},
-                    }
-
-                    # Verbinde TournamentManager mit dem GameServer
-                    self.game_server.tournament_manager = self.tournament_manager
-
-                    # Benachrichtige beide Spieler
-                    try:
-                        await p1_entry["websocket"].send_json({
-                            "action": "game_found",
-                            "game_id": game_id,
-                            "settings": settings,
-                            "player1": p1_entry["player"].name,
-                            "player2": p2_entry["player"].name,
-                            "playerRole": "player1"
-                        })
-                        await p2_entry["websocket"].send_json({
-                            "action": "game_found",
-                            "game_id": game_id,
-                            "settings": settings,
-                            "player1": p1_entry["player"].name,
-                            "player2": p2_entry["player"].name,
-                            "playerRole": "player2"
-                        })
-                        print(f"⏯️ Match gestartet: {p1_entry['player'].name} vs {p2_entry['player'].name}")
-                    except Exception as e:
-                        print(f"Fehler beim Match-Start: {e}")
+                break  # Brich die Schleife ab, jetzt warten wir auf Button "Start Tournament"
 
             await asyncio.sleep(1)
+            
+
+    async def start_tournament_matches(self):
+        if not self.tournament_manager:
+            print("❌ Kein TournamentManager vorhanden.")
+            return
+
+        print("⏯️ Starte Matches aus dem gespeicherten TournamentManager")
+        matchups = self.tournament_manager.create_matchups()
+
+        for p1_entry, p2_entry in matchups:
+            game_id = str(uuid.uuid4())
+            settings = self.game_settings.get_settings()
+            settings.update({
+                "mode": "online",
+                "is_tournament": True,
+                "game_id": game_id,
+                "player1_name": p1_entry["player"].name,
+                "player2_name": p2_entry["player"].name,
+            })
+
+            # Übergib die Profile an den GameServer
+            self.game_server.game_user_profiles[game_id] = {
+                "player1": {"id": None, "username": p1_entry["player"].name},
+                "player2": {"id": None, "username": p2_entry["player"].name},
+            }
+
+            # Verbinde TournamentManager mit dem GameServer
+            self.game_server.tournament_manager = self.tournament_manager
+
+            try:
+                await p1_entry["websocket"].send_json({
+                    "action": "game_found",
+                    "game_id": game_id,
+                    "settings": settings,
+                    "player1": p1_entry["player"].name,
+                    "player2": p2_entry["player"].name,
+                    "playerRole": "player1"
+                })
+                await p2_entry["websocket"].send_json({
+                    "action": "game_found",
+                    "game_id": game_id,
+                    "settings": settings,
+                    "player1": p1_entry["player"].name,
+                    "player2": p2_entry["player"].name,
+                    "playerRole": "player2"
+                })
+                print(f"🎮 Match gestartet: {p1_entry['player'].name} vs {p2_entry['player'].name}")
+            except Exception as e:
+                print(f"❌ Fehler beim Match-Start: {e}")
+
+
 
