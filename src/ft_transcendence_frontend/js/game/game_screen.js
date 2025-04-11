@@ -362,8 +362,31 @@ export class GameScreen {
     
         // Wechsle zum Tournament-Template
         showTemplate('tournament', { userProfile: this.userProfile, tournamentData: this.settings });
-
+    
+        // Turnier-Ergebnis an den Server melden
+        if (this.settings?.is_tournament && this.gameState?.winner?.name) {
+            const message = {
+                action: "tournament_result",
+                winner: this.gameState.winner.name
+            };
+    
+            const tournamentSocket = new WebSocket("ws://" + window.location.host + "/ws/menu");
+    
+            tournamentSocket.addEventListener("open", () => {
+                console.log("📡 Sending tournament result:", message);
+                tournamentSocket.send(JSON.stringify(message));
+            });
+    
+            tournamentSocket.addEventListener("error", (err) => {
+                console.error("❌ Tournament WebSocket error:", err);
+            });
+    
+            tournamentSocket.addEventListener("close", () => {
+                console.log("🔌 Tournament WebSocket closed");
+            });
+        }
     }
+    
     
     
 

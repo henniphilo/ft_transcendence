@@ -52,6 +52,33 @@ async def websocket_menu(websocket: WebSocket):
                 print("🎯 Received start_tournament_now")
                 await menu.start_tournament_matches()
 
+            elif data["action"] == "tournament_result":
+                winner = data.get("winner")
+                print(f"✅ Received tournament result: {winner}")
+                menu.tournament_manager.record_result(winner)
+
+                results = menu.tournament_manager.results
+                round = menu.tournament_manager.current_round
+                total_rounds = menu.tournament_manager.total_rounds
+                matchups = [{
+                    "player1": p1["player"].name,
+                    "player2": p2["player"].name
+                } for p1, p2 in menu.tournament_manager.active_matches]
+
+                # Broadcast an alle Spieler im Turnier
+                for entry in menu.tournament_manager.players:
+                    try:
+                        await entry["websocket"].send_json({
+                            "action": "update_tournament_results",
+                            "results": results,
+                            "round": round,
+                            "total_rounds": total_rounds,
+                            "matchups": matchups
+                        })
+                    except Exception as e:
+                        print(f"❌ Fehler beim Senden an {entry['player'].name}: {e}")
+
+
     except WebSocketDisconnect:
         pass
     except Exception as e:

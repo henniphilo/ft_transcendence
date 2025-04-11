@@ -7,6 +7,7 @@ class TournamentManager:
         self.total_rounds = self._calculate_total_rounds(len(players))
         self.active_matches = []  # list of (p1_entry, p2_entry)
         self.results = {}  # {winner_name: 1}
+        self.match_history = []  # ← NEU: speichert alle abgeschlossenen Matches
 
     def _calculate_total_rounds(self, num_players):
         import math
@@ -28,6 +29,24 @@ class TournamentManager:
     def record_result(self, winner_name):
         self.results[winner_name] = self.results.get(winner_name, 0) + 1
 
+        # Gewinner und Verlierer merken
+        for p1_entry, p2_entry in self.active_matches:
+            p1 = p1_entry["player"].name
+            p2 = p2_entry["player"].name
+            if winner_name in [p1, p2]:
+                loser = p2 if winner_name == p1 else p1
+                self.match_history.append({
+                    "round": self.current_round,
+                    "player1": p1,
+                    "player2": p2,
+                    "winner": winner_name,
+                    "loser": loser
+                })
+                break
+
+    def get_match_history(self):
+        return self.match_history
+
     def next_round(self):
         self.current_round += 1
         advancing = [entry for entry in self.players if entry["player"].name in self.results]
@@ -42,3 +61,12 @@ class TournamentManager:
         if self.is_finished():
             return self.players[0]["player"].name
         return None
+    
+    def get_current_matchups(self):
+        return [
+            {
+                "player1": p1_entry["player"].name,
+                "player2": p2_entry["player"].name
+            }
+            for p1_entry, p2_entry in self.active_matches
+        ]

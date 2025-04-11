@@ -148,6 +148,31 @@ document.addEventListener("DOMContentLoaded", () => {
         new UserProfileView(data.username, data.currentUserProfile);
     }
 
+    function renderTournamentResults(results, round, totalRounds) {
+        const container = document.getElementById('tournament-results');
+        console.log("🎯 Rendering Results:", results);
+        if (!container) return;
+    
+        const resultList = Object.entries(results).map(
+            ([name, wins]) => `<li class="list-group-item">${name} – Wins: ${wins}</li>`
+        ).join("");
+    
+        container.innerHTML = `
+            <div class="card mt-4">
+                <div class="card-header text-center">
+                    <h5>🕹️ Round ${round} of ${totalRounds}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">${resultList}</ul>
+                </div>
+            </div>
+        `;
+    }
+    
+    
+    
+    
+
     function setupTournament(data) {
         console.log("Setting up tournament with data:", data);
         const tournamentGrid = document.getElementById('tournament-grid');
@@ -155,16 +180,25 @@ document.addEventListener("DOMContentLoaded", () => {
             const players = data.players || [];
             const round = data.round || 1;
             const totalRounds = data.total_rounds || 1;
+            const matchups = data.matchups || [];
+            const results = data.results || {};
     
             const playerList = players.map((p, index) =>
                 `<li class="list-group-item">Player ${index + 1}: ${p.tournament_name}</li>`
             ).join("");
     
-            const matchups = `
-                <p class="text-center"><strong>Matchups:</strong></p>
-                <p class="text-center">${players[0]?.tournament_name} vs ${players[1]?.tournament_name}</p>
-                <p class="text-center">${players[2]?.tournament_name} vs ${players[3]?.tournament_name}</p>
-            `;
+            let matchupsHTML = "";
+            if (matchups.length > 0) {
+                matchupsHTML += `<p class="text-center"><strong>Matchups:</strong></p>`;
+                matchups.forEach((match) => {
+                    const resultIcon = results[match.player1]
+                        ? `✅ ${match.player1}`
+                        : results[match.player2]
+                        ? `✅ ${match.player2}`
+                        : `${match.player1} vs ${match.player2}`;
+                    matchupsHTML += `<p class="text-center">${resultIcon}</p>`;
+                });
+            }
     
             tournamentGrid.innerHTML = `
                 <div class="card my-4">
@@ -175,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <ul class="list-group mb-4">
                             ${playerList}
                         </ul>
-                        ${matchups}
+                        ${matchupsHTML}
                     </div>
                 </div>
             `;
@@ -187,31 +221,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 showTemplate('menu', { userProfile: data.userProfile });
             });
         }
-
+    
         const startTournamentBtn = document.getElementById('start-tournament-btn');
-            if (startTournamentBtn) {
-                startTournamentBtn.addEventListener('click', () => {
-                    const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
-                    
-                    socket.onopen = () => {
-                        console.log("📡 Tournament Start Button WebSocket verbunden");
-                        socket.send(JSON.stringify({
-                            action: "start_tournament_now"
-                        }));
-                    };
-
-                    socket.onmessage = (event) => {
-                        console.log("Serverantwort:", event.data);
-                        socket.close();
-                    };
-
-                    socket.onerror = (error) => {
-                        console.error("Fehler beim Senden des Startsignals:", error);
-                    };
-                });
+        if (startTournamentBtn) {
+            startTournamentBtn.addEventListener('click', () => {
+                const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
+    
+                socket.onopen = () => {
+                    console.log("📡 Tournament Start Button WebSocket verbunden");
+                    socket.send(JSON.stringify({
+                        action: "start_tournament_now"
+                    }));
+                };
+    
+                socket.onmessage = (event) => {
+                    console.log("Serverantwort:", event.data);
+                    socket.close();
+                };
+    
+                socket.onerror = (error) => {
+                    console.error("Fehler beim Senden des Startsignals:", error);
+                };
+            });
+        }
+    
+        // Setze WebSocket für Ergebnisse auf
+        const tournamentSocket = new WebSocket("ws://" + window.location.host + "/ws/menu");
+    
+        tournamentSocket.addEventListener("open", () => {
+            console.log("🎯 TournamentSocket connected");
+            tournamentSocket.send(JSON.stringify({ action: "request_tournament_results" }));
+        });
+    
+        tournamentSocket.addEventListener("message", (event) => {
+            const msg = JSON.parse(event.data);
+    
+            if (msg.action === "update_tournament_results") {
+                console.log("📋 Ergebnisse erhalten:", msg.results);
+                renderTournamentResults(msg.results, msg.round, msg.total_rounds, msg.matchups);
             }
+        });
 
+        if (data.results) {
+            console.log("📋 Initiale Ergebnisse direkt rendern:", data.results);
+            renderTournamentResults(data.results, data.round, data.total_rounds);
+        }
+        
     }
+    
     
 
     // Event Listener für Template-Wechsel
