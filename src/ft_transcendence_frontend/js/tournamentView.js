@@ -40,11 +40,23 @@ export class TournamentView {
     const matchups = this.data.matchups || [];
     const results = this.data.results || {};
 
+    // Create a mapping of usernames to tournament names if available
+    const usernameToTournamentMap = {};
+    players.forEach((p) => {
+      if (p.username && p.tournament_name) {
+        usernameToTournamentMap[p.username] = p.tournament_name;
+      }
+    });
+
     const playerList = players
       .map(
         (p, index) =>
           `<li class="list-group-item">Spieler ${index + 1}: ${
             p.tournament_name
+          }${
+            p.username && p.username !== p.tournament_name
+              ? ` (${p.username})`
+              : ""
           }</li>`
       )
       .join("");
@@ -53,11 +65,15 @@ export class TournamentView {
     if (matchups.length > 0) {
       matchupsHTML += `<p class="text-center"><strong>Paarungen:</strong></p>`;
       matchups.forEach((match) => {
-        const resultIcon = results[match.player1]
-          ? `✅ ${match.player1} hat gewonnen gegen ${match.player2}`
-          : results[match.player2]
-          ? `✅ ${match.player2} hat gewonnen gegen ${match.player1}`
-          : `${match.player1} vs ${match.player2}`;
+        // Check if we need to map usernames to tournament names
+        const player1 = usernameToTournamentMap[match.player1] || match.player1;
+        const player2 = usernameToTournamentMap[match.player2] || match.player2;
+
+        const resultIcon = results[player1]
+          ? `✅ ${player1} hat gewonnen gegen ${player2}`
+          : results[player2]
+          ? `✅ ${player2} hat gewonnen gegen ${player1}`
+          : `${player1} vs ${player2}`;
         matchupsHTML += `<p class="text-center">${resultIcon}</p>`;
       });
     }
@@ -251,23 +267,41 @@ export class TournamentView {
     const tournamentGrid = document.getElementById("tournament-grid");
     if (!tournamentGrid) return;
 
+    // Create a mapping of usernames to tournament names if available
+    const usernameToTournamentMap = {};
+    if (this.data.players) {
+      this.data.players.forEach((p) => {
+        if (p.username && p.tournament_name) {
+          usernameToTournamentMap[p.username] = p.tournament_name;
+        }
+      });
+    }
+
+    // Try to get the tournament name if winner is a username
+    const displayWinner = usernameToTournamentMap[winner] || winner;
+
     // Erstelle eine schöne Darstellung der Match-Historie
     const historyHTML = matchHistory
-      .map(
-        (match) =>
-          `<li class="list-group-item">
-        Runde ${match.round}: ${match.winner} hat gegen ${match.loser} gewonnen
-      </li>`
-      )
+      .map((match) => {
+        // Map usernames to tournament names if possible
+        const displayWinner =
+          usernameToTournamentMap[match.winner] || match.winner;
+        const displayLoser =
+          usernameToTournamentMap[match.loser] || match.loser;
+
+        return `<li class="list-group-item">
+          Runde ${match.round}: ${displayWinner} hat gegen ${displayLoser} gewonnen
+        </li>`;
+      })
       .join("");
 
     tournamentGrid.innerHTML = `
       <div class="card my-4">
         <div class="card-header text-center bg-success text-white">
-          <h4>🏆 Turniersieger: ${winner}</h4>
+          <h4>🏆 Turniersieger: ${displayWinner}</h4>
         </div>
         <div class="card-body">
-          <p class="text-center">Herzlichen Glückwunsch an ${winner} zum Turniersieg!</p>
+          <p class="text-center">Herzlichen Glückwunsch an ${displayWinner} zum Turniersieg!</p>
           
           <h5 class="mt-4">Turnierverlauf:</h5>
           <ul class="list-group">

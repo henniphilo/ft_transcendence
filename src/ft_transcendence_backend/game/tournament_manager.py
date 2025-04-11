@@ -27,6 +27,26 @@ class TournamentManager:
         return self.active_matches
 
     def record_result(self, winner_name):
+        # Check if winner_name is a username rather than tournament_name
+        # and find the corresponding tournament_name if needed
+        tournament_player = None
+        for player_entry in self.players:
+            player = player_entry["player"]
+            if player.name == winner_name:
+                # Direct match found - winner_name is already a tournament_name
+                tournament_player = player
+                break
+            # Check if this player's user profile has this username
+            if hasattr(player, "user_profile") and player.user_profile and player.user_profile.get("username") == winner_name:
+                # Found the player with this username
+                tournament_player = player
+                break
+        
+        # If we found a matching player, use their tournament name
+        if tournament_player:
+            winner_name = tournament_player.name
+        
+        # Now record the result with the correct tournament_name
         self.results[winner_name] = self.results.get(winner_name, 0) + 1
 
         print(f"record_result: {winner_name}")

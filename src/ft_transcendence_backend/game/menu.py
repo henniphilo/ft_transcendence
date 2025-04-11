@@ -98,6 +98,9 @@ class Menu:
                 player_type=PlayerType.HUMAN,
                 controls=Controls.ARROWS
             )
+            
+            if userProfile:
+                player.user_profile = userProfile
 
             self.tournament_queue.append({
                 "websocket": websocket,
@@ -291,10 +294,34 @@ class Menu:
                 print("Tournament is ready to show grid with 4 players")
                 entries = [self.tournament_queue.pop(0) for _ in range(4)]
 
+                # Debug-Ausgabe der User-Profile
+                for i, entry in enumerate(entries):
+                    player = entry["player"]
+                    print(f"Player {i+1}: {player.name}")
+                    if hasattr(player, 'user_profile') and player.user_profile:
+                        print(f"  User Profile: {player.user_profile}")
+                    else:
+                        print("  No user profile found!")
+
                 # Speichere Entries im Manager, aber starte noch nicht
                 self.tournament_manager = TournamentManager(entries)
 
-                player_infos = [{"tournament_name": e["player"].name} for e in entries]
+                # Erstelle Player-Infos mit Tournament-Namen
+                player_infos = []
+                for e in entries:
+                    player = e["player"]
+                    info = {"tournament_name": player.name}
+                    
+                    # Füge das vollständige User-Profil hinzu, falls vorhanden
+                    if hasattr(player, 'user_profile') and player.user_profile:
+                        info["user_profile"] = player.user_profile
+                        # Für einfacheren Zugriff auch den Username direkt hinzufügen
+                        if "username" in player.user_profile:
+                            info["username"] = player.user_profile["username"]
+                    
+                    player_infos.append(info)
+                print(f"Player Infos:___________ {player_infos}")
+
 
                 for entry in entries:
                     try:
@@ -323,19 +350,45 @@ class Menu:
         for p1_entry, p2_entry in matchups:
             game_id = str(uuid.uuid4())
             settings = self.game_settings.get_settings()
+            
+            # Extrahiere die User-Profile, falls vorhanden
+            p1_profile = getattr(p1_entry["player"], "user_profile", {}) or {}
+            p2_profile = getattr(p2_entry["player"], "user_profile", {}) or {}
+            
             settings.update({
                 "mode": "online",
                 "is_tournament": True,
                 "game_id": game_id,
                 "player1_name": p1_entry["player"].name,
                 "player2_name": p2_entry["player"].name,
+                "tournament_round": self.tournament_manager.current_round,
+                "tournament_totalRounds": self.tournament_manager.total_rounds,
+                "tournament_players": [
+                    {"tournament_name": entry["player"].name, 
+                     "username": entry["player"].user_profile.get("username", entry["player"].name) if entry["player"].user_profile else entry["player"].name}
+                    for entry in self.tournament_manager.players
+                ],
+                "player1_profile": p1_profile,
+                "player2_profile": p2_profile
             })
+            print(f"Settings in startmatches tournament: {settings}")
 
             # Übergib die Profile an den GameServer
             self.game_server.game_user_profiles[game_id] = {
-                "player1": {"id": None, "username": p1_entry["player"].name},
-                "player2": {"id": None, "username": p2_entry["player"].name},
+                "player1": {
+                    "id": p1_profile.get("id"),
+                    "username": p1_profile.get("username", p1_entry["player"].name),
+                    "user_profile": p1_profile
+                },
+                "player2": {
+                    "id": p2_profile.get("id"),
+                    "username": p2_profile.get("username", p2_entry["player"].name),
+                    "user_profile": p2_profile
+                },
             }
+            print(f"Game Server User Profiles: {self.game_server.game_user_profiles}")
+            print(f"Player 1: user_profile: {p1_profile}")
+            print(f"Player 2: user_profile: {p2_profile}")
 
             # Verbinde TournamentManager mit dem GameServer
             self.game_server.tournament_manager = self.tournament_manager
