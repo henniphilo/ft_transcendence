@@ -78,6 +78,29 @@ async def websocket_menu(websocket: WebSocket):
                     except Exception as e:
                         print(f"❌ Fehler beim Senden an {entry['player'].name}: {e}")
 
+            elif data["action"] == "start_next_round":
+                print("🎯 Nächste Turnierrunde wird gestartet")
+                
+                # Prüfen, ob alle Spiele der aktuellen Runde abgeschlossen sind
+                if len(menu.tournament_manager.results) == len(menu.tournament_manager.active_matches):
+                    # Nächste Runde starten
+                    matchups = menu.tournament_manager.next_round()
+                    
+                    # Wenn das Turnier noch nicht beendet ist
+                    if not menu.tournament_manager.is_finished():
+                        await menu.start_tournament_matches()
+                    else:
+                        # Turnier ist beendet, Gewinner verkünden
+                        winner = menu.tournament_manager.get_winner()
+                        for entry in menu.tournament_manager.players:
+                            try:
+                                await entry["websocket"].send_json({
+                                    "action": "tournament_finished",
+                                    "winner": winner,
+                                    "match_history": menu.tournament_manager.get_match_history()
+                                })
+                            except Exception as e:
+                                print(f"❌ Fehler beim Senden an {entry['player'].name}: {e}")
 
     except WebSocketDisconnect:
         pass

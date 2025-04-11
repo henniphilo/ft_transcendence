@@ -29,6 +29,14 @@ class TournamentManager:
     def record_result(self, winner_name):
         self.results[winner_name] = self.results.get(winner_name, 0) + 1
 
+        print(f"record_result: {winner_name}")
+        print(f"active_matches: {self.active_matches}")
+        print(f"match_history: {self.match_history}")
+        print(f"results: {self.results}")
+        print(f"current_round: {self.current_round}")
+        print(f"players: {self.players}")
+        print(f"is_finished: {self.is_finished()}")
+        
         # Gewinner und Verlierer merken
         for p1_entry, p2_entry in self.active_matches:
             p1 = p1_entry["player"].name

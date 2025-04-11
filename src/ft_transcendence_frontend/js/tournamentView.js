@@ -43,7 +43,7 @@ export class TournamentView {
     const playerList = players
       .map(
         (p, index) =>
-          `<li class="list-group-item">Player ${index + 1}: ${
+          `<li class="list-group-item">Spieler ${index + 1}: ${
             p.tournament_name
           }</li>`
       )
@@ -51,12 +51,12 @@ export class TournamentView {
 
     let matchupsHTML = "";
     if (matchups.length > 0) {
-      matchupsHTML += `<p class="text-center"><strong>Matchups:</strong></p>`;
+      matchupsHTML += `<p class="text-center"><strong>Paarungen:</strong></p>`;
       matchups.forEach((match) => {
         const resultIcon = results[match.player1]
-          ? `✅ ${match.player1}`
+          ? `✅ ${match.player1} hat gewonnen gegen ${match.player2}`
           : results[match.player2]
-          ? `✅ ${match.player2}`
+          ? `✅ ${match.player2} hat gewonnen gegen ${match.player1}`
           : `${match.player1} vs ${match.player2}`;
         matchupsHTML += `<p class="text-center">${resultIcon}</p>`;
       });
@@ -65,7 +65,7 @@ export class TournamentView {
     tournamentGrid.innerHTML = `
             <div class="card my-4">
                 <div class="card-header text-center">
-                    <h4>🏆 Tournament Round ${round} of ${totalRounds}</h4>
+                    <h4>🏆 Turnierrunde ${round} von ${totalRounds}</h4>
                 </div>
                 <div class="card-body">
                     <ul class="list-group mb-4">
@@ -165,13 +165,25 @@ export class TournamentView {
       const msg = JSON.parse(event.data);
 
       if (msg.action === "update_tournament_results") {
-        console.log("📋 Results received:", msg.results);
-        this.renderTournamentResults(
-          msg.results,
-          msg.round,
-          msg.total_rounds,
-          msg.matchups
-        );
+        console.log("📋 Neue Turnierergebnisse erhalten:", msg);
+
+        this.data.results = msg.results;
+        this.data.round = msg.round;
+        this.data.total_rounds = msg.total_rounds;
+        this.data.matchups = msg.matchups;
+
+        this.renderTournamentGrid();
+        this.renderTournamentResults(msg.results, msg.round, msg.total_rounds);
+
+        if (Object.keys(msg.results).length === msg.matchups.length) {
+          console.log("🎮 Alle Spiele dieser Runde abgeschlossen!");
+          this.showNextRoundButton();
+        }
+      }
+
+      if (msg.action === "tournament_finished") {
+        console.log("🏆 Turnier beendet! Gewinner:", msg.winner);
+        this.showTournamentWinner(msg.winner, msg.match_history);
       }
     });
 
@@ -187,6 +199,116 @@ export class TournamentView {
     if (this.socket) {
       this.socket.close();
       this.socket = null;
+    }
+  }
+
+  /**
+   * Zeigt den Button für die nächste Runde an, wenn alle Spiele abgeschlossen sind
+   */
+  showNextRoundButton() {
+    const startTournamentBtn = document.getElementById("start-tournament-btn");
+    if (startTournamentBtn) {
+      startTournamentBtn.textContent = "Nächste Runde starten";
+      startTournamentBtn.style.display = "block";
+
+      // Event-Listener aktualisieren
+      startTournamentBtn.removeEventListener("click", this.startTournament);
+      startTournamentBtn.addEventListener("click", () => {
+        this.startNextRound();
+      });
+    }
+  }
+
+  /**
+   * Startet die nächste Turnierrunde
+   */
+  startNextRound() {
+    const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
+
+    socket.onopen = () => {
+      console.log("📡 Nächste Runde WebSocket verbunden");
+      socket.send(
+        JSON.stringify({
+          action: "start_next_round",
+        })
+      );
+    };
+
+    socket.onmessage = (event) => {
+      console.log("Server-Antwort:", event.data);
+      socket.close();
+    };
+
+    socket.onerror = (error) => {
+      console.error("Fehler beim Senden des Start-Signals:", error);
+    };
+  }
+
+  /**
+   * Zeigt den Turniersieger an
+   */
+  showTournamentWinner(winner, matchHistory) {
+    const tournamentGrid = document.getElementById("tournament-grid");
+    if (!tournamentGrid) return;
+
+    // Erstelle eine schöne Darstellung der Match-Historie
+    const historyHTML = matchHistory
+      .map(
+        (match) =>
+          `<li class="list-group-item">
+        Runde ${match.round}: ${match.winner} hat gegen ${match.loser} gewonnen
+      </li>`
+      )
+      .join("");
+
+    tournamentGrid.innerHTML = `
+      <div class="card my-4">
+        <div class="card-header text-center bg-success text-white">
+          <h4>🏆 Turniersieger: ${winner}</h4>
+        </div>
+        <div class="card-body">
+          <p class="text-center">Herzlichen Glückwunsch an ${winner} zum Turniersieg!</p>
+          
+          <h5 class="mt-4">Turnierverlauf:</h5>
+          <ul class="list-group">
+            ${historyHTML}
+          </ul>
+          
+          <div class="d-grid gap-2 col-6 mx-auto mt-4">
+            <button id="back-to-menu" class="btn btn-primary">Zurück zum Hauptmenü</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Event-Listener für den Zurück-Button
+    const backButton = document.getElementById("back-to-menu");
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        window.showTemplate("menu", { userProfile: this.data.userProfile });
+      });
+    }
+  }
+
+  /**
+   * Update tournament results from MenuDisplay
+   */
+  updateResults(results, round, totalRounds, matchups) {
+    console.log("📊 Tournament results received from MenuDisplay:", results);
+
+    // Daten aktualisieren
+    this.data.results = results;
+    this.data.round = round;
+    this.data.total_rounds = totalRounds;
+    this.data.matchups = matchups;
+
+    // Grid und Ergebnisse neu rendern
+    this.renderTournamentGrid();
+
+    // Prüfen, ob die nächste Runde beginnen soll
+    if (Object.keys(results).length === matchups.length) {
+      console.log("🎮 Alle Spiele dieser Runde abgeschlossen!");
+      this.showNextRoundButton();
     }
   }
 }
