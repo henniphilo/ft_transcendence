@@ -301,22 +301,71 @@ export class GameScreen {
     }
 
     displayWinnerScreen() {
-        // Musik stoppen, wenn Spiel vorbei ist
         if (this.threeJSManager?.audioManager?.isPlaying('game')) {
             this.threeJSManager.audioManager.stopSound('game');
             backgroundAudioManager.playSound('background');
         }
-
+    
         const container = document.getElementById('game-container');
-        container.innerHTML = `
-            <div class="winner-screen">
-                <h1>Game Over!</h1>
-                <h2>${this.gameState.winner.name} wins!</h2>
-                <p>Final Score: ${this.gameState.winner.score}</p>
-                <button class="menu-item" onclick="gameScreen.backToMenu()">Back to Menu</button>
-            </div>
-        `;
+    
+        if (this.settings?.is_tournament) {
+            container.innerHTML = `
+                <div class="winner-screen">
+                    <h1>Game Over!</h1>
+                    <h2>${this.gameState.winner.name} wins!</h2>
+                    <p>Final Score: ${this.gameState.winner.score}</p>
+                    <button class="menu-item" onclick="gameScreen.backToTournament()">Back to Tournament</button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="winner-screen">
+                    <h1>Game Over!</h1>
+                    <h2>${this.gameState.winner.name} wins!</h2>
+                    <p>Final Score: ${this.gameState.winner.score}</p>
+                    <button class="menu-item" onclick="gameScreen.backToMenu()">Back to Menu</button>
+                </div>
+            `;
+        }
     }
+    
+    backToTournament() {
+        console.log("🏁 Zurück zum Tournament Grid");
+        console.log("Tournament Data:", this.settings);
+        console.log("GameState:", this.gameState);
+    
+        // WebSocket schließen
+        if (this.ws) {
+            console.log("Closing WebSocket connection...");
+            this.ws.close();
+            this.ws = null;
+        }
+    
+        // Alles im Spiel aufräumen
+        this.cleanup();
+    
+        // Game-Container verstecken
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            console.log("Hiding game container...");
+            gameContainer.style.display = 'none';
+        }
+    
+        // Stelle sicher, dass die Tournament-Daten korrekt übergeben werden
+        const tournamentData = {
+            userProfile: this.userProfile,
+            round: this.settings?.tournament_round || 1,
+            total_rounds: this.settings?.tournament_totalRounds || 1,
+            players: this.settings?.tournament_players || [],
+            winner: this.gameState?.winner?.name
+        };
+    
+        // Wechsle zum Tournament-Template
+        showTemplate('tournament', { userProfile: this.userProfile, tournamentData: this.settings });
+
+    }
+    
+    
 
 
     backToMenu() {
