@@ -63,6 +63,24 @@ body {
   border-color: var(--primary-color);
 }
 
+.music-toggle-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999; /* 💥 Wichtig: über dem Canvas */
+  padding: 10px 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #222;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.8;
+}
+.music-toggle-button:hover {
+  opacity: 1;
+}
+
 /* Button-Styling */
 .btn-primary-custom {
   background-color: var(--primary-color);
@@ -283,6 +301,55 @@ label {
   color: 'pink';
   background-color: #d7eb252f; /* Füge einen Hintergrund hinzu, um den Hover-Effekt sichtbarer zu machen */
   transition: background-color 0.3s ease; /* Optionale Übergangsanimation */
+}
+
+#ready-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  text-align: center;
+}
+
+#ready-button {
+  background-color: #fab319;
+  color: white;
+  font-size: 24px;
+  padding: 15px 40px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: 2px solid transparent; /* Keine Border anfangs */
+}
+
+#ready-button:hover {
+  background-color: #ffb311;
+  transform: scale(1.05);
+  border-color: var(--highlight-color); /* Border beim Hover hinzufügen */
+}
+
+#ready-button:disabled {
+  background-color: #c5d35b;
+  cursor: not-allowed;
+}
+
+.hidden {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.list-group-item {
+  display: flex;
+  flex-direction: column; /* Elemente untereinander anordnen */
+  align-items: flex-start; /* Links ausrichten */
+}
+
+.add-friend-btn {
+  width: auto; /* Automatische Breite für ein natürliches Layout */
 }
 
 

@@ -12,10 +12,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env: 
+    env:
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      GF_SECURITY_ADMIN_USER: ${{ secrets.GF_SECURITY_ADMIN_USER }}
       GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }} 
       DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
       CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
@@ -23,12 +24,26 @@ jobs:
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
       EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      ETH_PRIVATE_KEY: ${{secrets.ETH_PRIVATE_KEY}}
+
+	  
     steps:
+      - name: Create .env file
+        run: |
+            echo "LOG_HOST=localhost" >> .env
+            echo "PORTAINER_VERSION=2.14.2" >> .env
+            echo "PORTAINER_HOME=/var/lib/portainer" >> .env
+            echo "KUBERNETES_SERVICE_HOST=\"\"" >> .env
+            echo "KUBERNETES_SERVICE_PORT=\"\"" >> .env
+
+      - name: Debug environment variables
+        run: printenv
+
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Rename env file
-        run: cp .env.ci .env
 
       - name: Log in to Docker Hub
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -36,19 +51,21 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-buildx-action@v3
 
-      - name: Debug secrets
-        run: |
-              echo "POSTGRES_USER: ${{ secrets.POSTGRES_USER }}"
-              echo "POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}"
-              echo "POSTGRES_DB: ${{ secrets.POSTGRES_DB }}"
-              echo "GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}"
-    
       - name: Build and run Docker Compose
         run: |
-          docker compose -f docker-compose.ci.yml up -d --build
+          docker compose --env-file .env.ci -f docker-compose.ci.yml up -d --build
+
+      - name: Debug environment variables
+        run: printenv
       
-      - name: Add a delay before waiting for backend
-        run: sleep 15 # Add a 15-second delay
+      - name: Capture backend logs
+        run: docker compose logs backend > backend.log
+
+      - name: Display backend logs
+        run: cat backend.log
+
+      - name: Add a delay for the backend
+        run: sleep 15 
       
       - name: Capture backend logs 
         run: docker compose logs backend
@@ -59,6 +76,10 @@ jobs:
       - name: Run Integration Tests
         run: |
           docker compose exec backend pytest tests/integration/ -v
+
+      - name: Output backend logs on failure
+        if: failure()
+        run: docker logs backend
 
       - name: Stop Docker Compose
         run: docker compose down

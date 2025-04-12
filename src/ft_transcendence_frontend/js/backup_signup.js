@@ -289,7 +289,6 @@ document.getElementById('verify-code').addEventListener('click', function() {
     document.getElementById('profile-username').textContent  = data.username  || '';
     document.getElementById('profile-email').textContent     = data.email     || '';
     document.getElementById('profile-bio').textContent       = data.bio       || '';
-    document.getElementById('profile-birth_date').textContent= data.birth_date|| '';
   
     // Wenn 'avatar' belegt ist, setze das Bild-Element. Sonst ein Standardbild:
     const avatarImg = document.getElementById('profile-avatar');

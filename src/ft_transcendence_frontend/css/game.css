@@ -90,11 +90,6 @@ body {
     transform: scale(1.05); /* Leichtes Vergrößern beim Hover */
 }
 
-/* Button Aktiviert */
-.menu-item button:active {
-    background-color: var(--primary-color); /* Farbe im aktiven Zustand */
-    transform: scale(0.98); /* Leichte Verkleinerung beim Drücken */
-}
 
 #chat-input {
     background-color: #606060; /* Dunkler Hintergrund */

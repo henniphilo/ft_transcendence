@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pong Game</title>
+  <title>Pongbahnhof</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
@@ -15,6 +16,7 @@
 <body>
   <!-- Background Canvas (MUST BE HERE) -->
   <canvas id="background-canvas"></canvas>
+
 
   <!-- Templates -->
   <template id="template-signup">
@@ -102,15 +104,14 @@
               <div class="row">
                 <div class="col-md-4 text-center">
                   <img id="profile-view-avatar" class="rounded-circle mb-3"
-                       src="/assets/default-avatar.png"
-                       alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
+                  src="/assets/default-avatar.png"
+                  alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
                 </div>
                 <div class="col-md-8 col-md-custom">
                   <h3 id="profile-view-username" class="mb-3">Username</h3>
                   <div class="profile-details mb-4">
                     <p class="mb-2"><strong>Email:</strong> <span id="profile-view-email"></span></p>
                     <p class="mb-2"><strong>Bio:</strong> <span id="profile-view-bio"></span></p>
-                    <p class="mb-2"><strong>Birthday:</strong> <span id="profile-view-birth-date"></span></p>
                     <p class="mb-2"><strong>Tournament Name:</strong> <span id="profile-view-tournament-name"></span></p>
                   </div>
                   <div class="d-grid gap-2">
@@ -155,17 +156,20 @@
   <!-- Content Div for Dynamic Loading -->
   <div id="content"></div>
 
-  <!-- ImportMap für Three.js (falls benötigt) -->
+  <button id="toggle-music-button" class="music-toggle-button">🔊 Music: On</button>
+
+  <!-- Import map must match preload URLs -->
   <script type="importmap">
     {
       "imports": {
-        "three": "https://unpkg.com/three@latest/build/three.module.js",
-        "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/GLTFLoader.js",
-        "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js",
-        "three/examples/jsm/loaders/FBXLoader.js": "https://unpkg.com/three@latest/examples/jsm/loaders/FBXLoader.js"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.js",
+        "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/loaders/GLTFLoader.js",
+        "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/loaders/FBXLoader.js": "https://cdn.jsdelivr.net/npm/three@0.175.0/examples/jsm/loaders/FBXLoader.js"
       }
     }
   </script>
+
 
   <!-- Skripte (am Ende des Body platzieren) -->
   <!-- AuthLib muss vor den anderen Skripten geladen werden -->
@@ -179,7 +183,44 @@
   <script type="module" src="js/game/game_screen.js"></script>
   <script type="module" src="js/game/main.js"></script>
   <script type="module" src="js/switcher.js"></script>
+  <script type="module">
+    import { logoutUser } from './js/authLib.js';
 
+    // Handle page unload
+    window.addEventListener('beforeunload', (event) => {
+        if (localStorage.getItem('accessToken')) {
+            console.log('Window closing - attempting logout');
+            const xhr = new XMLHttpRequest();
+            // Use the same base URL as authLib
+            xhr.open('POST', '/api/users/logout/', false);  // Updated path to match backend
+            xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('accessToken'));
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            try {
+                xhr.send(JSON.stringify({
+                    refresh_token: localStorage.getItem('refreshToken')
+                }));
+                console.log('Logout response:', xhr.status);
+                
+                // Clear storage only on successful logout
+                if (xhr.status === 200) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    console.log('Local storage cleared');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+    });
+
+    // Also handle the visibilitychange event as backup
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && localStorage.getItem('accessToken')) {
+            logoutUser().catch(console.error);
+        }
+    });
+  </script>
 
   <!-- Bootstrap JavaScript Bundle mit Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

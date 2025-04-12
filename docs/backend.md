@@ -155,7 +155,6 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
-    birth_date = models.DateField(null=True, blank=True)
     verification_code = models.CharField(max_length=6, blank=True, null=True)
     is_verified = models.BooleanField(default=False)
 ```
@@ -299,3 +298,161 @@ graph TD;
     class Django service;
     class Nginx proxy;
     class Browser frontend;
+
+## logging and gelf (using deepseek)
+
+I want to have both the standard stdout docker logs and the gelf logging for logstash. This is the logging conf I used
+
+For Django, you should configure logging to output to **both stdout (console) and GELF (Logstash)**. Here's how to set it up properly:
+
+---
+
+### **Updated Django `LOGGING` Configuration (stdout + GELF)**
+```python
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '''
+                %(asctime)s %(levelname)s %(name)s
+                %(module)s %(process)d %(thread)d %(message)s
+            ''',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'gelf': {
+            'class': 'pygelf.GelfUdpHandler',  # UDP is faster than TCP for logs
+            'host': 'logstash',  # Docker service name
+            'port': 12201,       # Default GELF UDP port
+            'formatter': 'json', # JSON format for Logstash
+            'include_extra_fields': True,  # Optional: Adds Django request metadata
+            'compress': True,    # Optional: Compress logs for better performance
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'gelf'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Custom app loggers (if needed)
+        'myapp': {
+            'handlers': ['console', 'gelf'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console', 'gelf'],
+        'level': 'INFO',
+    },
+}
+```
+
+---
+
+### **Key Changes & Why**
+1. **Added `StreamHandler` (`console`)**  
+   - Logs to stdout (visible in `docker compose logs`).
+   - Uses a human-readable `verbose` format.
+
+2. **GELF Handler (`pygelf.GelfUdpHandler`)**  
+   - Sends logs to Logstash in **GELF (Graylog Extended Log Format)**.
+   - Uses **UDP** (faster & connectionless, better for logging).
+   - Includes **JSON formatting** for structured logging.
+
+3. **Separate Loggers for Django & Custom Apps**  
+   - Avoids duplicate logs.
+   - Allows different log levels per component.
+
+4. **`propagate=False`**  
+   - Prevents double-logging to root logger.
+
+---
+
+### **Required Setup**
+1. **Install `pygelf` & `python-json-logger`**  
+   ```bash
+   pip install pygelf python-json-logger
+   ```
+
+2. **Update Logstash Config (`logstash.conf`)**  
+   Ensure Logstash accepts GELF UDP input:
+   ```conf
+   input {
+     gelf {
+       port => 12201
+       type => "gelf"
+     }
+   }
+   ```
+
+3. **Expose GELF Port in `docker-compose.yml`**  
+   ```yaml
+   services:
+     logstash:
+       ports:
+         - "12201:12201/udp"  # GELF UDP port
+   ```
+
+---
+
+### **Testing**
+1. **Check stdout logs**  
+   ```bash
+   docker compose logs backend
+   ```
+   Should show human-readable logs.
+
+2. **Verify Logstash Receives GELF Logs**  
+   - Check Logstash container logs:
+     ```bash
+     docker compose logs logstash
+     ```
+   - Or query Elasticsearch/Kibana if configured.
+
+---
+
+### **Optional Enhancements**
+- **Add request metadata** (for HTTP logs):
+  ```python
+  'gelf': {
+      'class': 'pygelf.GelfUdpHandler',
+      'host': 'logstash',
+      'port': 12201,
+      'include_extra_fields': True,  # Adds Django request info (user, IP, etc.)
+  }
+  ```
+- **Use TCP instead of UDP** (if reliability > speed):
+  ```python
+  'class': 'pygelf.GelfTcpHandler',
+  ```
+- **Add log rotation** (for file logs):
+  ```python
+  'file': {
+      'class': 'logging.handlers.RotatingFileHandler',
+      'filename': '/app/logs/django.log',
+      'maxBytes': 5 * 1024 * 1024,  # 5MB
+      'backupCount': 3,
+  }
+  ```
+
+---
+
+### **Final Notes**
+- ✅ **Works in Docker**: Uses service names (`logstash`) for networking.
+- ✅ **Structured + Human-Readable Logs**: JSON for machines, `verbose` for humans.
+- ✅ **No More Socket Errors**: GELF avoids Python pickling issues.
+
+This setup gives you **real-time stdout logs** (for debugging) **+ centralized GELF logs** (for analysis in Logstash/Elasticsearch/Kibana). 🚀

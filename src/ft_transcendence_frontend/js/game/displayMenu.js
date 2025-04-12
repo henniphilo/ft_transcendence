@@ -13,7 +13,7 @@ export class MenuDisplay {
         this.container = document.getElementById('menu-container');
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
         const wsHost = window.location.hostname;
-        const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port nur für ws:// setzen
+        const wsPort = window.location.protocol === "https:" ? "" : ":8001";
 
         const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
         console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
@@ -22,11 +22,36 @@ export class MenuDisplay {
 
         this.gameMode = null;
         this.playMode = null;
-        this.currentSettings = null;  // Speichere aktuelle Einstellungen
+        this.currentSettings = null;
         this.leaderboardDisplay = null;
-        this.userProfile = userProfile; // Speichere Benutzerprofil
-        this.elements = {};  // Für DOM-Element-Referenzen
+        this.userProfile = userProfile;
+        this.elements = {};
         this.friendsHandler = new FriendsHandler();
+        this.menuHistory = [];
+        this.currentMenuState = null;
+        
+        // Browser-History-Event-Listener nur hinzufügen, wenn wir im Menü-Template sind
+        if (window.location.hash === '#menu') {
+            window.addEventListener('popstate', (event) => {
+                if (event.state && event.state.menuState) {
+                    this.handleHistoryNavigation(event.state.menuState);
+                }
+            });
+
+            // Initialen State nur setzen, wenn wir tatsächlich im Menü sind
+            setTimeout(() => {
+                // Prüfe ob wir direkt ins Menü navigiert sind (nicht via Back-Button)
+                if (window.location.hash === '#menu' && !window.history.state?.template) {
+                    console.log("Initialisiere Menü-History");
+                    window.history.pushState(
+                        { menuState: 'main' },
+                        '',
+                        '#menu'
+                    );
+                }
+            }, 0);
+        }
+
         this.initWebSocket();
     }
 
@@ -69,10 +94,6 @@ export class MenuDisplay {
                                     <textarea id="edit-bio" class="form-control">${this.userProfile.bio || ''}</textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="edit-birth-date" class="form-label">Birthday:</label>
-                                    <input type="date" id="edit-birth-date" class="form-control" value="${this.userProfile.birth_date || ''}">
-                                </div>
-                                <div class="mb-3">
                                     <label for="edit-tournament-name" class="form-label">Tournament Name:</label>
                                     <input type="text" id="edit-tournament-name" class="form-control" value="${this.userProfile.tournament_name || ''}">
                                 </div>
@@ -99,25 +120,21 @@ export class MenuDisplay {
         // Event-Listener für den Save-Button
         document.getElementById('save-profile').addEventListener('click', async () => {
             const bio = document.getElementById('edit-bio').value;
-            const birthDate = document.getElementById('edit-birth-date').value;
             const tournamentName = document.getElementById('edit-tournament-name').value;
 
             try {
                 const formData = new FormData();
                 formData.append('bio', bio);
-                formData.append('birth_date', birthDate);
                 formData.append('tournament_name', tournamentName);
 
                 const result = await ProfileHandler.updateProfile(formData);
 
                 // Aktualisiere die lokalen Daten
                 this.userProfile.bio = bio;
-                this.userProfile.birth_date = birthDate;
                 this.userProfile.tournament_name = tournamentName;
 
                 // Aktualisiere die Anzeige
                 if (this.elements.bio) this.elements.bio.textContent = bio;
-                if (this.elements.birthDate) this.elements.birthDate.textContent = birthDate;
                 if (this.elements.tournamentName) this.elements.tournamentName.textContent = tournamentName;
 
                 modal.hide();
@@ -137,7 +154,6 @@ export class MenuDisplay {
     updateProfileDisplay(profileData) {
         if (this.elements.bio) this.elements.bio.textContent = profileData.bio || '';
         if (this.elements.email) this.elements.email.textContent = profileData.email || '';
-        if (this.elements.birthDate) this.elements.birthDate.textContent = profileData.birth_date || '';
         if (this.elements.tournamentName) this.elements.tournamentName.textContent = profileData.tournament_name || '';
         if (this.elements.avatar) {
             this.elements.avatar.src = profileData.avatar
@@ -181,7 +197,6 @@ export class MenuDisplay {
                                         <div class="profile-details mb-3">
                                             <p class="mb-2"><strong>Email:</strong> <span class="profile-email">${this.userProfile.email}</span></p>
                                             <p class="mb-2"><strong>Bio:</strong> <span class="profile-bio">${this.userProfile.bio || ''}</span></p>
-                                            <p class="mb-2"><strong>Birthday:</strong> <span class="profile-birth-date">${this.userProfile.birth_date || ''}</span></p>
                                             <p class="mb-2"><strong>Tournament Name:</strong> <span class="profile-tournament-name">${this.userProfile.tournament_name || ''}</span></p>
                                         </div>
                                         <div class="d-grid gap-2">
@@ -225,7 +240,6 @@ export class MenuDisplay {
         this.elements = {
             bio: this.container.querySelector('.profile-bio'),
             email: this.container.querySelector('.profile-email'),
-            birthDate: this.container.querySelector('.profile-birth-date'),
             tournamentName: this.container.querySelector('.profile-tournament-name'),
             avatar: this.container.querySelector('.profile-avatar'),
             avatarInput: this.container.querySelector('.avatar-input'),
@@ -375,28 +389,89 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
-        console.log("Menu click:", itemId); // Debug log
+        console.log("Menu click:", itemId);
 
+        // Speichere den aktuellen Zustand in der Historie
+        if (this.currentMenuState) {
+            this.menuHistory.push(this.currentMenuState);
+        }
+
+        // Aktualisiere den aktuellen Zustand
+        this.currentMenuState = itemId;
+
+        // Füge den neuen Zustand zur Browser-Historie hinzu
+        window.history.pushState(
+            { menuState: itemId },
+            '',
+            `#${itemId}`
+        );
+
+        // Ursprüngliche Menü-Logik
         if (itemId === 'online') {
-            //this.displaySearchingScreen();
-            // Wichtig: Sende dem Server die Information, dass wir suchen
             this.ws.send(JSON.stringify({
                 action: 'menu_selection',
                 selection: 'online'
             }));
             return;
         }
-        if (itemId === 'back' && this.container.querySelector('.searching-container')) {
-            this.ws.send(JSON.stringify({
-                action: 'menu_selection',
-                selection: 'play_game'
-            }));
-            return;
+        if (itemId === 'back') {
+            // Pop letzten Zustand von der Historie
+            const previousState = this.menuHistory.pop();
+            if (previousState) {
+                this.currentMenuState = previousState;
+            }
+            
+            if (this.container.querySelector('.searching-container')) {
+                this.ws.send(JSON.stringify({
+                    action: 'menu_selection',
+                    selection: 'play_game'
+                }));
+                return;
+            }
         }
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
             selection: itemId
         }));
+    }
+
+    handleHistoryNavigation(menuState) {
+        console.log("=== History Navigation Debug ===");
+        console.log("Navigating to state:", menuState);
+        console.log("Current menu history:", this.menuHistory);
+        console.log("Current menu state:", this.currentMenuState);
+        
+        // Spezielles Handling für null state
+        if (menuState === null) {
+            this.requestMenuItems();
+            return;
+        }
+        
+        if (menuState === 'back') {
+            // Pop letzten Zustand von der Historie
+            const previousState = this.menuHistory.pop();
+            console.log("Found previous state:", previousState);
+            if (previousState) {
+                menuState = previousState;
+            }
+        }
+
+        // Setze den aktuellen Zustand
+        this.currentMenuState = menuState;
+        
+        // Sende die entsprechende Menüauswahl an den Server
+        this.ws.send(JSON.stringify({
+            action: 'menu_selection',
+            selection: menuState
+        }));
+
+        // Wenn wir in einem Suchbildschirm sind, behandle dies speziell
+        if (this.container.querySelector('.searching-container')) {
+            this.ws.send(JSON.stringify({
+                action: 'menu_selection',
+                selection: 'play_game'
+            }));
+        }
     }
 
     handleMenuAction(data) {
@@ -1066,7 +1141,6 @@ document.addEventListener('DOMContentLoaded', () => {
         avatar: "path/to/avatar.jpg",
         email: "benutzer@example.com",
         bio: "Kurze Bio",
-        birth_date: "01.01.1990"
     };
     menuDisplay = new MenuDisplay(userProfile);
 
@@ -1134,15 +1208,15 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 
             // Aktualisiere den Inhalt
             listItem.innerHTML = `
-                <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-right: 8px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
-                ${!isCurrentUser && !isAlreadyFriend ? `
-                    <button class="btn btn-sm btn-outline-success add-friend-btn"
-                            data-username="${user.username}">
-                        <i class="bi bi-person-plus"></i> Add Friend
-                    </button>
-                ` : isAlreadyFriend && !isCurrentUser ? `
-                    <span class="badge bg-success">Friend</span>
-                ` : ''}
+                 <span class="user-name" data-username="${user.username}" style="cursor: pointer; margin-bottom: 5px;">${user.username} ${isCurrentUser ? '(You)' : ''}</span>
+                 ${!isCurrentUser && !isAlreadyFriend ? `
+                     <button class="btn btn-sm btn-outline-success add-friend-btn"
+                             data-username="${user.username}">
+                         <i class="bi bi-person-plus"></i> Add Friend
+                     </button>
+                 ` : isAlreadyFriend && !isCurrentUser ? `
+                     <span class="badge bg-success">Friend</span>
+                 ` : ''}
             `;
 
             fragment.appendChild(listItem);
@@ -1195,7 +1269,7 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
 // Modifiziere die FriendsHandler.getFriends-Methode, um sicherzustellen, dass sie immer die aktuellen Daten vom Server holt
 FriendsHandler.prototype.getFriends = async function() {
     try {
-        console.log("FriendsHandler: Rufe Freundesliste ab...");
+  //      console.log("FriendsHandler: Rufe Freundesliste ab...");
         const accessToken = localStorage.getItem('accessToken');
         const response = await fetch('/api/users/friends/list/', {
             method: 'GET',
@@ -1211,7 +1285,7 @@ FriendsHandler.prototype.getFriends = async function() {
         }
 
         const data = await response.json();
-        console.log("FriendsHandler: Freundesliste erhalten:", data);
+     //   console.log("FriendsHandler: Freundesliste erhalten:", data);
 
         // Aktualisiere die gespeicherte Freundesliste
         this.friends = data;
@@ -1231,7 +1305,7 @@ FriendsHandler.prototype.updateFriendsListDisplay = function(friends) {
     const friendsList = document.getElementById('friends-list');
     if (!friendsList) return;
 
-    console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
+ //   console.log("FriendsHandler: Aktualisiere Freundesliste-Anzeige:", friends);
 
     // Wenn die Liste leer ist, zeige eine Nachricht an
     if (!friends || friends.length === 0) {
