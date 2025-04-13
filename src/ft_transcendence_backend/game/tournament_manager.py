@@ -8,6 +8,7 @@ class TournamentManager:
         self.active_matches = []  # list of (p1_entry, p2_entry)
         self.results = {}  # {winner_name: 1}
         self.match_history = []  # ← NEU: speichert alle abgeschlossenen Matches
+        self.finished = False  # ← Neu: Flag, ob Turnier abgeschlossen wurde
 
     def _calculate_total_rounds(self, num_players):
         import math
@@ -27,37 +28,34 @@ class TournamentManager:
         return self.active_matches
 
     def record_result(self, winner_name):
-        # Check if winner_name is a username rather than tournament_name
-        # and find the corresponding tournament_name if needed
+    # Finde den richtigen Spielernamen im Turnier
         tournament_player = None
         for player_entry in self.players:
             player = player_entry["player"]
             if player.name == winner_name:
-                # Direct match found - winner_name is already a tournament_name
                 tournament_player = player
                 break
-            # Check if this player's user profile has this username
-            if hasattr(player, "user_profile") and player.user_profile and player.user_profile.get("username") == winner_name:
-                # Found the player with this username
-                tournament_player = player
-                break
-        
-        # If we found a matching player, use their tournament name
+            if hasattr(player, "user_profile") and player.user_profile:
+                if player.user_profile.get("username") == winner_name:
+                    tournament_player = player
+                    break
+
         if tournament_player:
             winner_name = tournament_player.name
-        
-        # Now record the result with the correct tournament_name
-        self.results[winner_name] = self.results.get(winner_name, 0) + 1
+        else:
+            print(f"⚠️ Kein passender Spieler gefunden für: {winner_name}")
+            return
 
-        print(f"record_result: {winner_name}")
-        print(f"active_matches: {self.active_matches}")
-        print(f"match_history: {self.match_history}")
-        print(f"results: {self.results}")
-        print(f"current_round: {self.current_round}")
-        print(f"players: {self.players}")
-        print(f"is_finished: {self.is_finished()}")
-        
-        # Gewinner und Verlierer merken
+        # Verhindere Duplikate: Match darf nur einmal gewertet werden
+        if winner_name in self.results:
+            print(f"⚠️ Ergebnis für {winner_name} bereits eingetragen – ignoriert.")
+            return
+
+        # Ergebnis eintragen
+        self.results[winner_name] = 1
+        print(f"✅ Ergebnis eingetragen: {winner_name}")
+
+        # Matchhistorie ergänzen
         for p1_entry, p2_entry in self.active_matches:
             p1 = p1_entry["player"].name
             p2 = p2_entry["player"].name
@@ -72,15 +70,46 @@ class TournamentManager:
                 })
                 break
 
+        # Check: Sind alle Spiele abgeschlossen?
+        if len(self.results) >= len(self.active_matches):
+            print("🎯 Alle Spiele abgeschlossen. Prüfe, ob Turnier beendet ist...")
+            if len([p for p in self.players if p["player"].name in self.results]) == 1:
+                winner = winner_name
+                self.finished = True
+                print(f"🏁 Turnier ist jetzt beendet! Gewinner: {winner}")
+
+
     def get_match_history(self):
         return self.match_history
 
     def next_round(self):
+        # Nur starten, wenn Turnier noch nicht vorbei ist
+        if self.is_finished():
+            print("🏁 Turnier ist bereits beendet.")
+            self.finished = True
+            return []
+
+        print(f"🚀 Starte Runde {self.current_round + 1}")
+        
         self.current_round += 1
-        advancing = [entry for entry in self.players if entry["player"].name in self.results]
+
+        # Filtere die Spieler, deren Namen in den aktuellen Ergebnissen vorkommen
+        advancing = [
+            entry for entry in self.players
+            if entry["player"].name in self.results
+        ]
+
         self.players = advancing
-        self.results = {}
-        return self.create_matchups()
+        self.results = {}  # reset für nächste Runde
+
+        matchups = self.create_matchups()
+        
+        if self.is_finished():
+            self.finished = True
+            print(f"🏆 Turniergewinner: {self.get_winner()}")
+
+        return matchups
+
 
     def is_finished(self):
         return len(self.players) == 1
