@@ -337,68 +337,75 @@ export class GameScreen {
 
   backToTournament() {
     console.log("🏁 Zurück zum Tournament Grid");
-    console.log("Tournament Data:", this.settings);
+    console.log("Tournament Data (raw settings):", this.settings);
     console.log("GameState:", this.gameState);
-
+  
     // WebSocket schließen
     if (this.ws) {
       console.log("Closing WebSocket connection...");
       this.ws.close();
       this.ws = null;
     }
-
+  
     // Alles im Spiel aufräumen
     this.cleanup();
-
+  
     // Game-Container verstecken
     const gameContainer = document.getElementById("game-container");
     if (gameContainer) {
       console.log("Hiding game container...");
       gameContainer.style.display = "none";
     }
-
-    // Stelle sicher, dass die Tournament-Daten korrekt übergeben werden
+  
+    // Winner-Name mit Fallbacks absichern
+    const winnerName =
+      this.gameState?.winner?.user_profile?.tournament_name ||
+      this.gameState?.winner?.name ||
+      null;
+  
+    // Baue die Tournament-Daten
     const tournamentData = {
       userProfile: this.userProfile,
       round: this.settings?.tournament_round || 1,
       total_rounds: this.settings?.tournament_totalRounds || 1,
       players: this.settings?.tournament_players || [],
-      winner: this.gameState?.winner?.user_profile.tournament_name,
+      winner: winnerName,
     };
-
-    // Wechsle zum Tournament-Template
+  
+    console.log("🎯 Tournament Data for Template:", tournamentData);
+  
+    // Wechsle zum Tournament-Template mit den richtigen Daten
     showTemplate("tournament", {
       userProfile: this.userProfile,
-      tournamentData: this.settings,
+      tournamentData: tournamentData,
     });
-
+  
     // Turnier-Ergebnis an den Server melden
-    if (this.settings?.is_tournament && this.gameState?.winner?.name) {
-      // Send the username (not tournament name) to the backend
-      // The backend will handle the mapping
+    if (this.settings?.is_tournament && winnerName) {
       const message = {
         action: "tournament_result",
-        winner: this.gameState.winner.user_profile.tournament_name,
+        winner: winnerName,
       };
-
+  
       const tournamentSocket = new WebSocket(
         "ws://" + window.location.host + "/ws/menu"
       );
-
+  
       tournamentSocket.addEventListener("open", () => {
         console.log("📡 Sending tournament result:", message);
         tournamentSocket.send(JSON.stringify(message));
       });
-
+  
       tournamentSocket.addEventListener("error", (err) => {
         console.error("❌ Tournament WebSocket error:", err);
       });
-
+  
       tournamentSocket.addEventListener("close", () => {
         console.log("🔌 Tournament WebSocket closed");
       });
     }
   }
+  
 
   backToMenu() {
     console.log("Cleaning up game...");
