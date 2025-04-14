@@ -4,6 +4,7 @@
 export class TournamentView {
   constructor(data) {
     this.data = data || {};
+    this.userProfile = data.userProfile; // 👈 das hier sicherstellen
     this.socket = null;
     this.initializeView();
     this.setupEventListeners();
@@ -223,24 +224,57 @@ export class TournamentView {
    */
   showNextRoundButton() {
     const startTournamentBtn = document.getElementById("start-tournament-btn");
-    if (startTournamentBtn) {
+  
+    // Gewinnernamen der aktuellen Runde
+    const advancing = this.data.results ? Object.keys(this.data.results) : [];
+  
+    // Spielername anhand des Tournament-Namens (nicht Username!)
+    const playerName =
+      this.userProfile?.tournament_name || this.userProfile?.username;
+  
+    const isStillInTournament = advancing.includes(playerName);
+  
+    console.log("🔍 userProfile:", this.userProfile);
+    console.log("🔍 Spielername (Vergleichsgrundlage):", playerName);
+    console.log("🔍 Spieler ist noch drin?:", isStillInTournament);
+    console.log("🔍 Gewinner dieser Runde:", advancing);
+  
+    if (startTournamentBtn && isStillInTournament) {
       startTournamentBtn.textContent = "Nächste Runde starten";
       startTournamentBtn.style.display = "block";
-
+  
       // Event-Listener aktualisieren
       startTournamentBtn.removeEventListener("click", this.startTournament);
       startTournamentBtn.addEventListener("click", () => {
         this.startNextRound();
       });
+    } else if (startTournamentBtn) {
+      startTournamentBtn.style.display = "none";
     }
   }
+  
+  
+  
+  
+  
 
   /**
    * Startet die nächste Turnierrunde
    */
   startNextRound() {
+    const advancing = this.data.results
+      ? Object.keys(this.data.results)
+      : [];
+  
+    const isStillInTournament = advancing.includes(this.userProfile?.username);
+  
+    if (!isStillInTournament) {
+      console.warn("⛔️ Du bist ausgeschieden und darfst die nächste Runde nicht starten.");
+      return;
+    }
+  
     const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
-
+  
     socket.onopen = () => {
       console.log("📡 Nächste Runde WebSocket verbunden");
       socket.send(
@@ -249,16 +283,17 @@ export class TournamentView {
         })
       );
     };
-
+  
     socket.onmessage = (event) => {
       console.log("Server-Antwort:", event.data);
       socket.close();
     };
-
+  
     socket.onerror = (error) => {
       console.error("Fehler beim Senden des Start-Signals:", error);
     };
   }
+  
 
   /**
    * Zeigt den Turniersieger an
