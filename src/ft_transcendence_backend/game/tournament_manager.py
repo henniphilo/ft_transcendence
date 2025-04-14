@@ -11,6 +11,7 @@ class TournamentManager:
         self.results = {}  # {winner_name: 1}
         self.match_history = []  # speichert alle abgeschlossenen Matches
         self.finished = False
+        self.preview_next_round = []  # Vorschau auf die nächste Runde
 
         # Neu: für KO-Finale & Spiel um Platz 3
         self.final_match = None
@@ -103,6 +104,29 @@ class TournamentManager:
                 winner = winner_name
                 self.finished = True
                 print(f"🏁 Turnier ist jetzt beendet! Gewinner: {winner}")
+            else:
+                # 🔮 Matchups für die nächste Runde vorberechnen
+                next_players = [
+                    entry for entry in self.players
+                    if entry["player"].name in self.results
+                ]
+
+                temp_matches = []
+                players_copy = next_players[:]
+                shuffle(players_copy)
+
+                for i in range(0, len(players_copy), 2):
+                    if i + 1 < len(players_copy):
+                        temp_matches.append((players_copy[i], players_copy[i + 1]))
+                    else:
+                        print(f"🛋️ Vorschau: {players_copy[i]['player'].name} hätte ein Freilos")
+
+                print("🔮 Vorschau auf nächste Matchups (vor `next_round`):")
+                for p1, p2 in temp_matches:
+                    print(f"   ➤ {p1['player'].name} vs {p2['player'].name}")
+
+                # Optional: Zwischenspeichern (z. B. als Vorschau)
+                self.preview_next_round = temp_matches
 
     def next_round(self):
         if self.is_finished():
@@ -175,3 +199,12 @@ class TournamentManager:
             placements["4th"] = self.third_place_result["loser"]
 
         return placements
+
+    def get_next_round_preview(self):
+        return [
+            {
+                "player1": p1_entry["player"].name,
+                "player2": p2_entry["player"].name
+            }
+            for p1_entry, p2_entry in self.preview_next_round
+        ]
