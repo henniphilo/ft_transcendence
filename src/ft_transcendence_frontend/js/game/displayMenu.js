@@ -583,6 +583,7 @@ export class MenuDisplay {
         console.log("Player1:", data.player1);
         console.log("Player2:", data.player2);
         console.log("Your role:", data.playerRole);
+        console.log("WE ARE IN HANDLEMENUACTION");
 
         const gameData = {
           player1: data.player1,
@@ -595,6 +596,8 @@ export class MenuDisplay {
           },
           userProfile: this.userProfile,
         };
+
+        console.log("this is all the Game data:", gameData);
 
         // Wechsel zum GameScreen-Template und übergebe die gameData
         showTemplate("game", gameData);
@@ -672,7 +675,8 @@ export class MenuDisplay {
             data.results,
             data.round,
             data.total_rounds,
-            data.matchups
+            data.matchups,
+            data.players
           );
         }
         break;

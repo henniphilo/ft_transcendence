@@ -404,6 +404,12 @@ export class GameScreen {
         console.log("🔌 Tournament WebSocket closed");
       });
     }
+    // ✨ NEU: WebSocket-Setup manuell triggern
+    setTimeout(() => {
+      if (window.__activeTournamentView) {
+        window.__activeTournamentView.setupWebSocket();
+      }
+    }, 300); // Kurzer Delay, damit DOM geladen ist
   }
   
 

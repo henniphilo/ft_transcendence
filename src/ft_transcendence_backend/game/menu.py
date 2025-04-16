@@ -346,6 +346,9 @@ class Menu:
 
         print("⏯️ Starte Matches aus dem gespeicherten TournamentManager")
         matchups = self.tournament_manager.create_matchups()
+        # how many matchups are created? please print the number
+        print(f"Anzahl der Matchups: {len(matchups)}")
+        print(f"WARNING THIS SHOULD SHOW")
 
         for p1_entry, p2_entry in matchups:
             game_id = str(uuid.uuid4())

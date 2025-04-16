@@ -73,7 +73,13 @@ async def websocket_menu(websocket: WebSocket):
                             "results": results,
                             "round": round,
                             "total_rounds": total_rounds,
-                            "matchups": matchups
+                            "matchups": matchups,
+                            "players": [  # <- das hier neu
+                                {
+                                    "username": e["player"].user_profile.get("username", e["player"].name),
+                                    "tournament_name": e["player"].name
+                                } for e in menu.tournament_manager.players
+                            ]
                         })
                     except Exception as e:
                         print(f"❌ Fehler beim Senden an {entry['player'].name}: {e}")
