@@ -18,7 +18,13 @@ export class TournamentView {
   }
 
   setupWebSocket() {
-    this.socket = new WebSocket("ws://" + window.location.host + "/ws/menu");
+
+    const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsHost = window.location.hostname;
+    const wsPort = window.location.protocol === "https:" ? "" : ":8001";
+    const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
+    const socket = new WebSocket(wsUrl);
+    this.socket = socket;
   
     this.socket.addEventListener("open", () => {
       console.log("🎯 TournamentSocket connected (setupWebSocket)");
@@ -131,8 +137,14 @@ export class TournamentView {
   
     // 🟢 Button-Logik
     let buttonHTML = "";
-  
-    if (round === 1 && advancing.length === 0) {
+
+    if (this.data.tournament_winner && playerName === this.data.tournament_winner) {
+      // 🎉 Du bist der Gewinner!
+      buttonHTML = `
+        <button id="winner-button" class="btn btn-warning mt-2">
+          🏆 Glückwunsch, du hast gewonnen!
+        </button>`;
+    } else if (round === 1 && advancing.length === 0) {
       buttonHTML = `
         <button id="start-tournament-btn" class="btn btn-primary mt-2">
           Turnier starten
@@ -143,6 +155,7 @@ export class TournamentView {
           Nächste Runde starten
         </button>`;
     }
+    
   
     grid.innerHTML = `
       <div class="card my-4">
@@ -173,7 +186,13 @@ export class TournamentView {
   
 
   startTournament() {
-    const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
+
+    const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsHost = window.location.hostname;
+    const wsPort = window.location.protocol === "https:" ? "" : ":8001";
+    const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
+    const socket = new WebSocket(wsUrl);
+    
 
     socket.onopen = () => {
       console.log("📡 Tournament Start Button WebSocket connected");
@@ -209,7 +228,11 @@ export class TournamentView {
       return;
     }
   
-    const socket = new WebSocket(`ws://${window.location.host}/ws/menu`);
+    const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsHost = window.location.hostname;
+    const wsPort = window.location.protocol === "https:" ? "" : ":8001";
+    const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
+    const socket = new WebSocket(wsUrl);
   
     socket.onopen = () => {
       console.log("📡 Nächste Runde WebSocket verbunden");

@@ -386,10 +386,13 @@ export class GameScreen {
         action: "tournament_result",
         winner: winnerName,
       };
-  
-      const tournamentSocket = new WebSocket(
-        "ws://" + window.location.host + "/ws/menu"
-      );
+      
+      const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+      const wsHost = window.location.hostname;
+      const wsPort = window.location.protocol === "https:" ? "" : ":8001";
+      const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
+      const tournamentSocket = new WebSocket(wsUrl);
+    
   
       tournamentSocket.addEventListener("open", () => {
         console.log("📡 Sending tournament result:", message);

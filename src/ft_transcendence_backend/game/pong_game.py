@@ -103,6 +103,7 @@ async def websocket_menu(websocket: WebSocket):
                                 await entry["websocket"].send_json({
                                     "action": "tournament_finished",
                                     "winner": winner,
+                                    "tournament_winner": winner,
                                     "match_history": menu.tournament_manager.get_match_history()
                                 })
                             except Exception as e:
