@@ -91,13 +91,25 @@ class GameServer:
                 self.game_websockets[game_id].append(websocket)
                 print(f"Players now connected: {len(self.game_websockets[game_id])}")
                 # Im Online-Modus warten wir auf Ready-Signale von beiden Spielern
+                print(f"???????game_user_profiles: {self.game_user_profiles}")
             else:
                 print(f"Creating new online game {game_id}")
                 player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"),
                                  player_type=PlayerType.HUMAN, controls=Controls.WASD)
                 player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"),
-                                 player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
+                                 player_type=PlayerType.HUMAN, controls=Controls.ARROWS, )
                 
+                # Füge User-Profile aus den Settings hinzu
+                if "player1_profile" in settings:
+                    player1.user_profile = settings["player1_profile"]
+                    print(f"Added user profile to player1 from settings: {player1.user_profile}")
+                if "player2_profile" in settings:
+                    player2.user_profile = settings["player2_profile"]
+                    print(f"Added user profile to player2 from settings: {player2.user_profile}")
+
+                print(f"Player ;;;;;1: {player1}")
+                print(f"Player ;;;;;2: {player2}")
+
                 game = PongGame(settings, player1, player2)
                 self.active_games[game_id] = game
                 self.game_websockets[game_id] = [websocket]

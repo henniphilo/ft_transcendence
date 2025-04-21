@@ -20,6 +20,7 @@ class Player:
     controls: Optional[Controls] = None
     score: int = 0
     paddle_pos: float = 0.0
+    user_profile: Optional[dict] = None
 
     def __post_init__(self):
         if self.player_type == PlayerType.HUMAN and self.controls is None:

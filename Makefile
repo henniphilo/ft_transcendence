@@ -1,6 +1,6 @@
 DC=docker-compose
-COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
-# COMPOSE_PROFILES=gameprofile
+# COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
+COMPOSE_PROFILES=gameprofile
 
 .PHONY: all build up down logs migrations migrate test fclean
 

@@ -12,6 +12,8 @@ class GameSettings:
         self._mode = "online"
         self._difficulty = "medium"
         self._ubahn_size = 1.0  # Standardgröße für das U-Bahn-Modell
+        self._player1_profile = None  # Neues Feld für Player1-Profil
+        self._player2_profile = None  # Neues Feld für Player2-Profil
 
         self.update_ubahn_size()  # Initiale Skalierung setzen
 
@@ -109,17 +111,45 @@ class GameSettings:
         else:
             raise ValueError("Difficulty must be 'easy', 'medium', or 'impossible'")
 
+    @property
+    def player1_profile(self):
+        print(f"Getting player1_profile: {self._player1_profile}")
+        return self._player1_profile
+
+    @player1_profile.setter
+    def player1_profile(self, value):
+        print(f"Setting player1_profile to: {value}")
+        self._player1_profile = value
+
+    @property
+    def player2_profile(self):
+        print(f"Getting player2_profile: {self._player2_profile}")
+        return self._player2_profile
+
+    @player2_profile.setter
+    def player2_profile(self, value):
+        print(f"Setting player2_profile to: {value}")
+        self._player2_profile = value
+
     def get_settings(self):
         print("Getting all settings")
-        return {
+        settings = {
             "ball_speed": self._ball_speed,
             "paddle_speed": self._paddle_speed,
             "winning_score": self._winning_score,
             "paddle_size": self._paddle_size,
             "mode": self._mode,
             "difficulty": self._difficulty,
-            "ubahn_size": self._ubahn_size  # U-Bahn-Größe mit ausgeben
+            "ubahn_size": self._ubahn_size,  # U-Bahn-Größe mit ausgeben
         }
+        
+        # Füge User-Profile nur hinzu, wenn sie nicht None sind
+        if self._player1_profile is not None:
+            settings["player1_profile"] = self._player1_profile
+        if self._player2_profile is not None:
+            settings["player2_profile"] = self._player2_profile
+            
+        return settings
 
 async def update_settings(self, settings_data):
     print(f"Updating settings with data: {settings_data}")
@@ -137,6 +167,10 @@ async def update_settings(self, settings_data):
             self.mode = settings_data["mode"]
         if "difficulty" in settings_data:
             self.difficulty = settings_data["difficulty"]
+        if "player1_profile" in settings_data:
+            self.player1_profile = settings_data["player1_profile"]
+        if "player2_profile" in settings_data:
+            self.player2_profile = settings_data["player2_profile"]
 
         updated_settings = self.get_settings()
         print(f"Settings successfully updated to: {updated_settings}")

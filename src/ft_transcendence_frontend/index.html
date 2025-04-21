@@ -17,6 +17,7 @@
   <!-- Background Canvas (MUST BE HERE) -->
   <canvas id="background-canvas"></canvas>
 
+  <button id="toggle-music-button" class="music-toggle-button">🔊 Musik: An</button>
 
   <!-- Templates -->
   <template id="template-signup">
@@ -91,6 +92,20 @@
     </div>
   </template>
 
+  <template id="template-tournament">
+    <div id="tournament-container" class="container py-4">
+      <h2 class="text-center mb-4">Tournament Grid</h2>
+      <div id="tournament-grid" class="tournament-grid">
+        <!-- Tournament grid will be dynamically populated here -->
+        <div id="tournament-results"></div>
+      </div>
+      <div class="d-grid gap-2 col-6 mx-auto mt-4">
+        <button id="back-to-menu" class="btn btn-secondary">Back to Menu</button>
+
+      </div>
+    </div>
+  </template>
+
   <!-- Nach dem template-game Template -->
   <template id="template-user-profile">
     <div id="user-profile-container" class="container py-4">
@@ -104,14 +119,15 @@
               <div class="row">
                 <div class="col-md-4 text-center">
                   <img id="profile-view-avatar" class="rounded-circle mb-3"
-                  src="/assets/default-avatar.png"
-                  alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
+                       src="/assets/default-avatar.png"
+                       alt="Avatar" style="width: 120px; height: 120px; object-fit: cover;" />
                 </div>
                 <div class="col-md-8 col-md-custom">
                   <h3 id="profile-view-username" class="mb-3">Username</h3>
                   <div class="profile-details mb-4">
                     <p class="mb-2"><strong>Email:</strong> <span id="profile-view-email"></span></p>
                     <p class="mb-2"><strong>Bio:</strong> <span id="profile-view-bio"></span></p>
+                    <p class="mb-2"><strong>Birthday:</strong> <span id="profile-view-birth-date"></span></p>
                     <p class="mb-2"><strong>Tournament Name:</strong> <span id="profile-view-tournament-name"></span></p>
                   </div>
                   <div class="d-grid gap-2">
@@ -155,8 +171,6 @@
 
   <!-- Content Div for Dynamic Loading -->
   <div id="content"></div>
-
-  <button id="toggle-music-button" class="music-toggle-button">🔊 Music: On</button>
 
   <!-- Import map must match preload URLs -->
   <script type="importmap">
