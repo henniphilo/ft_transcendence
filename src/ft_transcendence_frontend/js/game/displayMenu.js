@@ -41,16 +41,15 @@ export class MenuDisplay {
             // Initialen State nur setzen, wenn wir tatsächlich im Menü sind
             setTimeout(() => {
                 // Prüfe ob wir direkt ins Menü navigiert sind (nicht via Back-Button)
-                if (window.location.hash === '#menu' && !window.history.state?.template) {
-                    console.log("Initialisiere Menü-History");
-                    window.history.pushState(
-                        { menuState: 'main' },
-                        '',
-                        '#menu'
-                    );
+                if (
+                  window.location.hash === "#menu" &&
+                  !window.history.state?.template
+                ) {
+                  console.log("Initialisiere Menü-History");
+                  window.history.pushState({ menuState: "main" }, "", "#menu");
                 }
-            }, 0);
-        }
+              }, 0);
+            }
 
         this.initWebSocket();
     }
@@ -400,41 +399,58 @@ export class MenuDisplay {
         this.currentMenuState = itemId;
 
         // Füge den neuen Zustand zur Browser-Historie hinzu
-        window.history.pushState(
-            { menuState: itemId },
-            '',
-            `#${itemId}`
-        );
+        window.history.pushState({ menuState: itemId }, "", `#${itemId}`);
 
         // Ursprüngliche Menü-Logik
-        if (itemId === 'online') {
-            this.ws.send(JSON.stringify({
-                action: 'menu_selection',
-                selection: 'online'
-            }));
+        if (itemId === "online") {
+            this.ws.send(
+            JSON.stringify({
+                action: "menu_selection",
+                selection: "online",
+            })
+            );
             return;
         }
-        if (itemId === 'back') {
+        if (itemId === "back") {
             // Pop letzten Zustand von der Historie
             const previousState = this.menuHistory.pop();
             if (previousState) {
-                this.currentMenuState = previousState;
+            this.currentMenuState = previousState;
             }
-            
-            if (this.container.querySelector('.searching-container')) {
-                this.ws.send(JSON.stringify({
-                    action: 'menu_selection',
-                    selection: 'play_game'
-                }));
-                return;
+
+            if (this.container.querySelector(".searching-container")) {
+            this.ws.send(
+                JSON.stringify({
+                action: "menu_selection",
+                selection: "play_game",
+                })
+            );
+            return;
             }
         }
-        this.ws.send(JSON.stringify({
-            action: 'menu_selection',
-            selection: itemId
-        }));
+        if (itemId === "play_tournament") {
+            this.ws.send(
+            JSON.stringify({
+                action: "menu_selection",
+                selection: "play_tournament",
+                userProfile: this.userProfile,
+            })
+            );
+            this.updateSearchStatus("ACHTUNG!!! 2 von 4 Spielern gefunden...");
+            console.log("ACHTUNG!!! Tournament started");
+            // Log all player details
+            console.log("Tournament started with players:", this.userProfile);
+            console.log("works! ", this.userProfile.tournament_name);
+            return;
+        }
+        this.ws.send(
+            JSON.stringify({
+            action: "menu_selection",
+            selection: itemId,
+            })
+        );
     }
-
+    
     handleHistoryNavigation(menuState) {
         console.log("=== History Navigation Debug ===");
         console.log("Navigating to state:", menuState);
@@ -478,118 +494,171 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-
+    
         switch (data.action) {
-            case 'searching_opponent':
-                console.log("Started searching for opponent...");
-                // Hier sollte der Suchbildschirm angezeigt werden
-                this.displaySearchingScreen(data.message || "Searching for opponent...");
-                break;
-
-            case 'game_found':
-                console.log("Match found! Game ID:", data.game_id);
-                console.log("Player1:", data.player1);
-                console.log("Player2:", data.player2);
-                console.log("Your role:", data.playerRole);
-
-                const gameData = {
-                    player1: data.player1,
-                    player2: data.player2,
-                    playerRole: data.playerRole,
-                    game_id: data.game_id,
-                    settings: {
-                        ...data.settings,
-                        mode: "online"
-                    },
-                    userProfile: this.userProfile
-                };
-
-                // Wechsel zum GameScreen-Template und übergebe die gameData
-                showTemplate('game', gameData);
-
-                // Container ausblenden
-                this.container.style.display = 'none';
-                break;
-
-            case 'show_submenu':
-                if (data.menu_items === this.online_mode_items) {
-                    this.displaySearchingScreen();
-                } else {
-                    this.displayMenuItems(data.menu_items);
-                }
-                break;
-
-            case 'show_player_names':
-                this.displayPlayerNamesInput(data.num_players, this.currentSettings?.tournament);
-                break;
-
-            case 'show_main_menu':
-                this.displayMenuItems(data.menu_items);
-                break;
-            case 'start_game':
-                // Wechsel zum GameScreen-Template
-                showTemplate('game', {
-                    player1: data.player1,
-                    player2: data.player2,
-                    playerRole: data.playerRole,
-                    game_id: data.game_id,
-                    settings: data.settings,
-                    userProfile: this.userProfile
-                });
-                this.startGame(data);
-                break;
-            case 'show_settings':
-                this.currentSettings = data.settings;  // Speichere die Einstellungen
-                this.displaySettings(data.settings);
-                break;
-            case 'settings_updated':
-                this.currentSettings = data.settings;  // Update gespeicherte Einstellungen
-                alert('Settings saved successfully!');
-                this.handleMenuClick('back');
-                break;
-            case 'settings_error':
-                alert(data.message);
-                break;
-            case 'show_leaderboard':
-                if (this.leaderboardDisplay) {
-                    this.leaderboardDisplay.cleanup();
-                }
-                this.leaderboardDisplay = new LeaderboardDisplay(this);
-                this.leaderboardDisplay.display();
-                break;
-            case 'exit_game':
-                console.log('Exiting game...');
-                break;
+          case "searching_opponent":
+            console.log("Started searching for opponent...");
+            // Hier sollte der Suchbildschirm angezeigt werden
+            this.displaySearchingScreen(
+              data.message || "Searching for opponent..."
+            );
+            break;
+    
+          case "game_found":
+            console.log("Match found! Game ID:", data.game_id);
+            console.log("Player1:", data.player1);
+            console.log("Player2:", data.player2);
+            console.log("Your role:", data.playerRole);
+            console.log("WE ARE IN HANDLEMENUACTION");
+    
+            const gameData = {
+              player1: data.player1,
+              player2: data.player2,
+              playerRole: data.playerRole,
+              game_id: data.game_id,
+              settings: {
+                ...data.settings,
+                mode: "online",
+              },
+              userProfile: this.userProfile,
+            };
+    
+            console.log("this is all the Game data:", gameData);
+    
+            // Wechsel zum GameScreen-Template und übergebe die gameData
+            showTemplate("game", gameData);
+    
+            // Container ausblenden
+            this.container.style.display = "none";
+            break;
+    
+          case "show_submenu":
+            if (data.menu_items === this.online_mode_items) {
+              this.displaySearchingScreen();
+            } else {
+              this.displayMenuItems(data.menu_items);
+            }
+            break;
+    
+          case "show_player_names":
+            this.displayPlayerNamesInput(
+              data.num_players,
+              this.currentSettings?.tournament
+            );
+            break;
+    
+          case "show_main_menu":
+            this.displayMenuItems(data.menu_items);
+            break;
+          case "start_game":
+            // Wechsel zum GameScreen-Template
+            showTemplate("game", {
+              player1: data.player1,
+              player2: data.player2,
+              playerRole: data.playerRole,
+              game_id: data.game_id,
+              settings: data.settings,
+              userProfile: this.userProfile,
+            });
+            this.startGame(data);
+            break;
+          case "show_settings":
+            this.currentSettings = data.settings; // Speichere die Einstellungen
+            this.displaySettings(data.settings);
+            break;
+          case "settings_updated":
+            this.currentSettings = data.settings; // Update gespeicherte Einstellungen
+            alert("Settings saved successfully!");
+            this.handleMenuClick("back");
+            break;
+          case "settings_error":
+            alert(data.message);
+            break;
+          case "show_leaderboard":
+            if (this.leaderboardDisplay) {
+              this.leaderboardDisplay.cleanup();
+            }
+            this.leaderboardDisplay = new LeaderboardDisplay(this);
+            this.leaderboardDisplay.display();
+            break;
+          case "exit_game":
+            console.log("Exiting game...");
+            break;
+          case "tournament_ready":
+            console.log("YES!!!Tournament is ready to start!");
+            showTemplate("tournament", {
+              userProfile: this.userProfile,
+              players: data.players,
+              round: data.round,
+              total_rounds: data.total_rounds,
+            });
+            break;
+          case "update_tournament_results":
+            // Wenn TournamentView existiert, leite die Daten weiter
+            if (window.tournamentView) {
+              console.log("Leite Turnierergebnisse an TournamentView weiter");
+              window.tournamentView.updateResults(
+                data.results,
+                data.round,
+                data.total_rounds,
+                data.matchups,
+                data.players
+              );
+            }
+            break;
         }
     }
 
     displayPlayerNamesInput(numPlayers, isTournament) {
         this.container.innerHTML = `
-            <div class="container py-4">
-                <div class="card">
-                    <div class="card-header profile-header">
-                        <h2 class="mb-0">${isTournament ? 'Tournament' : 'Game'} Players</h2>
-                    </div>
-                    <div class="card-body profile-card">
-                        <form id="player-names-form">
-                            ${Array.from({length: numPlayers}, (_, i) => `
-                                <div class="mb-3">
-                                    <label for="player-${i+1}" class="form-label">Player ${i+1} Name:</label>
-                                    <input type="text" id="player-${i+1}" class="form-control"
-                                           value="${this.isAIPlayer(i) ? `Bot ${i+1}` : `Player ${i+1}`}"
-                                           ${this.isAIPlayer(i) ? 'readonly' : ''}>
+                <div class="container py-4">
+                    <div class="card">
+                        <div class="card-header profile-header">
+                            <h2 class="mb-0">${
+                              isTournament ? "Tournament" : "Game"
+                            } Players</h2>
+                        </div>
+                        <div class="card-body profile-card">
+                            <form id="player-names-form">
+                                ${Array.from(
+                                  { length: numPlayers },
+                                  (_, i) => `
+                                    <div class="mb-3">
+                                        <label for="player-${
+                                          i + 1
+                                        }" class="form-label">Player ${
+                                    i + 1
+                                  } Name:</label>
+                                        <input type="text" id="player-${
+                                          i + 1
+                                        }" class="form-control"
+                                               value="${
+                                                 this.isAIPlayer(i)
+                                                   ? `Bot ${i + 1}`
+                                                   : `Player ${i + 1}`
+                                               }"
+                                               ${
+                                                 this.isAIPlayer(i)
+                                                   ? "readonly"
+                                                   : ""
+                                               }>
+                                    </div>
+                                `
+                                ).join("")}
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary-custom">${
+                                      isTournament
+                                        ? "Start Tournament"
+                                        : "Start Game"
+                                    }</button>
+                                    <button type="button" class="btn btn-secondary" onclick="menuDisplay.handleMenuClick('back')">Back</button>
                                 </div>
-                            `).join('')}
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary-custom">${isTournament ? 'Start Tournament' : 'Start Game'}</button>
-                                <button type="button" class="btn btn-secondary" onclick="menuDisplay.handleMenuClick('back')">Back</button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-
+            `;
+    
         document.getElementById('player-names-form').onsubmit = (e) => {
             e.preventDefault();
             const playerNames = Array.from({length: numPlayers}, (_, i) =>
@@ -664,7 +733,16 @@ export class MenuDisplay {
         });
     }
 
-    cancelSearch() {
+    updateSearchStatus(newMessage) {
+        const statusElement = this.container.querySelector(
+          "#search-status-message"
+        );
+        if (statusElement) {
+          statusElement.textContent = newMessage;
+        }
+      }
+
+      cancelSearch() {
         console.log("Canceling search...");
         this.ws.send(JSON.stringify({
             action: "menu_selection",
