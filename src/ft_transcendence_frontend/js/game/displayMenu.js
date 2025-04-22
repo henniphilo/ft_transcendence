@@ -597,12 +597,17 @@ export class MenuDisplay {
             // Wenn TournamentView existiert, leite die Daten weiter
             if (window.tournamentView) {
               console.log("Leite Turnierergebnisse an TournamentView weiter");
+               // Hole den tournament_winner aus den Daten
+                const tournament_winner = data.tournament_winner; // Kann undefined sein, wenn nicht vorhanden
+                console.log("Extrahierter tournament_winner zum Weiterleiten:", tournament_winner); // Debug-Log
+
               window.tournamentView.updateResults(
                 data.results,
                 data.round,
                 data.total_rounds,
                 data.matchups,
-                data.players
+                data.players,
+                tournament_winner
               );
             }
             break;
