@@ -188,7 +188,7 @@ document.getElementById('verify-code').addEventListener('click', function() {
     })
     .catch(error => {
       console.error('Fehler beim Profil-Abruf:', error);
-      alert('Fehler beim Profil-Abruf: ' + error);
+      alert('Error when fetching profile: ' + error);
     });
   }
 
@@ -204,7 +204,7 @@ document.getElementById('verify-code').addEventListener('click', function() {
     document.getElementById('login-container').style.display = 'block';
     document.getElementById('game-container').style.display = 'none';
   
-    alert('Logout erfolgreich!');
+    alert('Logout successful!');
   });
   
   document.getElementById('login-form').addEventListener('submit', function(event) {
@@ -328,7 +328,7 @@ document.getElementById('verify-code').addEventListener('click', function() {
     
     document.getElementById('logout-button').style.display = 'none';
 
-    alert('Logout erfolgreich!');
+    alert('Logout successful!');
   });
   
  document.getElementById('edit-profile-button').addEventListener('click', () => {
@@ -339,7 +339,7 @@ document.getElementById('verify-code').addEventListener('click', function() {
   // Access-Token holen
   const accessToken = localStorage.getItem('accessToken');
   if (!accessToken) {
-    alert('Du musst eingeloggt sein, um das Profil zu ändern!');
+    alert('You must be logged in to edit your profile!');
     return;
   }
 
