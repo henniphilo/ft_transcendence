@@ -17,8 +17,8 @@ for i in range(1, 16):
     password = 'testuser'  # Gleiche Passwort wie im create_testuser.py
     avatar = f'avatars/avatar_{i}.png'  # Path relative to MEDIA_ROOT
     
-    # Zufälligen Score zwischen 0 und 1000 generieren
-    random_score = random.randint(0, 1000)
+    # Zufälligen Score zwischen 0 und 100 generieren
+    random_score = random.randint(0, 100)
     
     user = CustomUser.objects.create_user(
         username=username,

@@ -217,7 +217,7 @@ export const SignupHandler = {
         usernameInput.addEventListener('input', (e) => {
             const invalidChars = e.target.value.match(/[^a-zA-Z0-9]/g);
             if (invalidChars) {
-                errorDiv.textContent = 'Username darf nur Buchstaben und Zahlen enthalten';
+                errorDiv.textContent = 'Username may only contain letters and numbers';
                 errorDiv.style.display = 'block';
                 signupForm.querySelector('button[type="submit"]').disabled = true;
             } else {
@@ -237,7 +237,7 @@ export const SignupHandler = {
         const username = document.getElementById('username').value;
         // Zusätzliche Validierung vor dem Submit
         if (username.match(/[^a-zA-Z0-9]/g)) {
-            alert('Username darf nur Buchstaben und Zahlen enthalten');
+            alert('Username may only contain letters and numbers');
             return;
         }
         
@@ -249,7 +249,7 @@ export const SignupHandler = {
 
         try {
             await AuthLib.registerUser(SharedData.formData);
-            console.log("User erfolgreich registriert");
+            console.log("Registration successful");
             
             await AuthLib.sendVerificationCode(SharedData.formData.email);
             console.log("Verifizierungscode gesendet");
@@ -296,7 +296,7 @@ export class VerifyHandler {
                 console.log("Code erfolgreich verifiziert");
                 SharedData.formData = null;
                 
-                alert('Registrierung erfolgreich!');
+                alert('Registration successful!');
                 document.dispatchEvent(new CustomEvent('templateChange', {
                     detail: { template: 'login' }
                 }));
@@ -318,7 +318,7 @@ export class VerifyHandler {
 
         try {
             await AuthLib.sendVerificationCode(SharedData.formData.email);
-            alert('Neuer Code wurde gesendet!');
+            alert('Sending new code!');
         } catch (error) {
             console.error('Fehler beim erneuten Senden des Codes:', error);
             alert(error);
@@ -354,7 +354,7 @@ export class LoginHandler {
             await AuthLib.loginUser(username, password);
             const userProfile = await AuthLib.getProfile();
             
-            alert('Login erfolgreich!');
+            alert('Login successful!');
             
             document.dispatchEvent(new CustomEvent('templateChange', {
                 detail: { 
@@ -363,8 +363,8 @@ export class LoginHandler {
                 }
             }));
         } catch (error) {
-            console.error('Login fehlgeschlagen:', error);
-            alert('Login fehlgeschlagen. Bitte Username/Passwort prüfen.');
+            console.error('Login faled:', error);
+            alert('Login failed. Please check your username and/or password.');
         }
     }
 }
