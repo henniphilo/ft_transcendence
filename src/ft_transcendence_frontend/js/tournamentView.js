@@ -150,22 +150,28 @@ export class TournamentView {
     // 🟢 Button-Logik
     let buttonHTML = "";
   
+    // 1. Prüft auf Turniersieger (Korrekt)
     if (this.data.tournament_winner && playerName === this.data.tournament_winner) {
       buttonHTML = `
         <button id="winner-button" class="btn btn-warning mt-2">
           🏆 Congratulations, you won!
         </button>`;
+    // 2. Prüft auf Turnierstart (Korrekt)
     } else if (round === 1 && advancing.length === 0) {
       buttonHTML = `
         <button id="start-tournament-btn" class="btn btn-primary mt-2">
           Start tournament
         </button>`;
-    } else if (advancing.length > 0 && isStillInTournament) {
+    // 3. Prüft auf nächste Runde (Mit empfohlener Änderung)
+    } else if (!this.data.tournament_winner && advancing.length > 0 && isStillInTournament) { 
+      // ▲▲▲ Hinzugefügt: !this.data.tournament_winner && ▲▲▲
       buttonHTML = `
         <button id="start-next-round-btn" class="btn btn-success mt-2">
           Start next round
         </button>`;
     }
+    // Optional: Was soll passieren, wenn keine Bedingung zutrifft? 
+    // else { buttonHTML = ''; // Kein Button für ausgeschiedene Spieler etc. }
   
     // 🆕 Back-to-Menu-Button immer sichtbar
     const backButtonHTML = `
@@ -276,8 +282,10 @@ export class TournamentView {
     };
   }
 
-  updateResults(results, round, totalRounds, matchups, players) {
+  updateResults(results, round, totalRounds, matchups, players, tournament_winner) {
     console.log("📊 Tournament results received from displayMenu.js:", results);
+    // Optional: Logge auch den empfangenen Gewinner
+    console.log("   -> updateResults received tournament_winner argument:", tournament_winner); 
 
     // 🔄 Update internal state
     this.data.results = results;
@@ -287,6 +295,19 @@ export class TournamentView {
     if (players) {
       this.data.players = players;
     }
+
+    // ---> ★★★ DIESE ZEILE IST ENTSCHEIDEND ★★★ <---
+    // Aktualisiere this.data.tournament_winner, falls ein Wert übergeben wurde
+    // Wichtig: Prüfe auf 'undefined', da 'null' oder '' evtl. gültige (Fehler-)Werte sein könnten
+    if (tournament_winner !== undefined) { 
+      this.data.tournament_winner = tournament_winner; // Kann auch null sein, wenn Backend null sendet
+      console.log("   -> Set this.data.tournament_winner to:", this.data.tournament_winner);
+    } else {
+        // Optional: Was tun, wenn kein tournament_winner übergeben wird?
+        // this.data.tournament_winner = null; // explizit zurücksetzen? Oder alten Wert behalten? Aktuell: behält alten Wert.
+        console.log("   -> tournament_winner argument was undefined, this.data.tournament_winner remains:", this.data.tournament_winner);
+    }
+   // ---> Ende der wichtigen Zeile <---
 
     // 🔁 Neu rendern
     this.renderTournamentGrid();
