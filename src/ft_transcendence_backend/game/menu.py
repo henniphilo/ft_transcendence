@@ -416,6 +416,3 @@ class Menu:
                 print(f"🎮 Match gestartet: {p1_entry['player'].name} vs {p2_entry['player'].name}")
             except Exception as e:
                 print(f"❌ Fehler beim Match-Start: {e}")
-
-
-
