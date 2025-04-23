@@ -324,7 +324,7 @@ export class TournamentView {
 
 
               // --- 3. API-Aufruf vorbereiten ---
-              const apiUrl = 'http://localhost:8000/blockchain/add_game/'; // <<< URL angepasst? Prüfe deinen Backend Endpunkt!
+              const apiUrl = '/blockchain/add_game/'; // <<< URL angepasst? Prüfe deinen Backend Endpunkt!
               // Neuer Payload, passend zur Solidity addGame Funktion
               const payload = {
                   winner_tournament_name: winnerName, // Dynamischer Name
