@@ -2,45 +2,65 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "tournamentId",
-				"type": "uint256"
+				"internalType": "string",
+				"name": "_winner_tournament_name",
+				"type": "string"
 			},
 			{
-				"internalType": "uint256",
-				"name": "userId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "score",
-				"type": "uint256"
+				"internalType": "string",
+				"name": "_timestamp",
+				"type": "string"
 			}
 		],
-		"name": "addScore",
+		"name": "addGame",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "gameIndex",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "winner_tournament_name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "timestamp",
+				"type": "string"
+			}
+		],
+		"name": "GameAdded",
+		"type": "event"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "tournamentId",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "getTournamentScores",
+		"name": "games",
 		"outputs": [
 			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
+				"internalType": "string",
+				"name": "winner_tournament_name",
+				"type": "string"
 			},
 			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
+				"internalType": "string",
+				"name": "timestamp",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -50,40 +70,29 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
+				"name": "_index",
 				"type": "uint256"
 			}
 		],
-		"name": "tournamentUserIds",
+		"name": "getGame",
 		"outputs": [
 			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
+				"internalType": "string",
+				"name": "winner_tournament_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "timestamp",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "tournamentUserScores",
+		"inputs": [],
+		"name": "getGameCount",
 		"outputs": [
 			{
 				"internalType": "uint256",
