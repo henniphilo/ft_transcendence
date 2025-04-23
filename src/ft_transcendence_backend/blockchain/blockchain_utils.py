@@ -13,13 +13,14 @@ w3 = Web3(Web3.HTTPProvider('https://sepolia.infura.io/v3/a23119c5438f41edb641c7
 with open(os.path.join(os.path.dirname(__file__), 'contract_abi.json')) as f:
     contract_abi = json.load(f)
 
-contract_address = '0x3F9feC4a59121cbb7925d7A91c67333aA6ce6a6d'  # Sepolia-deployed contract address
+contract_address = '0x8DfF57b0F2204aF8b78a47c66DD7d112721C6c78'
+
 contract = w3.eth.contract(address=contract_address, abi=contract_abi)
 
-def add_score(tournament_id, user_id, score, private_key):
-    """Add a score to the blockchain."""
+def add_game(winner_tournament_name, timestamp, private_key):
+    """Add a game to the blockchain."""
     account = w3.eth.account.from_key(private_key)
-    tx = contract.functions.addScore(tournament_id, user_id, score).build_transaction({
+    tx = contract.functions.addGame(winner_tournament_name, timestamp).build_transaction({
         'from': account.address,
         'gas': 200000,
         'gasPrice': w3.eth.gas_price,
@@ -30,7 +31,11 @@ def add_score(tournament_id, user_id, score, private_key):
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
     return w3.eth.wait_for_transaction_receipt(tx_hash)
 
-def get_tournament_scores(tournament_id):
-    """Retrieve scores for a tournament from the blockchain."""
-    user_ids, scores = contract.functions.getTournamentScores(tournament_id).call()
-    return user_ids, scores
+def get_game(index):
+    """Retrieve a game's details from the blockchain."""
+    winner_tournament_name, timestamp = contract.functions.getGame(index).call()
+    return winner_tournament_name, timestamp
+
+def get_game_count():
+    """Retrieve the total number of games from the blockchain."""
+    return contract.functions.getGameCount().call()
