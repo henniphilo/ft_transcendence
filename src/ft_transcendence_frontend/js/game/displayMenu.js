@@ -184,7 +184,7 @@ export class MenuDisplay {
                                 <div class="row">
                                     <div class="col-md-4 col-sm-12 text-center">
                                         <img class="profile-avatar rounded-circle mb-3"
-                                             src="${this.userProfile.avatar || '/assets/default-avatar.png'}"
+                                             src="${this.userProfile.avatar || '/media/avatars/default.png'}"
                                              alt="Avatar" style="width: 100px; height: 100px; object-fit: cover;" />
                                         <div class="mb-3">
                                             <label for="avatar-input" class="form-label">Change Avatar:</label>
