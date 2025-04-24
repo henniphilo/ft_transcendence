@@ -25,8 +25,8 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('blockchain/', include('blockchain.urls')),
     path('api/users/', include('users.urls')),
-    path('api/gamestats/', include('gamestats.urls')),
-    path('api/minimal_chat/', include('minimal_chat.urls')),
+    path('api/', include('gamestats.urls')),
+    path('', include('minimal_chat.urls')),
     path('', include('django_prometheus.urls')),  # For metrics
 ]
 
