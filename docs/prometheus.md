@@ -142,6 +142,8 @@ See [node_exporter.md](node_exporter.md)
 - Monitors connections, queries, indexes, and table statistics
 - Helps identify slow queries and database issues
 
+See [postgres logs.md](postgres logs.md)
+
 ### 5. **Alertmanager**
 - Handles alerts sent by Prometheus
 - Deduplicates, groups, and routes alerts to the appropriate receiver
@@ -205,6 +207,50 @@ For example, to check if Caddy is exposing metrics correctly:
 ```bash
 docker run --rm --network transcendence_network curlimages/curl curl http://caddy:80/metrics
 ```
+
+## Prometheus Self-Monitoring Dashboard
+
+To monitor Prometheus itself, we've integrated a specialized Grafana dashboard that tracks the health and performance of our monitoring system. This "meta-monitoring" approach ensures we can quickly detect and resolve issues with our observability infrastructure.
+
+### Dashboard Setup
+
+1. In Grafana, go to **Dashboards** → **Import**
+2. Enter dashboard ID **3662** for the "Prometheus 2.0 Stats" dashboard
+3. Select your Prometheus data source
+4. Click **Import**
+
+### Key Metrics Monitored
+
+The Prometheus self-monitoring dashboard provides visibility into:
+
+1. **TSDB Performance**
+   - Head series, chunks, and sample counts
+   - Storage compaction metrics
+   - WAL operations and durations
+
+2. **Resource Usage**
+   - Memory consumption (heap, stack, go memory)
+   - Goroutine counts
+   - CPU usage
+
+3. **Scrape Performance**
+   - Scrape duration by target
+   - Failed scrapes
+   - Sample ingestion rate
+
+4. **Rule Evaluation**
+   - Rule evaluation durations
+   - Failed rule evaluations
+
+This dashboard is especially valuable when troubleshooting performance issues or planning capacity for your monitoring infrastructure.
+
+### Alerting on Prometheus Health
+
+Consider setting up alerts for:
+- High memory usage (>80% of allocated memory)
+- Scrape failures above a certain threshold
+- Slow rule evaluation (>10s)
+- Storage operation failures
 
 ## links  
 https://prometheus.io/docs/prometheus/latest/getting_started/  
