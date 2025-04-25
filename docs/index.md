@@ -63,17 +63,21 @@ This will build the Docker image and run the application. The application will b
 # The modules 
 
 ## Devops (Laurent Brusa)
-   The assignment is to implement efficient log management using ELK (Elasticsearch, Logstash, Kibana) and implementing Prometheus/Grafana.
-   
+The assignment implements efficient log management using ELK (Elasticsearch, Logstash, Kibana) and monitoring with Prometheus/Grafana.
+
+Read more about ELK in the docs ELK.md.  
+And about Grafana in the grafana.md.
+
+### Main Endpoints
+- **Kibana Dashboard**: `http://localhost:5601` - For log visualization and analysis
+- **Grafana**: `http://localhost:3000` - For metrics visualization and dashboards
+
+Additional endpoints:
+- Elasticsearch API: `http://localhost:9200`
+- Prometheus: `http://localhost:9090`
 
 ## node exporter
 This container will expose a Prometheus exporter for the host machine. It will be available at `http://localhost:9100/metrics`.
-
-## grafana
-This container will run a Grafana instance. It will be available at `http://localhost:3000`.
-
-## prometheus
-This container will run a Prometheus instance. It will be available at `http://localhost:9090`.
 
 ## redis
 This container will run a Redis instance. It will avalaible on the port 6379 via the redis protocol.
@@ -85,8 +89,6 @@ There is a grafana dashboard connected to this datasource.
 ## backend
 This container will run the backend of the application. It will be available at `http://localhost:8080`.
 
-## tempo
-This container will run a Tempo instance.
 
 ## modules
 
