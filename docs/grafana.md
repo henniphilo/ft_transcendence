@@ -92,7 +92,9 @@ These dashboards are saved persistently in Docker volumes, ensuring they remain 
 
 ## Accessing Grafana
 
-Grafana is accessible at `http://localhost:3000` or via the `/grafana/` path through our reverse proxy.
+Grafana is accessible via the `/grafana/` path through our reverse proxy at `http://localhost:8080/grafana/`.
+
+While the Grafana container exposes port 3000, direct access at `http://localhost:3000` is not recommended due to the sub-path configuration in `grafana.ini`.
 
 Login credentials are configured via environment variables:
 - Username: Set via `GF_SECURITY_ADMIN_USER`

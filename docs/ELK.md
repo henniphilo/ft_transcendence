@@ -46,39 +46,7 @@ Logstash is the data processing pipeline that ingests data from multiple sources
 - Enriches data with additional context
 - Forwards processed data to Elasticsearch
 
-**Example Configuration:**
-```properties
-# logstash.conf
-input {
-  gelf {
-    host => "0.0.0.0"
-    port => 12201
-    type => "docker"
-  }
-}
-
-filter {
-  mutate {
-    rename => { "host" => "hostname" }
-  }
-  
-  # Parse logs based on tag
-  if [tag] == "backend" {
-    grok {
-      match => { "message" => "%{IPORHOST:client_ip}:%{POSINT:client_port} \- \- \[%{MONTHDAY:day}/%{MONTH:month}/%{YEAR:year}:%{TIME:time}\] \"%{WORD:http_method} %{URIPATHPARAM:request_path}.*\" %{NUMBER:http_status} %{NUMBER:response_size}" }
-      add_tag => ["http_request"]
-    }
-  }
-}
-
-output {
-  elasticsearch {
-    hosts => ["elasticsearch:9200"]
-    index => "docker-logs-%{+yyyy.MM.dd}"
-  }
-  stdout { codec => rubydebug }
-}
-```
+Read more about Elastic Search here: [logstash.md](logstash.md).
 
 ### Kibana
 
