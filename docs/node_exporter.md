@@ -22,11 +22,12 @@ node-exporter:
       gelf-address: "udp://${LOG_HOST}:12201"
       tag: "node-exporter"
   healthcheck:
-    test: ["CMD-SHELL", "curl -f http://localhost:9101/-/healthy || exit 1"]
+    test: ["CMD-SHELL", "wget -q --spider http://localhost:9100/metrics || exit 1"]
     interval: 30s
     timeout: 10s
     retries: 5
 ```
+
 
 ### Key Configuration Aspects
 
@@ -34,7 +35,7 @@ node-exporter:
 - **Port Mapping**: Exposes port 9100 (mapped to 9101 on the host) for metrics access
 - **Profiles**: Part of the "grafanaprofile" group for selective startup
 - **Logging**: Integrates with our ELK stack via GELF
-- **Healthcheck**: Ensures the exporter is functioning properly
+- **Healthcheck**: Uses `wget` instead of `curl` since the Node Exporter container doesn't have curl installed, checking that the metrics endpoint is functioning properly
 
 ## Prometheus Integration
 

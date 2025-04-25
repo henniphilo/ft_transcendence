@@ -135,6 +135,7 @@ See also [django_metrics.md](django_metrics.md) for more.
 - Monitors CPU usage, memory usage, disk I/O, and network statistics
 - Essential for identifying resource bottlenecks
 
+See [node_exporter.md](node_exporter.md)
 
 ### 4. **PostgreSQL (via postgres-exporter)**
 - Provides database performance metrics
