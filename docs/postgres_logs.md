@@ -1,4 +1,4 @@
-## Postresql logs
+## Postgresql logs
 
 This was a bit of a pain to set up correctly. The postgres has its conf file in a default location which is `/var/lib/postgresql/data` but if I want to add my own conf file I need to add a copy in `/etc/postgresql/`. 
 

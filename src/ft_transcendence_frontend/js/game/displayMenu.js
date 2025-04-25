@@ -1319,11 +1319,11 @@ OnlineUsersHandler.updateOnlineUsersList = function(onlineUsers, friendsHandler)
             nameSpan.addEventListener('click', (e) => {
                 const username = e.currentTarget.dataset.username;
                 // Zeige das Profil nur an, wenn es nicht der aktuelle Benutzer ist
-                if (username !== currentUsername) {
+                //if (username !== currentUsername) {
                     if (window.menuDisplay) {
                         window.menuDisplay.viewFriendProfile(username);
                     }
-                }
+                //}
             });
         });
 

@@ -1,6 +1,6 @@
 # github actions
 
-you can insatall the github actions vscode extension in your local machine to test the workflow. Also try to run the compose file locally... it might not work because of the secrets though..
+you can install the github actions vscode extension in your local machine to test the workflow. Also try to run the compose file locally... it might not work because of the secrets though..
 
 ```bash
 ``` 
