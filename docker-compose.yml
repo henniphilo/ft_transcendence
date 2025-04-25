@@ -343,9 +343,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -s -f -u elastic:yourpassword http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
-  
+    
   logstash:
     <<: *common
     container_name: logstash

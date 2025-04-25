@@ -60,6 +60,12 @@ make
 
 This will build the Docker image and run the application. The application will be available at `http://localhost:8080`.
 
+# The modules 
+
+## Devops (Laurent Brusa)
+   The assignment is to implement efficient log management using ELK (Elasticsearch, Logstash, Kibana) and implementing Prometheus/Grafana.
+   
+
 ## node exporter
 This container will expose a Prometheus exporter for the host machine. It will be available at `http://localhost:9100/metrics`.
 
