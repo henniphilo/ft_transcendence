@@ -1,161 +1,212 @@
-# Prometheus
+# Prometheus Documentation
 
-## debug
-docker run --rm --network transcendence_network curlimages/curl curl http://caddy:8080/metrics
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-curl: (7) Failed to connect to caddy port 8080 after 1 ms: Could not connect to server
+## Introduction
 
+Prometheus is an open-source systems monitoring and alerting toolkit. It collects and stores time-series data as metrics, which makes it ideal for monitoring container environments. In our project, Prometheus serves as the backbone for monitoring service health, performance metrics, and resource utilization.
 
-## Node Exporter
+## Docker Compose Configuration
 
-Purpose:
-The Node Exporter is a Prometheus exporter that collects hardware and
-operating system metrics from your host machine.  
-It provides metrics like CPU usage, memory usage, disk I/O, network statistics, and more.
-
-
-* **Access Node Exporter Metrics:**
-    * First, make sure Node Exporter is running correctly and exposing metrics.
-    * If you're using Docker Compose, find the Node Exporter service's port mapping (usually `9100`).
-    * Open your web browser and navigate to `http://<node-exporter-container-IP or localhost>:9100/metrics`.
-    * You should see a large amount of text-based metrics data. If you don't, there's a problem with your Node Exporter container.
-
-**2. Configure Prometheus to Scrape Node Exporter Metrics:**
-
-* **Prometheus Configuration:**
-    * Prometheus is the tool that will collect the metrics from Node Exporter.
-    * You need to add a scrape job to your Prometheus configuration file (`prometheus.yml`).
-    * If you are using docker compose and linking your prometheus container to the node exporter container, you can use the container name as the hostname.
-* **Example `prometheus.yml` Snippet:**
+Our Prometheus instance is configured in Docker Compose as follows:
 
 ```yaml
+prometheus:
+  <<: *common
+  build: 
+    context: ./src/grafana
+    dockerfile: Dockerfile.prometheus
+  profiles: ["grafanaprofile"]
+  container_name: prometheus
+  ports:
+    - "9090:9090"
+  volumes:
+    - prometheus_data:/prometheus
+  logging:
+    driver: gelf
+    options:
+      gelf-address: "udp://${LOG_HOST}:12201"
+      tag: "prometheus"
+  healthcheck:
+    test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+```
+
+### Key Configuration Aspects
+
+- **Custom Build**: Uses a custom Dockerfile to include specific configurations
+- **Profiles**: Part of the "grafanaprofile" group, allowing selective startup
+- **Port Mapping**: Exposes port 9090 for the web interface and API
+- **Persistence**: Stores time-series data in a volume for data retention across restarts
+- **Logging**: Uses GELF logging driver to integrate with our ELK stack
+- **Healthcheck**: Regularly checks Prometheus health endpoint
+
+## Prometheus Configuration
+
+Our Prometheus is configured to scrape metrics from various services in our stack:
+
+```yaml
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+      monitor: 'transcendence'
+
+# This ensures that Prometheus sends alerts to Alertmanager.
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets: ['alertmanager:9093'] 
+
+rule_files:
+  - /etc/prometheus/rules.yaml
+  - /etc/prometheus/alerts.yaml
+  - /etc/node_exporter_recording_rules.yml
+
+# Prometheus scrapes metrics from the services.
 scrape_configs:
-  - job_name: "node_exporter"
+  - job_name: 'caddy'
     static_configs:
-      - targets: ["node-exporter:9100"] #use the container name and the port
+      - targets: ['caddy:80'] 
+
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['backend:8000']
+
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+  
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+    
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ['prometheus:9090']
 ```
 
-* **Explanation:**
-    * `job_name`: A label to identify this scrape job.
-    * `static_configs`: Defines the target(s) to scrape.
-    * `targets`: The Node Exporter's address and port.
+### Configuration Breakdown
 
-**3. Restart Prometheus:**
+#### Global Settings
+- **`scrape_interval`**: Default interval (15s) for collecting metrics
+- **`evaluation_interval`**: How often evaluation rules are evaluated
+- **`external_labels`**: Labels added to any time series or alerts
 
-* **Apply Changes:**
-    * After modifying `prometheus.yml`, you need to restart your Prometheus container to apply the changes.
-    * If you are using docker-compose.
-        * `docker-compose restart prometheus`
+#### Alerting
+- Configured to send alerts to Alertmanager on port 9093
 
-**4. Verify Prometheus is Scrapping Node Exporter:**
+#### Rule Files
+- Paths to recording rules and alerting rules
+- Rules for node exporter metrics pre-processing
 
-* **Prometheus Web UI:**
-    * Open the Prometheus web UI in your browser (usually `http://localhost:9090`).
-    * Go to "Status" -> "Targets."
-    * You should see your Node Exporter target listed, and its state should be "UP."
-    * If the state is down, check the prometheus logs for errors.
+#### Scrape Configurations
+Prometheus collects metrics from the following services:
 
-**5. Add a Prometheus Data Source to Grafana:**
+1. **Caddy**: Web server metrics (port 80)
+2. **Backend**: Django application metrics (port 8000)
+3. **Node Exporter**: Host machine metrics (CPU, memory, disk, network) on port 9100
+4. **PostgreSQL**: Database metrics via postgres-exporter on port 9187
+5. **Alertmanager**: Alert handling metrics (port 9093)
+6. **Prometheus**: Self-monitoring metrics (port 9090)
 
-* **Grafana UI:**
-    * Open your Grafana web UI (usually `http://localhost:3000`).
-    * Go to "Configuration" -> "Data Sources."
-    * Click "Add data source."
-    * Select "Prometheus."
-* **Prometheus URL:**
-    * Enter the URL of your Prometheus server (e.g., `http://prometheus:9090` if you're using Docker Compose and linking containers).
-    * Click "Save & test."
+## Connected Services
 
-**6. Create a Grafana Dashboard:**
+### 1. **Caddy (Reverse Proxy)**
+- Exposes metrics about HTTP requests, response times, and status codes
+- Useful for monitoring web traffic patterns and identifying issues
 
-* **New Dashboard:**
-	* add the data source to grafana
-    * In Grafana, you can also click on the + sign and add by number id. There is a premade dashboard with id 13978 for node exporter.
-* **Query Metrics:**
-    * In the panel's query editor, start typing metric names from Node Exporter (e.g., `node_cpu_seconds_total`).
-    * Grafana will suggest metrics as you type.
-    * Use Prometheus Query Language (PromQL) to create graphs and visualizations.
-* **Example Query:**
-    * To get CPU utilization: `100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)`
+### 2. **Backend (Django Application)**
+- Provides custom application metrics
+- Includes API endpoint performance, database query times, and request counts
 
+### 3. **Node Exporter**
+- Collects system-level metrics from the host
+- Monitors CPU usage, memory usage, disk I/O, and network statistics
+- Essential for identifying resource bottlenecks
 
-Once the Node Exporter Container is running, you can access its metrics by visiting the following URL in your web browser: 
+### 4. **PostgreSQL (via postgres-exporter)**
+- Provides database performance metrics
+- Monitors connections, queries, indexes, and table statistics
+- Helps identify slow queries and database issues
 
-Then Prometheus will scrape the metrics from the Node Exporter and store them in its time-series database. Check if everything is ok here:
-http://localhost:9090/targets
+### 5. **Alertmanager**
+- Handles alerts sent by Prometheus
+- Deduplicates, groups, and routes alerts to the appropriate receiver
+- Manages silences and inhibitions
 
-## did you know
-in docker compose you can inline a docker file
-```yaml
-dockerfile_inline: |
-        FROM grafana/promtail:latest
-        RUN apt-get update && apt-get install -y curl
+### 6. **Prometheus (Self-monitoring)**
+- Monitors its own performance
+- Tracks metrics about internal operations, storage, and query execution
+
+## Data Persistence
+
+Prometheus data is persisted in a Docker volume (`prometheus_data`) to ensure metrics history is preserved across container restarts or rebuilds. This allows for:
+
+- Historical data analysis
+- Long-term trend visualization
+- Consistent alerting based on historical patterns
+
+The storage location is configured via the `--storage.tsdb.path=/prometheus` parameter in the Dockerfile CMD.
+
+## Accessing Prometheus
+
+The Prometheus web interface is accessible at:
+```
+http://localhost:9090
 ```
 
+Key pages:
+- **Graph**: For querying and visualizing metrics
+- **Alerts**: For viewing configured alert rules and their current status
+- **Status > Targets**: For checking the health of monitored services
+- **Status > Configuration**: For viewing the current Prometheus configuration
 
-# persistence
+## Node Exporter Integration
 
-Yes, your `docker-compose.yml` and `Dockerfile` are correctly configured for Prometheus data persistence.
+The Node Exporter is a key component that provides system-level metrics. To utilize these metrics in Grafana:
 
-Here's a breakdown of why it works and some additional points to consider:
+1. Prometheus scrapes metrics from the Node Exporter on port 9100
+2. In Grafana, you can import the pre-made Node Exporter dashboard (ID: 13978)
+3. This dashboard provides visualizations for CPU, memory, disk, and network metrics
 
-**1. `docker-compose.yml` Volume Mount:**
+## Integration with Grafana
 
-* `volumes: - prometheus_data:/prometheus`: This is the key to persistence.
-    * `prometheus_data` defines a named Docker volume. Docker will manage the storage location for this volume.
-    * `/prometheus`: This is the directory *inside* the Prometheus container where Prometheus stores its time-series database (TSDB).
-    * By mounting the named volume to this directory, you ensure that the TSDB is stored outside the container's ephemeral filesystem.
-    * When the container is stopped or removed, the data in the `prometheus_data` volume will persist.
-    * When the container is restarted, the data will be reattached to the `/prometheus` directory.
+Grafana uses Prometheus as a data source to create dashboards for:
+- System metrics from Node Exporter
+- PostgreSQL performance metrics
+- Backend application metrics
+- Web server (Caddy) traffic analysis
 
-**2. `Dockerfile` CMD:**
+## Verifying Prometheus Setup
 
-* `CMD ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus"]`:
-    * `--storage.tsdb.path=/prometheus`: This tells Prometheus to store its TSDB in the `/prometheus` directory.
-    * This matches the mount point defined in your `docker-compose.yml` file, ensuring that Prometheus uses the persistent volume.
+To verify that Prometheus is correctly scraping metrics from all targets:
 
-**3. Named Docker Volume:**
+1. Access the Prometheus web UI at `http://localhost:9090`
+2. Navigate to Status > Targets
+3. Check that all targets show "UP" status
+4. If any target shows "DOWN", check the target's metrics endpoint directly
 
-* Docker will create and manage the `prometheus_data` volume.
-* The actual location of the data on the host system depends on your Docker configuration.
-* You can inspect the volume using `docker volume inspect prometheus_data`.
-
-**Additional Considerations:**
-
-* **Volume Size:**
-    * Prometheus can consume a significant amount of disk space, especially if you're collecting a lot of metrics.
-    * Monitor the size of your `prometheus_data` volume and adjust your storage configuration as needed.
-* **Storage Performance:**
-    * The performance of your storage can impact Prometheus's performance.
-    * If you're experiencing slow queries or high disk I/O, consider using faster storage.
-* **Data Retention:**
-    * Prometheus has built-in data retention settings.
-    * You can configure how long Prometheus keeps data using the `--storage.tsdb.retention.time` or `--storage.tsdb.retention.size` flags in your `prometheus.yml` file. If you don't set a retention time, Prometheus will keep all data.
-* **Backup:**
-    * While the data is persistent, it's still good practice to back up your `prometheus_data` volume regularly.
-    * You can use Docker volume backups or other backup tools.
-* **Permissions:**
-    * Ensure that the Prometheus container has the necessary permissions to read and write to the `/prometheus` directory. Docker volumes usually handle this automatically, but it's worth checking.
-* **Data Migration:**
-    * If you need to migrate your Prometheus data to a different machine or storage location, you can back up and restore the `prometheus_data` volume.
-
-**In Summary:**
-
-Your current setup with the named Docker volume and the `Dockerfile`'s `CMD` is sufficient for Prometheus data persistence. Just be mindful of disk space, performance, and backups.
-
-
+For example, to check if Caddy is exposing metrics correctly:
+```bash
+docker run --rm --network transcendence_network curlimages/curl curl http://caddy:80/metrics
+```
 
 ## links  
 https://prometheus.io/docs/prometheus/latest/getting_started/  
 
 https://github.com/prometheus/prometheus/tree/main?tab=readme-ov-file  
 
-13978 node exporter quickstart and dashboard
-https://grafana.com/grafana/dashboards/13978-node-exporter-quickstart-and-dashboard/  
-
 https://medium.com/@tommyraspati/monitoring-your-django-project-with-prometheus-and-grafana-b06a5ca78744  
 
-id 17658
+id13978 node exporter quickstart and dashboard  
+https://grafana.com/grafana/dashboards/13978-node-exporter-quickstart-and-dashboard/  
+
+id 17658 dashboard  
 https://grafana.com/grafana/dashboards/17658-django/

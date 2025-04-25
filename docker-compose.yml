@@ -305,11 +305,6 @@ services:
     - '5601:5601'
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200  
-      # - ELASTICSEARCH_USERNAME=kibana_system
-      # - ELASTICSEARCH_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Kibana system password
-    #   - xpack.encryptedSavedObjects.encryptionKey=<5880da9738edab6101dc26330c2fafca>
-    #   - xpack.reporting.encryptionKey=<e1921b1a405bc83d11084504c65d8cae>
-    #   - xpack.security.encryptionKey=<789dcf21ca81e07d37c6aa2c23742021>
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -351,8 +346,6 @@ services:
     profiles: ["elkprofile"]
     restart: always
     command: logstash -f /logstash_dir/logstash.conf 
-    # depends_on:
-    #   - elasticsearch
     ports:
       - "5000:5000/udp" 
       - "9600:9600"
@@ -361,8 +354,6 @@ services:
       - ES_JAVA_OPTS=-Xmx1g -Xms1g
       - xpack.monitoring.enabled=true
       - xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200
-      # - xpack.monitoring.elasticsearch.username=elastic
-      # - xpack.monitoring.elasticsearch.password=LYCGEtv92deGJROBL*lp    
 
 volumes:
   caddy_logs: null

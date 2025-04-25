@@ -4,6 +4,8 @@
 
 Grafana is an open-source analytics and monitoring platform that provides visualization capabilities for time-series data. In our project, we use Grafana exclusively with Prometheus for system and application metrics monitoring. This setup enables us to visualize performance metrics, track usage patterns, and detect anomalies in our application.
 
+For more about Prometheus visit [prometheus.md](prometheus.md).
+
 ## Configuration
 
 Our Grafana instance is configured using a custom Docker image and configuration file. The configuration ensures that Grafana is accessible through a sub-path in our reverse proxy setup.
