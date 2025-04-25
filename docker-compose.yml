@@ -273,27 +273,27 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "alertmanager"
 
-  promtail:
-    <<: *common
-    build:
-      context: ./src/grafana
-      dockerfile: Dockerfile.promtail
-    container_name: promtail
-    profiles: ["elkprofile"]
-    volumes:
-      - promtail_logs:/app/logs
-      - postgres_logs:/var/log/postgresql
-      - redis_logs:/var/log/redis
-      - caddy_logs:/var/log/caddy
-      - django_logs:/app/logs
-      - grafana_logs:/var/log/grafana
-    ports:
-    - "9080:9080" 
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+  # promtail:
+  #   <<: *common
+  #   build:
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.promtail
+  #   container_name: promtail
+  #   profiles: ["elkprofile"]
+  #   volumes:
+  #     - promtail_logs:/app/logs
+  #     - postgres_logs:/var/log/postgresql
+  #     - redis_logs:/var/log/redis
+  #     - caddy_logs:/var/log/caddy
+  #     - django_logs:/app/logs
+  #     - grafana_logs:/var/log/grafana
+  #   ports:
+  #   - "9080:9080" 
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
 
   kibana:
     <<: *common
@@ -368,10 +368,10 @@ volumes:
   prometheus_data: null
   portainer-data: null
   elastic_data: null
-  logstash-persistence: null
   kibana_data: null
-  promtail_logs: null
-  elasticsearch_data: null
+  # logstash-persistence: null
+  # elasticsearch_data: null
+  # promtail_logs: null
 
 
 networks:

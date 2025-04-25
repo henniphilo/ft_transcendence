@@ -141,6 +141,8 @@ Prometheus collects metrics from the following services:
 - Deduplicates, groups, and routes alerts to the appropriate receiver
 - Manages silences and inhibitions
 
+For more about [alertmanager.md](alertmanager.md).
+
 ### 6. **Prometheus (Self-monitoring)**
 - Monitors its own performance
 - Tracks metrics about internal operations, storage, and query execution
