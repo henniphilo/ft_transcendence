@@ -42,6 +42,37 @@ Thanks to your website, users will play Pong with others.
    - Form and user input validation.
 
 ## Modules
+Beneath is a table outlining all possible modules for the ft_transcendence project, including their type, points and whether we did them or not. Major modules are worth **10 points** each, and minor modules are worth **5 points** each.
+
+| Module Category | Module Description | Type | Points | Completed |
+|-----------------|--------------------|------|--------|-----------|
+| **Web** | Use a [Framework](django.md) as backend | Major | 10 | ✅ |
+| Web | Use a front-end framework or [toolkit](bootstrap.md) | Minor | 5 | ✅ |
+| Web | Use a [database](postgres_logs.md) for the backend | Minor | 5 | ✅ |
+| Web | Store the score of a tournament in the [blockchain](blockchain.md) | Major | 10 | ✅ |
+| **User Management** | Standard user management, authentication, users across tournaments | Major | 10 | ✅ |
+| User Management | Implementing a remote authentication | Major | 10 | [ ] |
+| **Gameplay and User Experience** | Remote players | Major | 10 | ✅ |
+| Gameplay and User Experience | Multiplayers (more than 2 in the same game) | Major | 10 | [ ] |
+| Gameplay and User Experience | Add Another Game with User History and Matchmaking | Major | 10 | [ ] |
+| Gameplay and User Experience | Game Customization Options | Minor | 5 | [ ] |
+| Gameplay and User Experience | Live chat | Major | 10 | ✅ |
+| **AI-Algo** | Introduce an AI Opponent | Major | 10 | ✅ |
+| AI-Algo | User and Game Stats Dashboards | Minor | 5 | ✅ |
+| **Cybersecurity** | Implement WAF/ModSecurity with Hardened Configuration and HashiCorp Vault for Secrets Management | Major | 10 | [ ] |
+| Cybersecurity | GDPR Compliance Options with User Anonymization, Local Data Management, and Account Deletion | Minor | 5 | [ ] |
+| Cybersecurity | Implement Two-Factor Authentication (2FA) and JWT | Major | 10 | [ ] |
+| **Devops** | Infrastructure Setup for log Management with [Elasticsearch](elastic_search.md), [Kibana](kibana.md), [Logstash](logstash.md) | Major | 10 | ✅ |
+| Devops | Monitoring system with [Prometheus](prometheus.md) and [Grafana](grafana.md)| Minor | 5 | ✅ |
+| Devops | Designing the Backend as Microservices | Major | 10 | ✅ |
+| **Graphics** | Use of advanced 3D techniques | Major | 10 | ✅ |
+| **Accessibility** | Support on all devices | Minor | 5 | [ ] |
+| Accessibility | Expanding Browser Compatibility | Minor | 5 | [ ] |
+| Accessibility | Multiple language support | Minor | 5 | [ ] |
+| Accessibility | Add accessibility for Visually Impaired Users | Minor | 5 | [ ] |
+| Accessibility | Server-Side Rendering (SSR) Integration | Minor | 5 | [ ] |
+| **Server-Side Pong** | Replacing Basic Pong with Server-Side Pong and Implementing an [API](how_to_gamestats.md) | Major | 10 | ✅ |
+| Server-Side Pong | Enabling Pong Gameplay via CLI against Web Users with API Integration | Major | 10 | [ ] |
 
 - **Minimum of 7 Major Modules Required:**
   - Options include Web, User Management, Gameplay, AI-Algo, Cybersecurity, DevOps, Graphics, Accessibility, and Server-Side Pong.
