@@ -122,14 +122,19 @@ Prometheus collects metrics from the following services:
 - Exposes metrics about HTTP requests, response times, and status codes
 - Useful for monitoring web traffic patterns and identifying issues
 
+More about this integration see [caddy_metrics.md](caddy_metrics.md)
+
 ### 2. **Backend (Django Application)**
 - Provides custom application metrics
 - Includes API endpoint performance, database query times, and request counts
+
+See also [django_metrics.md](django_metrics.md) for more.
 
 ### 3. **Node Exporter**
 - Collects system-level metrics from the host
 - Monitors CPU usage, memory usage, disk I/O, and network statistics
 - Essential for identifying resource bottlenecks
+
 
 ### 4. **PostgreSQL (via postgres-exporter)**
 - Provides database performance metrics

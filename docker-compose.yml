@@ -228,7 +228,7 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "prometheus"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -246,7 +246,7 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "node-exporter"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9100/-/healthy || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9100/metrics || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
