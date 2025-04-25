@@ -62,7 +62,7 @@ Beneath is a table outlining all possible modules for the ft_transcendence proje
 | **Cybersecurity** | Implement WAF/ModSecurity with Hardened Configuration and HashiCorp Vault for Secrets Management | Major | 10 | [ ] |
 | Cybersecurity | GDPR Compliance Options with User Anonymization, Local Data Management, and Account Deletion | Minor | 5 | [ ] |
 | Cybersecurity | Implement Two-Factor Authentication (2FA) and JWT | Major | 10 | [ ] |
-| **Devops** | Infrastructure Setup for log Management with [Elasticsearch](elastic_search.md), [Kibana](kibana.md), [Logstash](logstash.md) | Major | 10 | ✅ |
+| **Devops** | Infrastructure Setup for log Management with [ELK](ELK.md): [Elasticsearch](elastic_search.md), [Kibana](kibana.md), [Logstash](logstash.md) | Major | 10 | ✅ |
 | Devops | Monitoring system with [Prometheus](prometheus.md) and [Grafana](grafana.md)| Minor | 5 | ✅ |
 | Devops | Designing the Backend as Microservices | Major | 10 | ✅ |
 | **Graphics** | Use of advanced 3D techniques | Major | 10 | ✅ |
