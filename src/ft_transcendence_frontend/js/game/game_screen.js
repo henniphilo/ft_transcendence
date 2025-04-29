@@ -109,23 +109,64 @@ export class GameScreen {
     }
 
     setupControls() {
-        this.keyState = {
-          a: false,
-          d: false,
-          ArrowLeft: false,
-          ArrowRight: false,
-        };
-        this.controlInterval = setInterval(() => {
-            // if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-
-            if (Object.values(this.keyState).some(key => key)) {
-                console.log(`Sending key update (${this.gameMode}):`, this.keyState);
-                this.ws.send(JSON.stringify({
-                    action: 'key_update',
-                    keys: this.keyState
-                }));
-            }
-        }, 16);  // ~60 FPS
+      this.keyState = {
+        a: false,
+        d: false,
+        ArrowLeft: false,
+        ArrowRight: false,
+      };
+    
+      // Define event handlers as instance properties
+      this.keydownHandler = (e) => {
+        // Skip if a text input is focused
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          return;
+        }
+    
+        if (this.playerRole === "both") {
+          if (this.keyState.hasOwnProperty(e.key)) {
+            e.preventDefault();
+            this.keyState[e.key] = true;
+          }
+        } else if (this.playerRole === "player1") {
+          if (e.key === "a" || e.key === "d") {
+            e.preventDefault();
+            this.keyState[e.key] = true;
+          }
+        } else if (this.playerRole === "player2") {
+          if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            e.preventDefault();
+            this.keyState[e.key] = true;
+          }
+        }
+      };
+    
+      this.keyupHandler = (e) => {
+        // Skip if a text input is focused
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          return;
+        }
+    
+        if (this.keyState.hasOwnProperty(e.key)) {
+          e.preventDefault();
+          this.keyState[e.key] = false;
+        }
+      };
+    
+      // Add event listeners using the stored handlers
+      document.addEventListener("keydown", this.keydownHandler);
+      document.addEventListener("keyup", this.keyupHandler);
+    
+      this.controlInterval = setInterval(() => {
+        if (Object.values(this.keyState).some(key => key)) {
+          console.log(`Sending key update (${this.gameMode}):`, this.keyState);
+          this.ws.send(JSON.stringify({
+            action: 'key_update',
+            keys: this.keyState
+          }));
+        }
+      }, 16); // ~60 FPS
+    }
 
         // this.keydownHandler = (e) => {
         //     const key = e.key;
@@ -147,39 +188,39 @@ export class GameScreen {
         //     }
         // };
 
-        document.addEventListener("keydown", (e) => {
-          if (this.playerRole === "both") {
-            // Lokaler Modus: Erlaube alle Tasten
-            if (this.keyState.hasOwnProperty(e.key)) {
-              e.preventDefault();
-              this.keyState[e.key] = true;
-            }
-          } else if (this.playerRole === "player1") {
-            // Spieler 1: Nur A und D
-            if (e.key === "a" || e.key === "d") {
-              e.preventDefault();
-              this.keyState[e.key] = true;
-            }
-          } else if (this.playerRole === "player2") {
-            // Spieler 2: Nur Pfeiltasten
-            if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-              e.preventDefault();
-              this.keyState[e.key] = true;
-            }
-          }
-        });
+    //     document.addEventListener("keydown", (e) => {
+    //       if (this.playerRole === "both") {
+    //         // Lokaler Modus: Erlaube alle Tasten
+    //         if (this.keyState.hasOwnProperty(e.key)) {
+    //           e.preventDefault();
+    //           this.keyState[e.key] = true;
+    //         }
+    //       } else if (this.playerRole === "player1") {
+    //         // Spieler 1: Nur A und D
+    //         if (e.key === "a" || e.key === "d") {
+    //           e.preventDefault();
+    //           this.keyState[e.key] = true;
+    //         }
+    //       } else if (this.playerRole === "player2") {
+    //         // Spieler 2: Nur Pfeiltasten
+    //         if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    //           e.preventDefault();
+    //           this.keyState[e.key] = true;
+    //         }
+    //       }
+    //     });
         
-        document.addEventListener("keyup", (e) => {
-          if (this.keyState.hasOwnProperty(e.key)) {
-            e.preventDefault();
-            this.keyState[e.key] = false;
-          }
-        });
+    //     document.addEventListener("keyup", (e) => {
+    //       if (this.keyState.hasOwnProperty(e.key)) {
+    //         e.preventDefault();
+    //         this.keyState[e.key] = false;
+    //       }
+    //     });
 
-        // document.addEventListener('keydown', this.keydownHandler);
-        // document.addEventListener('keyup', this.keyupHandler);
-        // console.log("Controls set up for game mode:", this.gameMode);
-    }
+    //     // document.addEventListener('keydown', this.keydownHandler);
+    //     // document.addEventListener('keyup', this.keyupHandler);
+    //     // console.log("Controls set up for game mode:", this.gameMode);
+    // }
 
     display() {
         console.log("Displaying game...");
@@ -371,7 +412,6 @@ export class GameScreen {
         }
       }
 
-
       backToTournament() {
         console.log("🏁 Zurück zum Tournament Grid");
         console.log("Tournament Data (raw settings):", this.settings);
@@ -465,22 +505,22 @@ export class GameScreen {
     }
 
     cleanupControls() {
-        if (this.keydownHandler) {
-            document.removeEventListener('keydown', this.keydownHandler);
-            console.log("Removed keydown listener");
-            this.keydownHandler = null;
-        }
-        if (this.keyupHandler) {
-            document.removeEventListener('keyup', this.keyupHandler);
-            console.log("Removed keyup listener");
-            this.keyupHandler = null;
-        }
-
-        if (this.controlInterval) {
-            clearInterval(this.controlInterval);
-            console.log("Cleared control interval");
-            this.controlInterval = null;
-        }
+      if (this.keydownHandler) {
+        document.removeEventListener('keydown', this.keydownHandler);
+        console.log("Removed keydown listener");
+        this.keydownHandler = null;
+      }
+      if (this.keyupHandler) {
+        document.removeEventListener('keyup', this.keyupHandler);
+        console.log("Removed keyup listener");
+        this.keyupHandler = null;
+      }
+    
+      if (this.controlInterval) {
+        clearInterval(this.controlInterval);
+        console.log("Cleared control interval");
+        this.controlInterval = null;
+      }
     }
 
     cleanup() {
