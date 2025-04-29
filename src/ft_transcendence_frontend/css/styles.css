@@ -48,7 +48,7 @@ body {
 .auth-container h2 {
   font-size: 24px;
   margin-bottom: 20px;
-  color: var(--primary-color);
+  color: var(--highlight-color);
 }
 
 .auth-container .form-control {
@@ -103,7 +103,7 @@ body {
 }
 
 .btn-secondary-custom {
-  background-color: var(--secondary-color);
+  background-color: #005f66;
   border: none;
   color: var(--text-light);
   padding: 10px 20px;
@@ -114,7 +114,7 @@ body {
 }
 
 .btn-secondary-custom:hover {
-  background-color: #005f66;
+  background-color: #01838c;
   transform: scale(1.05); /* Hover-Effekt für den sekundären Button */
 }
 
@@ -147,7 +147,7 @@ body {
 }
 
 /* Profilbereich */
-.profile-header, .online-players-header, .friends-header {
+.profile-header, .online-players-header, .friends-header, .tournament-header{
   background-color: var(--primary-color);
   color: var(--text-light);
   padding: 10px;

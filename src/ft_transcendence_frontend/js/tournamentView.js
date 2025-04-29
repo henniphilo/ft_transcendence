@@ -89,43 +89,43 @@ export class TournamentView {
       console.warn("⚠️ No grid found!");
       return;
     }
-  
+
     const players = this.data.players || [];
     const round = this.data.round || 1;
     const totalRounds = this.data.total_rounds || 1;
     const results = this.data.results || {};
     const matchups = this.data.matchups || [];
-  
+
     const advancing = Object.keys(results);
     const playerName =
       this.userProfile?.tournament_name || this.userProfile?.username;
     const isStillInTournament = advancing.includes(playerName);
-  
+
     // 🔧 Spieler mit Status (✅ / ❌)
     const playerList = players
       .map((p, index) => {
         const name = p.tournament_name || p.username;
         const hasWon = advancing.includes(name);
-  
+
         const statusIcon = hasWon
           ? "✅"
           : advancing.length > 0
             ? "❌"
             : "";
-  
+
         const itemClass = hasWon
           ? "list-group-item-success"
           : advancing.length > 0
             ? "list-group-item-danger"
             : "";
-  
+
         return `
           <li class="list-group-item ${itemClass}">
             Player ${index + 1}: ${statusIcon} ${name}
           </li>`;
       })
       .join("");
-  
+
     // 🔁 Matchups anzeigen
     let matchupsHTML = "";
     if (matchups.length > 0) {
@@ -133,23 +133,23 @@ export class TournamentView {
       matchups.forEach((match) => {
         const p1 = match.player1;
         const p2 = match.player2;
-  
+
         const p1Won = results[p1];
         const p2Won = results[p2];
-  
+
         const resultLine = p1Won
           ? `✅ ${p1} won against ${p2} `
           : p2Won
             ? `✅ ${p2} won against ${p1} `
             : `${p1} 🆚 ${p2}`;
-  
+
         matchupsHTML += `<p class="text-center">${resultLine}</p>`;
       });
     }
-  
+
     // 🟢 Button-Logik
     let buttonHTML = "";
-  
+
     // 1. Prüft auf Turniersieger (Korrekt)
     if (this.data.tournament_winner && playerName === this.data.tournament_winner) {
       buttonHTML = `
@@ -159,33 +159,33 @@ export class TournamentView {
     // 2. Prüft auf Turnierstart (Korrekt)
     } else if (round === 1 && advancing.length === 0) {
       buttonHTML = `
-        <button id="start-tournament-btn" class="btn btn-primary mt-2">
+        <button id="start-tournament-btn" class="btn btn-primary-custom mt-2">
           Start tournament
         </button>`;
     // 3. Prüft auf nächste Runde (Mit empfohlener Änderung)
-    } else if (!this.data.tournament_winner && advancing.length > 0 && isStillInTournament) { 
+    } else if (!this.data.tournament_winner && advancing.length > 0 && isStillInTournament) {
       // ▲▲▲ Hinzugefügt: !this.data.tournament_winner && ▲▲▲
       buttonHTML = `
         <button id="start-next-round-btn" class="btn btn-success mt-2">
           Start next round
         </button>`;
     }
-    // Optional: Was soll passieren, wenn keine Bedingung zutrifft? 
+    // Optional: Was soll passieren, wenn keine Bedingung zutrifft?
     // else { buttonHTML = ''; // Kein Button für ausgeschiedene Spieler etc. }
-  
+
     // 🆕 Back-to-Menu-Button immer sichtbar
     const backButtonHTML = `
       <button id="back-to-menu-btn" class="btn btn-secondary mt-2">
         Back to menu
       </button>`;
-  
+
     // ⛺ Gesamtes HTML zusammensetzen
     grid.innerHTML = `
       <div class="card my-4">
-        <div class="card-header text-center">
+        <div class="card-header tournament-header">
           <h4>🏆 Round ${round} of ${totalRounds}</h4>
         </div>
-        <div class="card-body">
+        <div class="card-body profile-card">
           <ul class="list-group mb-4">${playerList}</ul>
           ${matchupsHTML}
           <div class="d-grid gap-2 col-6 mx-auto mt-4">
@@ -195,24 +195,24 @@ export class TournamentView {
         </div>
       </div>
     `;
-  
+
     // 🧠 Event-Listener für Buttons
     const startBtn = document.getElementById("start-tournament-btn");
     if (startBtn) {
       startBtn.addEventListener("click", () => this.startTournament());
     }
-  
+
     const nextBtn = document.getElementById("start-next-round-btn");
     if (nextBtn) {
       nextBtn.addEventListener("click", () => this.startNextRound());
     }
-  
+
     const backBtn = document.getElementById("back-to-menu-btn");
     if (backBtn) {
       backBtn.addEventListener("click", () => this.backToMenu());
     }
   }
-  
+
 
   startTournament() {
 
@@ -285,7 +285,7 @@ export class TournamentView {
   updateResults(results, round, totalRounds, matchups, players, tournament_winner) {
     console.log("📊 Tournament results received from displayMenu.js:", results);
     // Optional: Logge auch den empfangenen Gewinner
-    console.log("   -> updateResults received tournament_winner argument:", tournament_winner); 
+    console.log("   -> updateResults received tournament_winner argument:", tournament_winner);
 
     // 🔄 Update internal state
     this.data.results = results;
@@ -299,7 +299,7 @@ export class TournamentView {
     // ---> ★★★ DIESE ZEILE IST ENTSCHEIDEND ★★★ <---
     // Aktualisiere this.data.tournament_winner, falls ein Wert übergeben wurde
     // Wichtig: Prüfe auf 'undefined', da 'null' oder '' evtl. gültige (Fehler-)Werte sein könnten
-    if (tournament_winner !== undefined) { 
+    if (tournament_winner !== undefined) {
       this.data.tournament_winner = tournament_winner; // Kann auch null sein, wenn Backend null sendet
       console.log("   -> Set this.data.tournament_winner to:", this.data.tournament_winner);
     } else {

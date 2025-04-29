@@ -94,7 +94,6 @@
 
   <template id="template-tournament">
     <div id="tournament-container" class="container py-4">
-      <h2 class="text-center mb-4">Tournament Grid</h2>
       <div id="tournament-grid" class="tournament-grid">
         <!-- Tournament grid will be dynamically populated here -->
         <div id="tournament-results"></div>
@@ -209,13 +208,13 @@
             xhr.open('POST', '/api/users/logout/', false);  // Updated path to match backend
             xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('accessToken'));
             xhr.setRequestHeader('Content-Type', 'application/json');
-            
+
             try {
                 xhr.send(JSON.stringify({
                     refresh_token: localStorage.getItem('refreshToken')
                 }));
                 console.log('Logout response:', xhr.status);
-                
+
                 // Clear storage only on successful logout
                 if (xhr.status === 200) {
                     localStorage.removeItem('accessToken');
