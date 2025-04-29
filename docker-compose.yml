@@ -228,7 +228,7 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "prometheus"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9090/-/healthy || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -246,7 +246,7 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "node-exporter"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9100/-/healthy || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9100/metrics || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -273,27 +273,27 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "alertmanager"
 
-  promtail:
-    <<: *common
-    build:
-      context: ./src/grafana
-      dockerfile: Dockerfile.promtail
-    container_name: promtail
-    profiles: ["elkprofile"]
-    volumes:
-      - promtail_logs:/app/logs
-      - postgres_logs:/var/log/postgresql
-      - redis_logs:/var/log/redis
-      - caddy_logs:/var/log/caddy
-      - django_logs:/app/logs
-      - grafana_logs:/var/log/grafana
-    ports:
-    - "9080:9080" 
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+  # promtail:
+  #   <<: *common
+  #   build:
+  #     context: ./src/grafana
+  #     dockerfile: Dockerfile.promtail
+  #   container_name: promtail
+  #   profiles: ["elkprofile"]
+  #   volumes:
+  #     - promtail_logs:/app/logs
+  #     - postgres_logs:/var/log/postgresql
+  #     - redis_logs:/var/log/redis
+  #     - caddy_logs:/var/log/caddy
+  #     - django_logs:/app/logs
+  #     - grafana_logs:/var/log/grafana
+  #   ports:
+  #   - "9080:9080" 
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
 
   kibana:
     <<: *common
@@ -305,11 +305,6 @@ services:
     - '5601:5601'
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200  
-      # - ELASTICSEARCH_USERNAME=kibana_system
-      # - ELASTICSEARCH_PASSWORD=LYCGEtv92deGJROBL*lp  # Set Kibana system password
-    #   - xpack.encryptedSavedObjects.encryptionKey=<5880da9738edab6101dc26330c2fafca>
-    #   - xpack.reporting.encryptionKey=<e1921b1a405bc83d11084504c65d8cae>
-    #   - xpack.security.encryptionKey=<789dcf21ca81e07d37c6aa2c23742021>
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -343,9 +338,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -s -f -u elastic:yourpassword http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1"]
-  
+    
   logstash:
     <<: *common
     container_name: logstash
@@ -353,8 +346,6 @@ services:
     profiles: ["elkprofile"]
     restart: always
     command: logstash -f /logstash_dir/logstash.conf 
-    # depends_on:
-    #   - elasticsearch
     ports:
       - "5000:5000/udp" 
       - "9600:9600"
@@ -363,8 +354,6 @@ services:
       - ES_JAVA_OPTS=-Xmx1g -Xms1g
       - xpack.monitoring.enabled=true
       - xpack.monitoring.elasticsearch.hosts=http://elasticsearch:9200
-      # - xpack.monitoring.elasticsearch.username=elastic
-      # - xpack.monitoring.elasticsearch.password=LYCGEtv92deGJROBL*lp    
 
 volumes:
   caddy_logs: null
@@ -379,10 +368,10 @@ volumes:
   prometheus_data: null
   portainer-data: null
   elastic_data: null
-  logstash-persistence: null
   kibana_data: null
-  promtail_logs: null
-  elasticsearch_data: null
+  # logstash-persistence: null
+  # elasticsearch_data: null
+  # promtail_logs: null
 
 
 networks:
