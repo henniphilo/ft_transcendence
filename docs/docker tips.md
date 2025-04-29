@@ -1,6 +1,6 @@
 # about docker
 
-if the cocker file copies files into the container when building it is not enough to rebuild when editing the files... the image needs to be removed and rebuilt, like this
+if the docker file copies files into the container when building it is not enough to rebuild when editing the files... the image needs to be removed and rebuilt, like this:
 
 first remove the image
 ```bash
