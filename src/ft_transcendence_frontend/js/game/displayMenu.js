@@ -29,7 +29,7 @@ export class MenuDisplay {
         this.friendsHandler = new FriendsHandler();
         this.menuHistory = [];
         this.currentMenuState = null;
-        
+
         // Browser-History-Event-Listener nur hinzufügen, wenn wir im Menü-Template sind
         if (window.location.hash === '#menu') {
             window.addEventListener('popstate', (event) => {
@@ -450,19 +450,19 @@ export class MenuDisplay {
             })
         );
     }
-    
+
     handleHistoryNavigation(menuState) {
         console.log("=== History Navigation Debug ===");
         console.log("Navigating to state:", menuState);
         console.log("Current menu history:", this.menuHistory);
         console.log("Current menu state:", this.currentMenuState);
-        
+
         // Spezielles Handling für null state
         if (menuState === null) {
             this.requestMenuItems();
             return;
         }
-        
+
         if (menuState === 'back') {
             // Pop letzten Zustand von der Historie
             const previousState = this.menuHistory.pop();
@@ -474,7 +474,7 @@ export class MenuDisplay {
 
         // Setze den aktuellen Zustand
         this.currentMenuState = menuState;
-        
+
         // Sende die entsprechende Menüauswahl an den Server
         this.ws.send(JSON.stringify({
             action: 'menu_selection',
@@ -494,7 +494,7 @@ export class MenuDisplay {
         console.log("\n=== Menu Action Received ===");
         console.log("Action:", data.action);
         console.log("Full data:", data);
-    
+
         switch (data.action) {
           case "searching_opponent":
             console.log("Started searching for opponent...");
@@ -503,14 +503,14 @@ export class MenuDisplay {
               data.message || "Searching for opponent..."
             );
             break;
-    
+
           case "game_found":
             console.log("Match found! Game ID:", data.game_id);
             console.log("Player1:", data.player1);
             console.log("Player2:", data.player2);
             console.log("Your role:", data.playerRole);
             console.log("WE ARE IN HANDLEMENUACTION");
-    
+
             const gameData = {
               player1: data.player1,
               player2: data.player2,
@@ -522,16 +522,16 @@ export class MenuDisplay {
               },
               userProfile: this.userProfile,
             };
-    
+
             console.log("this is all the Game data:", gameData);
-    
+
             // Wechsel zum GameScreen-Template und übergebe die gameData
             showTemplate("game", gameData);
-    
+
             // Container ausblenden
             this.container.style.display = "none";
             break;
-    
+
           case "show_submenu":
             if (data.menu_items === this.online_mode_items) {
               this.displaySearchingScreen();
@@ -539,14 +539,14 @@ export class MenuDisplay {
               this.displayMenuItems(data.menu_items);
             }
             break;
-    
+
           case "show_player_names":
             this.displayPlayerNamesInput(
               data.num_players,
               this.currentSettings?.tournament
             );
             break;
-    
+
           case "show_main_menu":
             this.displayMenuItems(data.menu_items);
             break;
@@ -663,7 +663,7 @@ export class MenuDisplay {
                     </div>
                 </div>
             `;
-    
+
         document.getElementById('player-names-form').onsubmit = (e) => {
             e.preventDefault();
             const playerNames = Array.from({length: numPlayers}, (_, i) =>
@@ -715,7 +715,7 @@ export class MenuDisplay {
             <div class="container py-5">
                 <div class="card text-center">
                     <div class="card-header profile-header">
-                        <h2 class="mb-0">Searching for Opponent</h2>
+                        <h3 class="mb-0">Searching for Opponent</h3>
                     </div>
                     <div class="card-body profile-card py-5">
                         <h3 class="mb-4">${message || 'Searching for opponent...'}</h3>

@@ -176,10 +176,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     container.innerHTML = `
             <div class="card mt-4">
-                <div class="card-header text-center">
+                <div class="card-header tournament-header">
                     <h5>🕹️ Round ${round} of ${totalRounds}</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body profile-card">
                     <ul class="list-group">${resultList}</ul>
                 </div>
             </div>
