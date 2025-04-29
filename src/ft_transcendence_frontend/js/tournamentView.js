@@ -214,7 +214,7 @@ export class TournamentView {
           buttonHTML = `<button id="winner-button" class="btn btn-warning mt-2">🏆 Record Victory! 🏆</button>`;
       } else if (round === 1 && advancing.length === 0 && !isTournamentOver) {
           // Turnierstart
-          buttonHTML = `<button id="start-tournament-btn" class="btn btn-primary mt-2">Start Tournament</button>`;
+          buttonHTML = `<button id="start-tournament-btn" class="btn btn-primary-custom mt-2">Start Tournament</button>`;
       } else if (!isTournamentOver && advancing.length > 0 && isStillInTournament) {
           // Nächste Runde starten
           buttonHTML = `<button id="start-next-round-btn" class="btn btn-success mt-2">Start Next Round</button>`;
@@ -232,11 +232,11 @@ export class TournamentView {
       // Finales HTML zusammensetzen und in das Grid einfügen
       grid.innerHTML = `
         <div class="card my-4 shadow-sm">
-          <div class="card-header text-center bg-light">
+          <div class="card-header tournament-header">
             <h4 class="my-1">🏆 Tournament ${isTournamentOver ? 'Finished' : `Round ${round} of ${totalRounds}`}</h4>
             ${isTournamentOver ? `<p class="lead mb-1">Winner: <strong class="text-warning">${currentWinner}</strong></p>` : ''}
           </div>
-          <div class="card-body">
+          <div class="card-body profile-card">
             <h5 class="text-center mb-3">Player Status</h5>
             <ul class="list-group list-group-flush mb-4">${playerListHTML}</ul>
             ${matchupsHTML}
