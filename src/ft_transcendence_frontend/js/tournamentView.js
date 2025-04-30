@@ -12,7 +12,7 @@ export class TournamentView {
       this.data = data.tournamentData || data || {};
       this.socket = null;
 
-      console.log("✅ TournamentView constructor called!", { userProfile: this.userProfile, tournamentData: this.data });
+      // console.log("✅ TournamentView constructor called!", { userProfile: this.userProfile, tournamentData: this.data });
 
       this.initializeView();
       this.setupWebSocket();
@@ -22,7 +22,7 @@ export class TournamentView {
   setupWebSocket() {
       // Nur verbinden, wenn nicht schon verbunden
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-          console.log("TournamentSocket already connected.");
+          // console.log("TournamentSocket already connected.");
           // Ergebnisse neu anfordern, falls nötig
           this.socket.send(JSON.stringify({ action: "request_tournament_results" }));
           return;
@@ -33,13 +33,13 @@ export class TournamentView {
       const wsPort = window.location.protocol === "https:" ? "" : ":8001"; // Port für WebSocket
       const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`; // Pfad anpassen, falls nötig
 
-      console.log(`Attempting to connect WebSocket: ${wsUrl}`);
+      // console.log(`Attempting to connect WebSocket: ${wsUrl}`);
       try {
           const socket = new WebSocket(wsUrl);
           this.socket = socket;
 
           socket.addEventListener("open", () => {
-              console.log("🎯 TournamentSocket connected (setupWebSocket)");
+              // console.log("🎯 TournamentSocket connected (setupWebSocket)");
               // Ergebnisse beim Verbinden anfordern
               socket.send(JSON.stringify({ action: "request_tournament_results" }));
           });
@@ -47,10 +47,10 @@ export class TournamentView {
           socket.addEventListener("message", (event) => {
               try {
                   const msg = JSON.parse(event.data);
-                  console.log("Received WS message:", msg); // Logge alle Nachrichten
+                  // console.log("Received WS message:", msg); // Logge alle Nachrichten
 
                   if (msg.action === "update_tournament_results") {
-                      console.log("📋 New tournament results received:", msg);
+                      // console.log("📋 New tournament results received:", msg);
                       // Update state
                       this.data.results = msg.results || {};
                       this.data.round = msg.round;
@@ -61,15 +61,15 @@ export class TournamentView {
                       }
                        // Wichtig: Gewinner aktualisieren, falls gesendet
                       this.data.tournament_winner = msg.winner || this.data.tournament_winner || null;
-                      console.log("   -> Updated this.data.tournament_winner to:", this.data.tournament_winner);
+                      // console.log("   -> Updated this.data.tournament_winner to:", this.data.tournament_winner);
 
                       this.renderTournamentGrid(); // UI neu zeichnen
                   } else if (msg.action === "tournament_finished") {
-                      console.log("🏆 Tournament finished message received! Winner:", msg.winner);
+                      // console.log("🏆 Tournament finished message received! Winner:", msg.winner);
                       // Finalen Gewinner setzen und UI aktualisieren
                       this.data.tournament_winner = msg.winner;
                       this.data.match_history = msg.match_history; // Optional speichern
-                      console.log("   -> Set this.data.tournament_winner from finished message to:", this.data.tournament_winner);
+                      // console.log("   -> Set this.data.tournament_winner from finished message to:", this.data.tournament_winner);
                       this.renderTournamentGrid(); // Neu rendern -> Winner-Button erscheint
                   }
                   // Hier könnten weitere Aktionen behandelt werden
@@ -79,7 +79,7 @@ export class TournamentView {
           });
 
           socket.addEventListener("close", (event) => {
-              console.log(`❌ TournamentSocket disconnected. Code: ${event.code}, Reason: ${event.reason}`);
+              // console.log(`❌ TournamentSocket disconnected. Code: ${event.code}, Reason: ${event.reason}`);
               this.socket = null; // Referenz entfernen
                // Optional: Versuch, die Verbindung wiederherzustellen?
           });
@@ -95,9 +95,9 @@ export class TournamentView {
 
   // --- Aufräumen ---
   cleanup() {
-      console.log("🧹 Cleaning up TournamentView...");
+      // console.log("🧹 Cleaning up TournamentView...");
       if (this.socket) {
-          console.log("   Closing WebSocket.");
+          // console.log("   Closing WebSocket.");
            // Listener entfernen, um Memory Leaks zu vermeiden (obwohl close() das oft impliziert)
           this.socket.onopen = null;
           this.socket.onmessage = null;
@@ -107,7 +107,7 @@ export class TournamentView {
           this.socket = null;
       }
       if (window.__activeTournamentView === this) {
-          console.log("   Removing global reference.");
+          // console.log("   Removing global reference.");
           window.__activeTournamentView = null;
       }
        // Evtl. EventListener von Buttons entfernen, falls sie nicht überschrieben werden
@@ -115,7 +115,7 @@ export class TournamentView {
 
   // --- Initialisierung der Ansicht ---
   initializeView() {
-      console.log("Initializing Tournament View...");
+      // console.log("Initializing Tournament View...");
       const grid = document.getElementById("tournament-grid");
       const gameContainer = document.getElementById('game-container');
 
@@ -123,7 +123,7 @@ export class TournamentView {
            // Grid existiert, gut. Evtl. leeren?
            // grid.innerHTML = ''; // Nur wenn nötig
       } else if (gameContainer) {
-           console.log("   Grid not found, creating inside game-container.");
+           // console.log("   Grid not found, creating inside game-container.");
            gameContainer.innerHTML = '<div id="tournament-grid"></div>'; // Leeren und Grid erstellen
            gameContainer.style.display = 'block';
       } else {
@@ -135,11 +135,11 @@ export class TournamentView {
 
   // --- Navigation zurück ---
   backToMenu() {
-      console.log("⬅️ Back to menu requested.");
+      // console.log("⬅️ Back to menu requested.");
       this.cleanup(); // Wichtig: WebSocket schließen etc.
       const gameContainer = document.getElementById('game-container');
       if (gameContainer) {
-          console.log("   Hiding game container.");
+          // console.log("   Hiding game container.");
           gameContainer.innerHTML = ''; // Inhalt leeren für sauberen Übergang
           gameContainer.style.display = 'none';
       }
@@ -155,7 +155,7 @@ export class TournamentView {
 
   // --- Rendering der Hauptansicht ---
   renderTournamentGrid() {
-      console.log("Rendering tournament grid...");
+      // console.log("Rendering tournament grid...");
       const grid = document.getElementById("tournament-grid");
       if (!grid) {
           console.warn("⚠️ renderTournamentGrid: No grid element found! Aborting render.");
@@ -170,7 +170,7 @@ export class TournamentView {
       const matchups = this.data.matchups || [];
       const currentWinner = this.data.tournament_winner || null; // Aktueller Gewinner aus dem State
 
-      console.log("  Current State for Rendering:", { round, totalRounds, currentWinner, resultsCount: Object.keys(results).length });
+      // console.log("  Current State for Rendering:", { round, totalRounds, currentWinner, resultsCount: Object.keys(results).length });
 
       // Aktuellen Spieler identifizieren
       const playerName = this.userProfile?.tournament_name || this.userProfile?.username || "N/A";
@@ -250,13 +250,13 @@ export class TournamentView {
 
       // Event Listeners nach dem Rendern hinzufügen
       this.addEventListeners();
-      console.log("Grid rendering complete.");
+      // console.log("Grid rendering complete.");
   }
 
 
   // --- NEUE METHODE: Event Listeners hinzufügen ---
   addEventListeners() {
-      console.log("Attaching event listeners...");
+      // console.log("Attaching event listeners...");
 
       // Start Button
       const startBtn = document.getElementById("start-tournament-btn");
@@ -265,7 +265,7 @@ export class TournamentView {
           // startBtn.replaceWith(startBtn.cloneNode(true)); // Simple way to remove all listeners
           // startBtn = document.getElementById("start-tournament-btn"); // Re-select after cloning
           startBtn.addEventListener("click", () => this.startTournament(), { once: true }); // { once: true } helps prevent issues
-           console.log("  Listener added for #start-tournament-btn");
+           // console.log("  Listener added for #start-tournament-btn");
       }
 
       // Next Round Button
@@ -274,7 +274,7 @@ export class TournamentView {
           // nextBtn.replaceWith(nextBtn.cloneNode(true));
           // nextBtn = document.getElementById("start-next-round-btn");
           nextBtn.addEventListener("click", () => this.startNextRound(), { once: true });
-          console.log("  Listener added for #start-next-round-btn");
+          // console.log("  Listener added for #start-next-round-btn");
       }
 
       // Back Button
@@ -283,18 +283,18 @@ export class TournamentView {
           // backBtn.replaceWith(backBtn.cloneNode(true));
           // backBtn = document.getElementById("back-to-menu-btn");
           backBtn.addEventListener("click", () => this.backToMenu()); // Back kann öfter geklickt werden
-           console.log("  Listener added for #back-to-menu-btn");
+           // console.log("  Listener added for #back-to-menu-btn");
       }
 
       // --- Winner Button Listener (mit dynamischem Payload) ---
       const winnerBtn = document.getElementById("winner-button");
       if (winnerBtn) {
-           console.log("  Adding listener for #winner-button");
+           // console.log("  Adding listener for #winner-button");
           // winnerBtn.replaceWith(winnerBtn.cloneNode(true)); // Falls nötig
           // winnerBtn = document.getElementById("winner-button"); // Falls nötig
 
           winnerBtn.addEventListener("click", () => {
-              console.log("🏆 Winner button clicked! Preparing dynamic payload...");
+              // console.log("🏆 Winner button clicked! Preparing dynamic payload...");
 
               // --- 1. Dynamische Daten holen ---
               const winnerName = this.data.tournament_winner; // Gewinnername aus dem State
@@ -308,7 +308,7 @@ export class TournamentView {
                   // winnerBtn.disabled = false; // Beispiel
                   return; // Abbruch
               }
-              console.log(`   Data prepared - Winner: ${winnerName}, Timestamp: ${timestamp}`);
+              // console.log(`   Data prepared - Winner: ${winnerName}, Timestamp: ${timestamp}`);
               // --- Ende Daten holen ---
 
 
@@ -335,7 +335,7 @@ export class TournamentView {
 
               // --- 4. Callbacks definieren ---
               const successHandler = (responseData) => {
-                  console.log("✅ Data sent successfully to backend:", responseData);
+                  // console.log("✅ Data sent successfully to backend:", responseData);
                   // Button-Zustand für Erfolg
                   winnerBtn.innerHTML = `✅ Result Saved!`; // Klarere Erfolgsanzeige
                   winnerBtn.classList.remove('btn-warning', 'button-loading');
@@ -375,13 +375,13 @@ export class TournamentView {
 
           }, { once: true }); // { once: true } kann hier sinnvoll sein, da man den Sieg nur einmal speichern will
       } // Ende if(winnerBtn)
-      console.log("Event listeners attached.");
+      // console.log("Event listeners attached.");
   } // Ende addEventListeners Methode
 
 
   // --- Methoden zum Starten der Runden ---
   startTournament() {
-       console.log("🏁 Starting tournament...");
+       // console.log("🏁 Starting tournament...");
        // (Code wie vorher, evtl. temporären Socket verwenden)
        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
        const wsHost = window.location.hostname;
@@ -412,7 +412,7 @@ export class TournamentView {
 
   // --- Methode zum Aktualisieren des Zustands von außen (falls noch genutzt) ---
   updateResults(results, round, totalRounds, matchups, players, tournament_winner) {
-      console.log("📊 External updateResults called:", { results, round, totalRounds, /*matchups, players,*/ tournament_winner });
+      // console.log("📊 External updateResults called:", { results, round, totalRounds, /*matchups, players,*/ tournament_winner });
       this.data.results = results || {};
       this.data.round = round;
       this.data.total_rounds = totalRounds;
@@ -432,10 +432,10 @@ export class TournamentView {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
       };
-      console.log(`🚀 Sending POST to ${url} with data:`, data);
+      // console.log(`🚀 Sending POST to ${url} with data:`, data);
       fetch(url, fetchOptions)
           .then(response => {
-              console.log(`   Response status: ${response.status}`);
+              // console.log(`   Response status: ${response.status}`);
               if (!response.ok) {
                   return response.text().then(text => { throw new Error(`HTTP ${response.status} ${response.statusText} - ${text}`); });
               }

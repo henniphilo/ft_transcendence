@@ -3,7 +3,7 @@ import { MenuDisplay } from './displayMenu.js';
 import { getGlobalAudioManager } from './audioManger.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded");
+    // console.log("DOM fully loaded");
 
     const canvas = document.getElementById('background-canvas');
     if (!canvas) {
@@ -11,11 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    console.log("✅ Background canvas found, initializing 3D background...");
+   //  console.log("✅ Background canvas found, initializing 3D background...");
 
     // Erst 3D starten, danach Menü
     initBackground3D(() => {
-        console.log("✅ Initializing Menu System...");
+        // console.log("✅ Initializing Menu System...");
         new MenuDisplay();
     });
 

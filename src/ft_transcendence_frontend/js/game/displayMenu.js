@@ -8,7 +8,7 @@ import { FriendsHandler } from '../friendsHandler.js';
 
 export class MenuDisplay {
     constructor(userProfile) {
-        console.log("MenuDisplay loaded!");
+        // console.log("MenuDisplay loaded!");
 
         this.container = document.getElementById('menu-container');
         const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
@@ -16,7 +16,7 @@ export class MenuDisplay {
         const wsPort = window.location.protocol === "https:" ? "" : ":8001";
 
         const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/menu`;
-        console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
+        // console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
 
         this.ws = new WebSocket(wsUrl);
 
@@ -45,7 +45,7 @@ export class MenuDisplay {
                   window.location.hash === "#menu" &&
                   !window.history.state?.template
                 ) {
-                  console.log("Initialisiere Menü-History");
+                  // console.log("Initialisiere Menü-History");
                   window.history.pushState({ menuState: "main" }, "", "#menu");
                 }
               }, 0);
@@ -56,7 +56,7 @@ export class MenuDisplay {
 
     initWebSocket() {
         this.ws.onopen = () => {
-            console.log('Connected to server');
+            // console.log('Connected to server');
             this.requestMenuItems();
         };
 
@@ -144,7 +144,7 @@ export class MenuDisplay {
                 });
 
             } catch (error) {
-                console.error('Error updating profile:', error);
+                // console.error('Error updating profile:', error);
                 alert('Failed to update profile. Please try again.');
             }
         });
@@ -298,9 +298,9 @@ export class MenuDisplay {
             this.userProfile = updatedData;
             this.updateProfileDisplay(updatedData);
             e.target.value = "";
-            console.log('Avatar erfolgreich aktualisiert!');
+            // console.log('Avatar erfolgreich aktualisiert!');
         } catch (err) {
-            console.error('Fehler beim Avatar-Update:', err);
+            // console.error('Fehler beim Avatar-Update:', err);
             alert('Avatar-Update fehlgeschlagen: ' + err);
         }
     }
@@ -314,7 +314,7 @@ export class MenuDisplay {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
 
-            console.log('Logout erfolgreich');
+            // console.log('Logout erfolgreich');
 
             // Statt zu /login weiterzuleiten, zeigen wir das Signup-Template an
             showTemplate('signup');
@@ -376,7 +376,7 @@ export class MenuDisplay {
                 paddle_size: document.getElementById('paddle-size').value
             };
 
-            console.log('Sending settings:', settings);
+            // console.log('Sending settings:', settings);
 
             await this.ws.send(JSON.stringify({
                 action: "update_settings",
@@ -388,7 +388,7 @@ export class MenuDisplay {
     }
 
     handleMenuClick(itemId) {
-        console.log("Menu click:", itemId);
+        // console.log("Menu click:", itemId);
 
         // Speichere den aktuellen Zustand in der Historie
         if (this.currentMenuState) {
@@ -437,10 +437,10 @@ export class MenuDisplay {
             })
             );
             this.updateSearchStatus("ACHTUNG!!! 2 von 4 Spielern gefunden...");
-            console.log("ACHTUNG!!! Tournament started");
+            // console.log("ACHTUNG!!! Tournament started");
             // Log all player details
-            console.log("Tournament started with players:", this.userProfile);
-            console.log("works! ", this.userProfile.tournament_name);
+            // console.log("Tournament started with players:", this.userProfile);
+            // console.log("works! ", this.userProfile.tournament_name);
             return;
         }
         this.ws.send(
@@ -452,10 +452,10 @@ export class MenuDisplay {
     }
 
     handleHistoryNavigation(menuState) {
-        console.log("=== History Navigation Debug ===");
-        console.log("Navigating to state:", menuState);
-        console.log("Current menu history:", this.menuHistory);
-        console.log("Current menu state:", this.currentMenuState);
+        // console.log("=== History Navigation Debug ===");
+        // console.log("Navigating to state:", menuState);
+        // console.log("Current menu history:", this.menuHistory);
+        // console.log("Current menu state:", this.currentMenuState);
 
         // Spezielles Handling für null state
         if (menuState === null) {
@@ -466,7 +466,7 @@ export class MenuDisplay {
         if (menuState === 'back') {
             // Pop letzten Zustand von der Historie
             const previousState = this.menuHistory.pop();
-            console.log("Found previous state:", previousState);
+            // console.log("Found previous state:", previousState);
             if (previousState) {
                 menuState = previousState;
             }
@@ -491,13 +491,13 @@ export class MenuDisplay {
     }
 
     handleMenuAction(data) {
-        console.log("\n=== Menu Action Received ===");
-        console.log("Action:", data.action);
-        console.log("Full data:", data);
+        // console.log("\n=== Menu Action Received ===");
+        // console.log("Action:", data.action);
+        // console.log("Full data:", data);
 
         switch (data.action) {
           case "searching_opponent":
-            console.log("Started searching for opponent...");
+            // console.log("Started searching for opponent...");
             // Hier sollte der Suchbildschirm angezeigt werden
             this.displaySearchingScreen(
               data.message || "Searching for opponent..."
@@ -505,11 +505,11 @@ export class MenuDisplay {
             break;
 
           case "game_found":
-            console.log("Match found! Game ID:", data.game_id);
-            console.log("Player1:", data.player1);
-            console.log("Player2:", data.player2);
-            console.log("Your role:", data.playerRole);
-            console.log("WE ARE IN HANDLEMENUACTION");
+            // console.log("Match found! Game ID:", data.game_id);
+            // console.log("Player1:", data.player1);
+            // console.log("Player2:", data.player2);
+            // console.log("Your role:", data.playerRole);
+            // console.log("WE ARE IN HANDLEMENUACTION");
 
             const gameData = {
               player1: data.player1,
@@ -523,7 +523,7 @@ export class MenuDisplay {
               userProfile: this.userProfile,
             };
 
-            console.log("this is all the Game data:", gameData);
+            // console.log("this is all the Game data:", gameData);
 
             // Wechsel zum GameScreen-Template und übergebe die gameData
             showTemplate("game", gameData);
@@ -596,10 +596,10 @@ export class MenuDisplay {
           case "update_tournament_results":
             // Wenn TournamentView existiert, leite die Daten weiter
             if (window.tournamentView) {
-              console.log("Leite Turnierergebnisse an TournamentView weiter");
+              // console.log("Leite Turnierergebnisse an TournamentView weiter");
                // Hole den tournament_winner aus den Daten
                 const tournament_winner = data.tournament_winner; // Kann undefined sein, wenn nicht vorhanden
-                console.log("Extrahierter tournament_winner zum Weiterleiten:", tournament_winner); // Debug-Log
+                // console.log("Extrahierter tournament_winner zum Weiterleiten:", tournament_winner); // Debug-Log
 
               window.tournamentView.updateResults(
                 data.results,

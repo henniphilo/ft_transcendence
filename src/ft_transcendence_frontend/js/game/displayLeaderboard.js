@@ -5,7 +5,7 @@ export class LeaderboardDisplay {
     }
 
     display() {
-        console.log("Displaying leaderboard...");
+        // console.log("Displaying leaderboard...");
         this.container.innerHTML = '';
 
         const leaderboardHtml = `
@@ -120,7 +120,7 @@ export class LeaderboardDisplay {
                     `;
                 }
             } catch (error) {
-                console.error('Error fetching current user stats:', error);
+                // console.error('Error fetching current user stats:', error);
                 document.getElementById('current-user-container').innerHTML = `
                     <div class="alert alert-danger">
                         Error loading your position.
@@ -129,7 +129,7 @@ export class LeaderboardDisplay {
             }
 
         } catch (error) {
-            console.error('Error loading leaderboard:', error);
+            // console.error('Error loading leaderboard:', error);
             if (document.getElementById('leaderboard-body')) {
                 document.getElementById('leaderboard-body').innerHTML = `
                     <tr>

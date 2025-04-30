@@ -31,7 +31,7 @@ export class AudioManager {
             const sound = this.sounds[name];
             if (sound.isPlaying) {
                 sound.setVolume(0);
-                console.log(`🔇 Muted sound "${name}"`);
+                // console.log(`🔇 Muted sound "${name}"`);
             }
         });
     }
@@ -45,7 +45,7 @@ export class AudioManager {
 
             if (sound.isPlaying) {
                 sound.setVolume(volume);
-                console.log(`🔊 Unmuted sound "${name}" – volume restored to ${volume}`);
+                // console.log(`🔊 Unmuted sound "${name}" – volume restored to ${volume}`);
             } else {
                 console.log(`⏸️ Sound "${name}" is not playing – volume remains muted`);
             }

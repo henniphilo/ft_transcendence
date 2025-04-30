@@ -24,7 +24,7 @@ export function fillProfileFields(data) {
         }
     }
 
-    console.log("Profile fields updated with:", data);
+    // console.log("Profile fields updated with:", data);
 }
 
 export class ProfileHandler {

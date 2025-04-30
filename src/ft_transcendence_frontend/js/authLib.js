@@ -32,7 +32,7 @@ export function sendVerificationCode(email) {
         body: JSON.stringify({ email }),
     })
     .then(response => {
-        console.log('sendVerificationCode - Status:', response.status);
+        // console.log('sendVerificationCode - Status:', response.status);
         return response.text();
     })
     .then(text => {
@@ -62,7 +62,7 @@ export function registerUser(data) {
         body: JSON.stringify(data),
     })
     .then(response => {
-        console.log('registerUser - Antwort:', response);
+        // console.log('registerUser - Antwort:', response);
         if (!response.ok) {
             return Promise.reject('Fehler bei der Registrierung (Status ' + response.status + ')');
         }
@@ -144,7 +144,7 @@ export function refreshAccessToken() {
     })
     .then(data => {
         localStorage.setItem('accessToken', data.access);
-        console.log('Access-Token erneuert:', data.access);
+        // console.log('Access-Token erneuert:', data.access);
     });
 }
 
@@ -214,6 +214,6 @@ export function logoutUser() {
     .finally(() => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        console.log('Logout completed, storage cleared');
+        // console.log('Logout completed, storage cleared');
     });
 } 

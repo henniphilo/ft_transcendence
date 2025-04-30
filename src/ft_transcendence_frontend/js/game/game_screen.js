@@ -3,8 +3,8 @@ import { getGlobalAudioManager } from './audioManger.js';
 
 export class GameScreen {
   constructor(gameData, onBackToMenu) {
-      console.log("GameScreen loaded!", { gameData });
-      console.log("Game Data:", gameData);
+      // console.log("GameScreen loaded!", { gameData });
+      // console.log("Game Data:", gameData);
 
       this.settings = gameData.settings || {}; // 👈 HINZUGEFÜGT!
 
@@ -64,20 +64,20 @@ export class GameScreen {
   }
 
   setupWebSocket() {
-      console.log("Connecting to game with ID:", this.gameId);
+      // console.log("Connecting to game with ID:", this.gameId);
       const wsProtocol =
         window.location.protocol === "https:" ? "wss://" : "ws://";
       const wsHost = window.location.hostname;
       const wsPort = wsProtocol === "ws://" ? ":8001" : ""; // Port nur für ws:// setzen
   
       const wsUrl = `${wsProtocol}${wsHost}${wsPort}/ws/game/${this.gameId}`;
-      console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
+      // console.log("Versuche WebSocket-Verbindung zu:", wsUrl);
   
       this.ws = new WebSocket(wsUrl);
   
       this.ws.onopen = () => {
-        console.log("🎯 Settings werden mitgeschickt:", this.settings);
-        console.log("WebSocket connection established for game:", this.gameId);
+        // console.log("🎯 Settings werden mitgeschickt:", this.settings);
+        // console.log("WebSocket connection established for game:", this.gameId);
   
         // Sende Benutzerprofilinformationen nach der Verbindung
         if (this.userProfile) {
@@ -223,7 +223,7 @@ export class GameScreen {
     // }
 
     display() {
-        console.log("Displaying game...");
+        // console.log("Displaying game...");
         const container = document.getElementById('game-container');
 
 
@@ -345,7 +345,7 @@ export class GameScreen {
 
     updateScoreBoard() {
         if (!this.scoreBoard) {
-          console.log("Scoreboard nicht gefunden!");
+          // console.log("Scoreboard nicht gefunden!");
           return;
         }
     
@@ -413,13 +413,13 @@ export class GameScreen {
       }
 
       backToTournament() {
-        console.log("🏁 Zurück zum Tournament Grid");
-        console.log("Tournament Data (raw settings):", this.settings);
-        console.log("GameState:", this.gameState);
+        // console.log("🏁 Zurück zum Tournament Grid");
+        // console.log("Tournament Data (raw settings):", this.settings);
+        // console.log("GameState:", this.gameState);
       
         // WebSocket schließen
         if (this.ws) {
-          console.log("Closing WebSocket connection...");
+          // console.log("Closing WebSocket connection...");
           this.ws.close();
           this.ws = null;
         }
@@ -430,7 +430,7 @@ export class GameScreen {
         // Game-Container verstecken
         const gameContainer = document.getElementById("game-container");
         if (gameContainer) {
-          console.log("Hiding game container...");
+          // console.log("Hiding game container...");
           gameContainer.style.display = "none";
         }
       
@@ -472,7 +472,7 @@ export class GameScreen {
           const tournamentSocket = new WebSocket(wsUrl);
 
           tournamentSocket.addEventListener("open", () => {
-            console.log("📡 Sending tournament result:", message);
+            // console.log("📡 Sending tournament result:", message);
             tournamentSocket.send(JSON.stringify(message));
           });
       
@@ -493,11 +493,11 @@ export class GameScreen {
       }
 
     backToMenu() {
-        console.log("Cleaning up game...");
+        // console.log("Cleaning up game...");
         this.cleanup();
         const gameContainer = document.getElementById('game-container');
         if (gameContainer) {
-            console.log("Hiding game container...");
+            // console.log("Hiding game container...");
             gameContainer.style.display = 'none';
         }
         showTemplate('menu', { userProfile: this.userProfile });
@@ -507,34 +507,34 @@ export class GameScreen {
     cleanupControls() {
       if (this.keydownHandler) {
         document.removeEventListener('keydown', this.keydownHandler);
-        console.log("Removed keydown listener");
+        // console.log("Removed keydown listener");
         this.keydownHandler = null;
       }
       if (this.keyupHandler) {
         document.removeEventListener('keyup', this.keyupHandler);
-        console.log("Removed keyup listener");
+        // console.log("Removed keyup listener");
         this.keyupHandler = null;
       }
     
       if (this.controlInterval) {
         clearInterval(this.controlInterval);
-        console.log("Cleared control interval");
+        // console.log("Cleared control interval");
         this.controlInterval = null;
       }
     }
 
     cleanup() {
-        console.log("Starting game cleanup...");
+        // console.log("Starting game cleanup...");
         this.cleanupControls();
         if (this.ws) {
-            console.log("Closing WebSocket...");
+            // console.log("Closing WebSocket...");
             this.ws.close();
             this.ws = null;
         }
         if (this.threeJSManager) {
             this.threeJSManager.cleanup();
-            console.log("Cleaned up ThreeJS");
+            // console.log("Cleaned up ThreeJS");
         }
-        console.log("Game cleanup complete");
+        // console.log("Game cleanup complete");
     }
 }

@@ -209,7 +209,7 @@ export class ThreeJSManager {
            const size = new THREE.Vector3();
            box.getSize(size);
         //   const originalHeight = size.z; // Ursprüngliche Höhe des Modells
-           console.log("size of ubahn: ", size);
+           // console.log("size of ubahn: ", size);
 
             // U-Bahn-Modelle als Paddles klonen und positionieren
             this.paddleModels = [ubahnModel.clone(), ubahnModel.clone()];
@@ -226,7 +226,7 @@ export class ThreeJSManager {
             this.humanModel.position.set(0, 0, 0);
             this.scene.add(this.humanModel);
 
-            console.log("> Human geladen <");
+            // console.log("> Human geladen <");
         } catch (error) {
             console.error('Fehler beim Laden der Modelle:', error);
         }
@@ -244,7 +244,7 @@ export class ThreeJSManager {
 
         if (gameState.player1.score != this.previousScoreP1 || gameState.player2.score != this.previousScoreP2)
             {
-                console.log("win score is:", gameState.player1.score, gameState.player2.score);
+                // console.log("win score is:", gameState.player1.score, gameState.player2.score);
                 this.audioManager.stopSound('bounce');
                 this.audioManager.playSound('win');
                 this.previousScoreP1 = gameState.player1.score;
@@ -263,7 +263,7 @@ export class ThreeJSManager {
         if (this.previousRotationY !== null && this.previousRotationY !== newRotationY
             && gameState.player1.score == this.previousScoreP1 && gameState.player2.score == this.previousScoreP2 ) {
                 if (!this.audioManager.isPlaying('win')) { // Nur abspielen, wenn 'win' nicht läuft
-                    console.log("bounce");
+                    // console.log("bounce");
                     this.audioManager.playSound('bounce');
                 }
         }
@@ -299,7 +299,7 @@ export class ThreeJSManager {
 
 
     setupRenderer(container) {
-        console.log("3D Renderer Setup im Container");
+        // console.log("3D Renderer Setup im Container");
         container.appendChild(this.renderer.domElement);
         this.renderer.setSize(container.clientWidth, container.clientHeight);
         this.camera.aspect = container.clientWidth / container.clientHeight;
@@ -330,7 +330,7 @@ export class ThreeJSManager {
                         object = model.scene; // GLTF hat eine Szene
                     }
 
-                    console.log('Modell geladen:', object);
+                    // console.log('Modell geladen:', object);
 
                     // Bounding Box berechnen
                     const box = new THREE.Box3().setFromObject(object);
@@ -369,7 +369,7 @@ export class ThreeJSManager {
 
                     // Animationsverarbeitung Frau walk
                     if (model.animations && model.animations.length > 0) {
-                        console.log('Animationen gefunden:', model.animations);
+                        // console.log('Animationen gefunden:', model.animations);
                         this.mixer = new THREE.AnimationMixer(object);
                         this.animations = model.animations;
 
