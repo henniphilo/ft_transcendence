@@ -50,7 +50,7 @@ Beneath is a table outlining all possible modules for the ft_transcendence proje
 | Web | Use a front-end framework or [toolkit](bootstrap.md) | Minor | 5 | ✅ |
 | Web | Use a [database](postgres_logs.md) for the backend | Minor | 5 | ✅ |
 | Web | Store the score of a tournament in the [blockchain](blockchain.md) | Major | 10 | ✅ |
-| **User Management** | Standard user management, authentication, users across tournaments | Major | 10 | ✅ |
+| **User Management** | Standard user management, [authentication](registering_and_login.md), users across tournaments | Major | 10 | ✅ |
 | User Management | Implementing a remote authentication | Major | 10 | [ ] |
 | **Gameplay and User Experience** | Remote players | Major | 10 | ✅ |
 | Gameplay and User Experience | Multiplayers (more than 2 in the same game) | Major | 10 | [ ] |

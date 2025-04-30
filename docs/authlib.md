@@ -1,54 +1,54 @@
 # AuthLib
 
-**AuthLib** ist eine kompakte JavaScript-Library zur Benutzer-Authentifizierung und Profilverwaltung. Sie bietet Funktionen für:
+**AuthLib** is a compact JavaScript library for user authentication and profile management. It provides functions for:
 
-- **Registrierung** und **2FA (E-Mail-Verifizierung)**
-- **Login** mit Token-Verwaltung und automatischem Token-Refresh
-- **Profilverwaltung** (Abruf und Update)
+- **Registration** and **2FA (Email verification)**
+- **Login** with token management and automatic token refresh
+- **Profile management** (retrieval and update)
 - **Logout**
 
-Die Library kapselt alle relevanten API-Aufrufe in einem Modul, sodass Du in Deinen Event-Handlern oder Komponenten einfach darauf zugreifen kannst.
+The library encapsulates all relevant API calls in one module, so you can easily access them in your event handlers or components.
 
 ---
 
-## Inhaltsverzeichnis
+## Table of Contents
 
 - [Installation](#installation)
-- [Verwendung](#verwendung)
-    - [Registrierung und 2FA](#registrierung-und-2fa)
-    - [Login und Token-Refresh](#login-und-token-refresh)
-    - [Profilverwaltung](#profilverwaltung)
+- [Usage](#usage)
+    - [Registration and 2FA](#registration-and-2fa)
+    - [Login and Token Refresh](#login-and-token-refresh)
+    - [Profile Management](#profile-management)
     - [Logout](#logout)
-- [API-Funktionen](#api-funktionen)
-- [Beispiel](#beispiel)
-- [Mermaid-Diagramme](#mermaid-diagramme)
-- [Mitwirkende](#mitwirkende)
-- [Lizenz](#lizenz)
+- [API Functions](#api-functions)
+- [Example](#example)
+- [Mermaid Diagrams](#mermaid-diagrams)
+- [Contributors](#contributors)
+- [License](#license)
 
 ---
 
 ## Installation
 
-1. **Datei einbinden**  
-     Binde die `authLib.js` in Dein Projekt ein, z. B. direkt im HTML:
+1. **Include the file**  
+     Include `authLib.js` in your project, e.g. directly in HTML:
      
      ```html
      <script src="path/to/authLib.js"></script>
      ```
 
-Alternativ kannst Du das Modul in einem ES-Module-Setup importieren.
+Alternatively, you can import the module in an ES module setup.
 
-2. **Backend konfigurieren**  
-     Stelle sicher, dass Dein Backend die im Code verwendeten API-Endpunkte bereitstellt (z. B. unter http://127.0.0.1:8000/api/users).
+2. **Configure Backend**  
+     Ensure that your backend provides the API endpoints used in the code (e.g. at http://127.0.0.1:8000/api/users).
 
-Die Library stellt mehrere Funktionen bereit, die Du in Deinen Event-Handlern verwenden kannst. Hier einige typische Anwendungsfälle:
+The library provides several functions that you can use in your event handlers. Here are some typical use cases:
 
-### Registrierung und 2FA
+### Registration and 2FA
 
-1. Registrierung: Über `registerUser({ username, email, password })` wird ein neuer Benutzer angelegt.
-2. Verifizierung: Bei erfolgreicher Registrierung wird automatisch `sendVerificationCode(email)` aufgerufen, um einen Verifizierungscode an die E-Mail zu senden.
+1. Registration: A new user is created via `registerUser({ username, email, password })`.
+2. Verification: Upon successful registration, `sendVerificationCode(email)` is automatically called to send a verification code to the email.
 
-#### Beispiel-Code
+#### Example Code
 
 ```javascript
 document.getElementById('signup-form').addEventListener('submit', function (event) {
@@ -61,30 +61,30 @@ document.getElementById('signup-form').addEventListener('submit', function (even
     AuthLib.registerUser({ username, email, password })
         .then(data => {
             if (data.id) {
-                // Registrierung erfolgreich: 2FA aktivieren
+                // Registration successful: activate 2FA
                 document.getElementById('signup-form').style.display = 'none';
                 document.getElementById('2fa-container').style.display = 'block';
                 return AuthLib.sendVerificationCode(email);
             } else {
-                return Promise.reject(data.error || 'Registrierung fehlgeschlagen.');
+                return Promise.reject(data.error || 'Registration failed.');
             }
         })
         .then(() => {
             alert('Verification code sent to your email!');
         })
         .catch(error => {
-            console.error('Fehler:', error);
-            alert('Fehler: ' + error);
+            console.error('Error:', error);
+            alert('Error: ' + error);
         });
 });
 ```
 
-### Login und Token-Refresh
+### Login and Token Refresh
 
-1. Login: Mit `loginUser(username, password)` erfolgt die Anmeldung. Dabei werden `accessToken` und `refreshToken` im `localStorage` gespeichert.
-2. Token-Refresh: Wird ein API-Aufruf mit einem abgelaufenen Token getätigt (z. B. `getProfile()`), versucht die Library automatisch, den Token mit `refreshAccessToken()` zu erneuern.
+1. Login: Authentication is performed with `loginUser(username, password)`. This stores `accessToken` and `refreshToken` in `localStorage`.
+2. Token Refresh: If an API call is made with an expired token (e.g. `getProfile()`), the library automatically attempts to renew the token with `refreshAccessToken()`.
 
-#### Beispiel-Code
+#### Example Code
 
 ```javascript
 document.getElementById('login-form').addEventListener('submit', function (event) {
@@ -97,30 +97,30 @@ document.getElementById('login-form').addEventListener('submit', function (event
         .then(() => {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('logout-button').style.display = 'block';
-            alert('Login erfolgreich!');
+            alert('Login successful!');
             return AuthLib.getProfile();
         })
         .then(profileData => {
-            console.log('Profil-Daten:', profileData);
+            console.log('Profile data:', profileData);
             document.getElementById('profile-data').textContent = JSON.stringify(profileData);
             document.getElementById('profile-container').style.display = 'block';
         })
         .catch(error => {
-            alert('Login fehlgeschlagen: ' + (error.detail || error));
+            alert('Login failed: ' + (error.detail || error));
         });
 });
 ```
 
-### Profilverwaltung
+### Profile Management
 
-1. Abruf: Mit `getProfile()` erhältst Du die Profildaten des aktuell eingeloggten Benutzers.
-2. Update: Mit `updateProfile(formData)` kannst Du das Profil aktualisieren (z. B. Bio und Avatar).
+1. Retrieval: With `getProfile()` you get the profile data of the currently logged in user.
+2. Update: With `updateProfile(formData)` you can update the profile (e.g. bio and avatar).
 
-#### Beispiel-Code
+#### Example Code
 
 ```javascript
 document.getElementById('edit-profile-button').addEventListener('click', () => {
-    const newBio = prompt('Neue Bio eingeben:');
+    const newBio = prompt('Enter new bio:');
     if (!newBio) return;
 
     const avatarFile = document.getElementById('avatar-input').files[0];
@@ -132,21 +132,21 @@ document.getElementById('edit-profile-button').addEventListener('click', () => {
 
     AuthLib.updateProfile(formData)
         .then(updatedData => {
-            console.log('Aktualisierte Profil-Daten:', updatedData);
-            // Aktualisiere die UI mit den neuen Daten
+            console.log('Updated profile data:', updatedData);
+            // Update the UI with the new data
         })
         .catch(err => {
             console.error(err);
-            alert('Profil-Update fehlgeschlagen: ' + err);
+            alert('Profile update failed: ' + err);
         });
 });
 ```
 
 ### Logout
 
-Mit `logoutUser()` werden die gespeicherten Tokens entfernt und der Benutzer wird ausgeloggt.
+With `logoutUser()`, the stored tokens are removed and the user is logged out.
 
-#### Beispiel-Code
+#### Example Code
 
 ```javascript
 document.getElementById('logout-button').addEventListener('click', function () {
@@ -154,41 +154,41 @@ document.getElementById('logout-button').addEventListener('click', function () {
     document.getElementById('logout-button').style.display = 'none';
     document.getElementById('login-container').style.display = 'block';
     document.getElementById('profile-container').style.display = 'none';
-    alert('Logout erfolgreich!');
+    alert('Logout successful!');
 });
 ```
 
-## API-Funktionen
+## API Functions
 
-Die Library bietet folgende Funktionen:
+The library offers the following functions:
 
-- `getCookie(name)`: Liest den Wert eines Cookies anhand seines Namens.
-- `sendVerificationCode(email)`: Sendet einen Verifizierungscode an die angegebene E-Mail.
-- `registerUser(data)`: Registriert einen neuen Benutzer (Erwartet ein Objekt `{ username, email, password }`).
-- `verifyCode(email, code)`: Überprüft den eingegebenen 2FA-Code.
-- `loginUser(username, password)`: Meldet den Benutzer an und speichert die Tokens.
-- `refreshAccessToken()`: Erneuert den Access-Token mithilfe des gespeicherten Refresh-Tokens.
-- `getProfile()`: Ruft das Profil des eingeloggten Benutzers ab. Bei abgelaufenem Token wird automatisch ein Refresh durchgeführt.
-- `updateProfile(formData)`: Aktualisiert das Profil des Benutzers (Erwartet ein `FormData`-Objekt, z. B. für das Update von Bio oder Avatar).
-- `logoutUser()`: Meldet den Benutzer ab, indem die Tokens entfernt werden.
+- `getCookie(name)`: Reads the value of a cookie by its name.
+- `sendVerificationCode(email)`: Sends a verification code to the specified email.
+- `registerUser(data)`: Registers a new user (Expects an object `{ username, email, password }`).
+- `verifyCode(email, code)`: Verifies the entered 2FA code.
+- `loginUser(username, password)`: Logs in the user and stores the tokens.
+- `refreshAccessToken()`: Renews the access token using the stored refresh token.
+- `getProfile()`: Retrieves the profile of the logged-in user. If the token is expired, a refresh is automatically performed.
+- `updateProfile(formData)`: Updates the user's profile (Expects a `FormData` object, e.g. for updating bio or avatar).
+- `logoutUser()`: Logs out the user by removing the tokens.
 
-## Mermaid-Diagramme
+## Mermaid Diagrams
 
-### Registrierung & 2FA Flow
+### Registration & 2FA Flow
 
 ```mermaid
 sequenceDiagram
         participant U as User
         participant F as Frontend
         participant API as AuthLib/API
-        U->>F: Füllt Registrierungsformular aus
+        U->>F: Fills out registration form
         F->>API: registerUser({ username, email, password })
-        API-->>F: Gibt Response mit Benutzer-ID zurück
+        API-->>F: Returns response with user ID
         F->>API: sendVerificationCode(email)
-        API-->>F: Bestätigung, dass Code gesendet wurde
-        Note over F: Benutzer gibt den Verifizierungscode ein
+        API-->>F: Confirmation that code was sent
+        Note over F: User enters the verification code
         F->>API: verifyCode(email, code)
-        API-->>F: Verifizierung erfolgreich
+        API-->>F: Verification successful
 ```
 
 ### Login & Token-Refresh Flow
@@ -198,97 +198,97 @@ sequenceDiagram
         participant U as User
         participant F as Frontend
         participant API as AuthLib/API
-        U->>F: Füllt Login-Formular aus
+        U->>F: Fills out login form
         F->>API: loginUser(username, password)
-        API-->>F: Gibt Access- und Refresh-Token zurück
-        F->>API: getProfile() (mit Access-Token)
-        alt Token gültig
-                API-->>F: Gibt Profil-Daten zurück
-        else Token abgelaufen
+        API-->>F: Returns Access and Refresh Token
+        F->>API: getProfile() (with Access Token)
+        alt Token valid
+                API-->>F: Returns profile data
+        else Token expired
                 F->>API: refreshAccessToken()
-                API-->>F: Neuer Access-Token
-                F->>API: getProfile() (erneut)
-                API-->>F: Gibt Profil-Daten zurück
+                API-->>F: New Access Token
+                F->>API: getProfile() (again)
+                API-->>F: Returns profile data
         end
 ```
 
-### Profil Update Flow
+### Profile Update Flow
 
 ```mermaid
 sequenceDiagram
         participant U as User
         participant F as Frontend
         participant API as AuthLib/API
-        U->>F: Klickt auf "Profil bearbeiten"
+        U->>F: Clicks on "Edit Profile"
         F->>API: updateProfile(formData)
-        API-->>F: Gibt aktualisierte Profil-Daten zurück
+        API-->>F: Returns updated profile data
 ```
 
 ### Logout Flow
 
 ```mermaid
 flowchart TD
-    A[Benutzer eingeloggt] --> B[logoutUser wird aufgerufen]
-    B --> C[Tokens werden aus localStorage entfernt]
-    C --> D[Benutzer wird ausgeloggt]
+    A[User logged in] --> B[logoutUser is called]
+    B --> C[Tokens are removed from localStorage]
+    C --> D[User is logged out]
 ```
 
-## Beispiel
+## Example
 
-Hier ein einfaches HTML-Beispiel, wie Du AuthLib in Deinem Projekt einbindest:
+Here is a simple HTML example of how to integrate AuthLib in your project:
 
 ```html
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AuthLib Beispiel</title>
+    <title>AuthLib Example</title>
     <script src="path/to/authLib.js"></script>
 </head>
 <body>
-    <!-- Registrierungsformular -->
+    <!-- Registration form -->
     <form id="signup-form">
         <input id="username" type="text" placeholder="Username" required>
         <input id="email" type="email" placeholder="Email" required>
         <input id="password" type="password" placeholder="Password" required>
-        <button type="submit">Registrieren</button>
+        <button type="submit">Register</button>
     </form>
 
-    <!-- 2FA-Container -->
+    <!-- 2FA Container -->
     <div id="2fa-container" style="display:none;">
-        <input id="verification-code" type="text" placeholder="Verifizierungscode" required>
-        <button id="verify-code">Code verifizieren</button>
+        <input id="verification-code" type="text" placeholder="Verification code" required>
+        <button id="verify-code">Verify code</button>
     </div>
 
-    <!-- Loginformular -->
+    <!-- Login form -->
     <form id="login-form" style="display:none;">
         <input id="login-username" type="text" placeholder="Username" required>
         <input id="login-password" type="password" placeholder="Password" required>
         <button type="submit">Login</button>
     </form>
 
-    <!-- Profil-Container -->
+    <!-- Profile Container -->
     <div id="profile-container" style="display:none;">
         <div id="profile-data"></div>
-        <button id="edit-profile-button">Profil bearbeiten</button>
+        <button id="edit-profile-button">Edit Profile</button>
         <input id="avatar-input" type="file">
         <button id="logout-button">Logout</button>
     </div>
 
     <script>
-        // Hier werden die oben gezeigten Event-Handler eingebunden
-        // (siehe die jeweiligen Code-Beispiele in diesem README)
+        // Here the event handlers shown above are integrated
+        // (see the respective code examples in this README)
     </script>
 </body>
 </html>
 ```
 
-## Mitwirkende
+## Contributors
 
-Falls Du Verbesserungen vorschlagen oder Fehler beheben möchtest, öffne bitte ein Issue oder einen Pull Request.
+If you would like to suggest improvements or fix bugs, please open an Issue or a Pull Request.
 
-## Lizenz
+## License
 
-Dieses Projekt steht unter der MIT Lizenz.
+This project is licensed under the MIT License.
 
 ---

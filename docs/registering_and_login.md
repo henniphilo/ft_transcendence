@@ -1,33 +1,33 @@
-# ft_transcendence – Registrierung & Login mit 2FA
+# ft_transcendence – Registration & Login with 2FA
 
-Dieses Projekt demonstriert eine Django-REST-API mit JWT-Authentifizierung (via django-rest-framework-simplejwt), inklusive 2-Faktor-Verifizierung. Das Frontend ist eine einfache Single Page Application (SPA) mit JavaScript (Fetch API).
+This project demonstrates a Django REST API with JWT authentication (via `django-rest-framework-simplejwt`), including two-factor authentication (2FA). The frontend is a simple Single Page Application (SPA) built with JavaScript (Fetch API).
 
-## Inhaltsverzeichnis
+## Table of Contents
 
-1. [Übersicht](#übersicht)
-2. [Ablaufdiagramme (Mermaid)](#ablaufdiagramme)
-    - [Registrierung & 2FA](#registrierung--2fa)
-    - [Login-Prozess](#login-prozess)
-3. [Backend-Setup](#backend-setup)
-4. [Frontend-Setup](#frontend-setup)
-5. [Endpoints & Code-Struktur](#endpoints--code-struktur)
-    - [Registrierung](#registrierung)
-    - [2FA-Code senden & verifizieren](#2fa-code-senden--verifizieren)
+1. [Overview](#overview)
+2. [Flow Diagrams (Mermaid)](#flow-diagrams)
+    - [Registration & 2FA](#registration--2fa)
+    - [Login Process](#login-process)
+3. [Backend Setup](#backend-setup)
+4. [Frontend Setup](#frontend-setup)
+5. [Endpoints & Code Structure](#endpoints--code-structure)
+    - [Registration](#registration)
+    - [Send & Verify 2FA Code](#send--verify-2fa-code)
     - [Login](#login)
-    - [Profil](#profil)
-6. [Wichtige Hinweise](#wichtige-hinweise)
+    - [Profile](#profile)
+6. [Important Notes](#important-notes)
 
-## Übersicht
+## Overview
 
-1. Benutzer registriert sich (Angabe von Username, E-Mail, Passwort).
-2. Backend legt den User an (is_verified = False) und sendet einen 2FA-Code per E-Mail.
-3. Benutzer gibt den Verification Code ein.
-4. Backend setzt is_verified = True.
-5. Jetzt kann sich der Benutzer einloggen und erhält ein JWT (Access + Refresh).
+1. User registers by providing a username, email, and password.
+2. Backend creates the user (`is_verified = False`) and sends a 2FA code via email.
+3. User enters the verification code.
+4. Backend sets `is_verified = True`.
+5. User can now log in and receive a JWT (Access + Refresh tokens).
 
-## Ablaufdiagramme
+## Flow Diagrams
 
-### Registrierung & 2FA
+### Registration & 2FA
 
 ```mermaid
 sequenceDiagram
@@ -37,16 +37,16 @@ sequenceDiagram
     participant Django (Backend)
     participant DB
 
-    User->>Frontend (SPA): Öffnet Signup-Formular (Username/Email/Passwort)
-    Frontend (SPA)->>Django (Backend): POST /api/users/register/ mit {username, email, password}
-    Django (Backend)->>DB: Speichert neuen User (is_verified = False)
-    Django (Backend)->>User: Antwort (User-ID)
-    Frontend (SPA)->>Django (Backend): POST /api/users/verify/send/ mit { email }
-    Django (Backend)->>DB: Generiert verification_code, speichert
-    Django (Backend)->>User: Sendet E-Mail mit verification_code
-    User->>Frontend (SPA): Klickt "Verify Code" und gibt code ein
-    Frontend (SPA)->>Django (Backend): POST /api/users/verify/ mit { email, code }
-    Django (Backend)->>DB: Setze is_verified = True, lösche code
+    User->>Frontend (SPA): Opens signup form (Username/Email/Password)
+    Frontend (SPA)->>Django (Backend): POST /api/users/register/ with {username, email, password}
+    Django (Backend)->>DB: Stores new user (is_verified = False)
+    Django (Backend)->>User: Response (User ID)
+    Frontend (SPA)->>Django (Backend): POST /api/users/verify/send/ with { email }
+    Django (Backend)->>DB: Generates verification_code, stores it
+    Django (Backend)->>User: Sends email with verification_code
+    User->>Frontend (SPA): Clicks "Verify Code" and enters code
+    Frontend (SPA)->>Django (Backend): POST /api/users/verify/ with { email, code }
+    Django (Backend)->>DB: Sets is_verified = True, deletes code
     Django (Backend)->>User: "User verified!"
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style Frontend (SPA) fill:#bbf,stroke:#333,stroke-width:2px
@@ -54,7 +54,7 @@ sequenceDiagram
     style DB fill:#ff9,stroke:#333,stroke-width:2px
 ```
 
-### Login-Prozess
+### Login Process
 
 ```mermaid
 sequenceDiagram
@@ -64,16 +64,16 @@ sequenceDiagram
     participant Django (Backend)
     participant DB
 
-    User->>Frontend (SPA): Öffnet Login-Form (Username/Passwort)
+    User->>Frontend (SPA): Opens login form (Username/Password)
     Frontend (SPA)->>Django (Backend): POST /api/users/login/ (username + password)
-    Django (Backend)->>DB: Prüft Userdaten und is_verified
+    Django (Backend)->>DB: Verifies user data and is_verified
     alt is_verified == True
         Django (Backend)->>Frontend (SPA): {access: <token>, refresh: <token>}
-        Frontend (SPA)->>LocalStorage: Speichert Tokens
-        Frontend (SPA)->>User: "Login erfolgreich"
+        Frontend (SPA)->>LocalStorage: Stores tokens
+        Frontend (SPA)->>User: "Login successful"
     else is_verified == False
-        Django (Backend)->>Frontend (SPA): Fehler (HTTP 400/401)
-        Frontend (SPA)->>User: "Login fehlgeschlagen. User nicht verifiziert."
+        Django (Backend)->>Frontend (SPA): Error (HTTP 400/401)
+        Frontend (SPA)->>User: "Login failed. User not verified."
     end
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style Frontend (SPA) fill:#bbf,stroke:#333,stroke-width:2px
@@ -81,74 +81,74 @@ sequenceDiagram
     style DB fill:#ff9,stroke:#333,stroke-width:2px
 ```
 
-## Backend-Setup
+## Backend Setup
 
-- Python-Version: z. B. 3.9+
-- Virtuelle Umgebung (optional, aber empfohlen)
-- Abhängigkeiten installieren:
+- Python version: e.g., 3.9+
+- Virtual environment (optional but recommended)
+- Install dependencies:
 
 ```sh
 pip install -r requirements.txt
 ```
 
-- Django-Migrationen anwenden:
+- Apply Django migrations:
 
 ```sh
 python manage.py migrate
 ```
 
-- Starten:
+- Start the server:
 
 ```sh
 python manage.py runserver
 ```
 
-## Frontend-Setup
+## Frontend Setup
 
-Das Frontend ist eine SPA mit reinem JavaScript (Fetch). Um es zu testen, kannst du:
+The frontend is an SPA using pure JavaScript (Fetch API). To test it, you can:
 
-- Einfach eine `index.html` öffnen (lokal oder per `python -m http.server`)
-- Sicherstellen, dass deine URLs (z. B. `http://127.0.0.1:8000/api/users/...`) richtig sind.
+- Open `index.html` locally or serve it using `python -m http.server`.
+- Ensure your URLs (e.g., `http://127.0.0.1:8000/api/users/...`) are correct.
 
-Wenn du Cross-Origin-Probleme hast, kannst du CORS erlauben (z. B. via `django-cors-headers`).
+If you encounter cross-origin issues, enable CORS (e.g., via `django-cors-headers`).
 
-## Endpoints & Code-Struktur
+## Endpoints & Code Structure
 
-### Registrierung
+### Registration
 
 - URL: `POST /api/users/register/`
 - Body: `{ "username": "...", "email": "...", "password": "..." }`
-- Response: User-Daten (JSON) oder Fehler
+- Response: User data (JSON) or error
 
-### 2FA-Code senden & verifizieren
+### Send & Verify 2FA Code
 
 - URL: `POST /api/users/verify/send/`
-    - Body: `{ "email": "..." }`
-    - Generiert einen verification_code, speichert ihn in der DB und verschickt ihn per Mail.
+  - Body: `{ "email": "..." }`
+  - Generates a `verification_code`, stores it in the database, and sends it via email.
 - URL: `POST /api/users/verify/`
-    - Body: `{ "email": "...", "code": "..." }`
-    - Wenn der Code korrekt ist: Setzt is_verified = True.
+  - Body: `{ "email": "...", "code": "..." }`
+  - If the code is correct: Sets `is_verified = True`.
 
 ### Login
 
 - URL: `POST /api/users/login/`
 - Body: `{ "username": "...", "password": "..." }`
-- Response: `{ "access": "...", "refresh": "..." }` oder Error, falls is_verified = False.
+- Response: `{ "access": "...", "refresh": "..." }` or error if `is_verified = False`.
 
-### Profil
+### Profile
 
 - URL: `GET /api/users/profile/`
-    - Header: `Authorization: Bearer <access-token>`
-    - Gibt die User-Daten zurück (z. B. username, email, bio, avatar).
+  - Header: `Authorization: Bearer <access-token>`
+  - Returns user data (e.g., username, email, bio, avatar).
 - URL: `PUT /api/users/profile/`
-    - Body: Felder, die du updaten möchtest (z. B. `{ "bio": "...", "avatar": "..." }`).
-    - Header: `Authorization: Bearer <access-token>`
-    - Aktualisiert das Profil nur, wenn is_verified = True.
+  - Body: Fields to update (e.g., `{ "bio": "...", "avatar": "..." }`).
+  - Header: `Authorization: Bearer <access-token>`
+  - Updates the profile only if `is_verified = True`.
 
-## Wichtige Hinweise
+## Important Notes
 
-- **JWT-Refresh**: Access-Token läuft nach kurzer Zeit ab; mittels refresh-Token kannst du einen neuen Access-Token anfordern (`POST /api/users/token/refresh/`).
-- **Logout**: Bei JWT meist nur clientseitig durch Löschen der Tokens (`localStorage.removeItem(...)`). Optional kannst du SimpleJWT Blacklisting einrichten.
+- **JWT Refresh**: The access token expires after a short time; use the refresh token to request a new access token (`POST /api/users/token/refresh/`).
+- **Logout**: With JWT, logout is typically client-side by deleting tokens (`localStorage.removeItem(...)`). Optionally, you can set up SimpleJWT blacklisting.
 - **Security**:
-    - Stelle sicher, dass du SSL/HTTPS verwendest, wenn du im Produktivbetrieb Passwörter oder Tokens übertragen willst.
-    - Prüfe, ob du bei Django-Settings das CSRF- und CORS-Handling korrekt konfiguriert hast, falls das Frontend getrennt vom Backend läuft.
+  - Ensure you use SSL/HTTPS in production when transmitting passwords or tokens.
+  - Verify that CSRF and CORS handling in Django settings are correctly configured if the frontend runs separately from the backend.
