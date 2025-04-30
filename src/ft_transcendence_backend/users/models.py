@@ -47,3 +47,8 @@ class CustomUser(AbstractUser):
     def is_friend(self, user):
         """Überprüft, ob zwei User befreundet sind"""
         return user in self.friends.all()
+    
+    def add_score(self, points):
+        """Erhöht den Score des Users um eine bestimmte Punktzahl."""
+        self.score += points
+        self.save()

@@ -25,6 +25,19 @@ class GamestatsViewSet(viewsets.ModelViewSet):
     queryset = Gamestats.objects.all().order_by('-created_at')
     serializer_class = GamestatsSerializer
 
+    def perform_create(self, serializer):
+        """Wird automatisch beim POST aufgerufen, wenn ein neues Gamestats-Objekt erstellt wird."""
+        instance = serializer.save()
+
+        player1 = instance.player1
+        player2 = instance.player2
+
+        if player1:
+            player1.add_score(instance.player1_score)
+
+        if player2:
+            player2.add_score(instance.player2_score)
+
     @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
     def by_user(self, request, user_id=None):
         games = Gamestats.objects.filter(
