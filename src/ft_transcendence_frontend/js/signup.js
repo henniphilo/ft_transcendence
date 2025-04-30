@@ -115,7 +115,7 @@ const AuthLib = (function () {
             })
             .then(data => {
                 localStorage.setItem('accessToken', data.access);
-                console.log('Access-Token erneuert:', data.access);
+                // console.log('Access-Token erneuert:', data.access);
             });
     }
 

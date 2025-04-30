@@ -11,7 +11,7 @@ let cameraMoveRight = 0.002;
 let cameraMoveUp = 0.001;
 
 export function initBackground3D(onLoadedCallback) {
-    console.log("in initBackground3D");
+    // console.log("in initBackground3D");
     const canvas = document.getElementById('background-canvas');
 
     // Szene, Kamera und Renderer initialisieren
@@ -75,7 +75,7 @@ export function initBackground3D(onLoadedCallback) {
             model.position.set(0, -1, 0);
             model.scale.set(1, 1, 1);
 
-            console.log("✅ 3D Model loaded!");
+            // console.log("✅ 3D Model loaded!");
             if (onLoadedCallback) {
                 onLoadedCallback(); // Login-Menü jetzt starten!
             }

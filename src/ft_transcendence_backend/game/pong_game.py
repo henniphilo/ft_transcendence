@@ -21,7 +21,7 @@ game_server = GameServer()
 # Füge eine Basic-Route hinzu
 @app.get("/")
 async def root():
-    print("health check received")
+    #print("health check received")
     return {"status": "Game Server running"}
 
 @app.websocket("/ws/menu")
@@ -31,14 +31,14 @@ async def websocket_menu(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
-            print(f"WebSocket received data: {data}")  # Debug
+            #print(f"WebSocket received data: {data}")  # Debug
             
             if data["action"] == "get_menu_items":
                 menu_items = await menu.get_menu_items()
                 await websocket.send_json({"menu_items": menu_items})
             
             elif data["action"] == "update_settings":
-                print(f"Updating settings with: {data}")
+                #print(f"Updating settings with: {data}")
                 response = await menu.update_settings(data["settings"])
                 await websocket.send_json(response)
 
@@ -49,12 +49,12 @@ async def websocket_menu(websocket: WebSocket):
                     await websocket.send_json(response)
 
             elif data["action"] == "start_tournament_now":
-                print("🎯 Received start_tournament_now")
+                #print("🎯 Received start_tournament_now")
                 await menu.start_tournament_matches()
 
             elif data["action"] == "tournament_result":
                 winner_name = data.get("winner") # Nennen wir es winner_name zur Klarheit
-                print(f"✅ Received tournament result for match winner: {winner_name}")
+                #print(f"✅ Received tournament result for match winner: {winner_name}")
                 
                 # Ergebnis im Manager speichern (kann intern prüfen, ob es doppelt ist)
                 menu.tournament_manager.record_result(winner_name) 
@@ -64,12 +64,12 @@ async def websocket_menu(websocket: WebSocket):
                 final_tournament_winner = None
                 if is_finished_now:
                     winner_return_value = menu.tournament_manager.get_winner() 
-                    print(f"DEBUG: menu.tournament_manager.get_winner() was called.")
-                    print(f"DEBUG: Return value of get_winner() = '{winner_return_value}' (Type: {type(winner_return_value)})")
+                    #print(f"DEBUG: menu.tournament_manager.get_winner() was called.")
+                    #print(f"DEBUG: Return value of get_winner() = '{winner_return_value}' (Type: {type(winner_return_value)})")
 
                     # Weise das Ergebnis der Variable zu
                     final_tournament_winner = winner_return_value 
-                    print(f"DEBUG: Value assigned to final_tournament_winner = '{final_tournament_winner}' (Type: {type(final_tournament_winner)})")
+                    #print(f"DEBUG: Value assigned to final_tournament_winner = '{final_tournament_winner}' (Type: {type(final_tournament_winner)})")
                 # --- Ende Prüfung ---
 
                 # Aktuelle Daten für das Update holen
@@ -111,7 +111,7 @@ async def websocket_menu(websocket: WebSocket):
                 # --- Ende Hinzufügen ---
                 
                 # Debug Log vor dem Senden
-                print(f"DEBUG: Broadcasting update_tournament_results Payload: {message_payload}")
+                #print(f"DEBUG: Broadcasting update_tournament_results Payload: {message_payload}")
 
                 # Broadcast an alle Spieler im Turnier
                 for entry in menu.tournament_manager.players:
@@ -127,7 +127,7 @@ async def websocket_menu(websocket: WebSocket):
 
 
             elif data["action"] == "start_next_round":
-                print("🎯 Nächste Turnierrunde wird gestartet")
+                #print("🎯 Nächste Turnierrunde wird gestartet")
                 
                 # Prüfen, ob alle Spiele der aktuellen Runde abgeschlossen sind
                 if len(menu.tournament_manager.results) == len(menu.tournament_manager.active_matches):
@@ -166,7 +166,7 @@ async def websocket_game(websocket: WebSocket, game_id: str):
     settings = menu.get_current_settings()
     
     # Debug print
-    print("\n=== Websocket Game Settings ===")
-    print(f"Settings being passed to game: {settings}")
+    #print("\n=== Websocket Game Settings ===")
+    #print(f"Settings being passed to game: {settings}")
     
     await game_server.handle_game(websocket, game_id, settings)

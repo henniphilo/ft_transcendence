@@ -15,7 +15,7 @@ export class UserProfileView {
 		if (backButton) {
 			backButton.addEventListener('click', () => {
 				// Zurück zum Menü mit dem aktuellen Benutzerprofil
-				console.log("Zurück zum Menü mit Profil:", this.currentUserProfile);
+				// console.log("Zurück zum Menü mit Profil:", this.currentUserProfile);
 				
 				// Stelle sicher, dass das Profil im localStorage gespeichert ist
 				if (this.currentUserProfile) {
@@ -107,7 +107,7 @@ export class UserProfileView {
 	}
 	
 	async loadMatchStats(username) {
-		console.log(`Lade Match-Statistiken für ${username}`);
+		// console.log(`Lade Match-Statistiken für ${username}`);
 		
 		try {
 			// Hole den Access Token aus dem localStorage
@@ -127,7 +127,7 @@ export class UserProfileView {
 			}
 			
 			const statsData = await statsResponse.json();
-			console.log('Match-Statistiken für Benutzer:', statsData);
+			// console.log('Match-Statistiken für Benutzer:', statsData);
 			
 			// Zeige die Match-Statistiken an
 			this.displayMatchStats(statsData);
@@ -166,7 +166,7 @@ export class UserProfileView {
 	}
 	
 	async loadMatchHistory(username) {
-		console.log(`Lade Match-Historie für ${username}`);
+		// console.log(`Lade Match-Historie für ${username}`);
 		
 		try {
 			// Hole den Access Token aus dem localStorage
@@ -186,7 +186,7 @@ export class UserProfileView {
 			}
 			
 			const matchData = await statsResponse.json();
-			console.log('Match-Historie für Benutzer:', matchData);
+			// console.log('Match-Historie für Benutzer:', matchData);
 			
 			// Zeige die Match-Historie an
 			this.displayMatchHistory(matchData, username);

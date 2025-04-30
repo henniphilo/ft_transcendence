@@ -18,9 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const backgroundCanvas = document.getElementById("background-canvas");
 
   function showTemplate(templateName, data = {}, preventPush = false) {
-    console.log("=== Template Switch ===");
-    console.log("Switching to:", templateName);
-    console.log("With data:", data);
+    // console.log("=== Template Switch ===");
+    // console.log("Switching to:", templateName);
+    // console.log("With data:", data);
 
     contentDiv.innerHTML = "";
     const template = templates[templateName];
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setupMenu(userProfile) {
-    console.log("Menu wird eingerichtet mit Profil:", userProfile);
+    // console.log("Menu wird eingerichtet mit Profil:", userProfile);
 
     // Stelle sicher, dass ein gültiges Benutzerprofil vorhanden ist
     if (
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (storedProfile) {
         try {
           userProfile = JSON.parse(storedProfile);
-          console.log("Profil aus localStorage geladen:", userProfile);
+          // console.log("Profil aus localStorage geladen:", userProfile);
         } catch (e) {
           console.error("Fehler beim Parsen des gespeicherten Profils:", e);
         }
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTournamentResults(results, round, totalRounds) {
     const container = document.getElementById("tournament-results");
-    console.log("🎯 Rendering Results:", results);
+    // console.log("🎯 Rendering Results:", results);
     if (!container) return;
 
     const resultList = Object.entries(results)
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setupTournament(data) {
-    console.log("Setting up tournament with data:", data);
+    // console.log("Setting up tournament with data:", data);
     // Cleanup any existing tournament view
     if (window.tournamentView) {
       window.tournamentView.cleanup();
@@ -207,13 +207,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Popstate Handler
   window.addEventListener("popstate", (event) => {
-    console.log("=== Browser Navigation ===");
-    console.log("Navigation event state:", event.state);
-    console.log("Current hash:", window.location.hash);
+    // console.log("=== Browser Navigation ===");
+    // console.log("Navigation event state:", event.state);
+    // console.log("Current hash:", window.location.hash);
 
     // Wenn wir im Game-Template sind, verhindern wir jede Navigation
     if (window.location.hash === "#game") {
-      console.log("Preventing navigation while in game");
+      // console.log("Preventing navigation while in game");
       history.pushState(null, "", window.location.href);
       return;
     }
@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.state && event.state.template) {
       // Verhindere Navigation zurück zum Game-Template
       if (event.state.template === "game") {
-        console.log("Preventing navigation back to game template");
+        // console.log("Preventing navigation back to game template");
         const storedProfile = localStorage.getItem("userProfile");
         const data = storedProfile
           ? { userProfile: JSON.parse(storedProfile) }
@@ -230,15 +230,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      console.log("Template from state:", event.state.template);
-      console.log("Data from state:", event.state.data);
+      // console.log("Template from state:", event.state.template);
+      // console.log("Data from state:", event.state.data);
 
       let templateData = { ...event.state.data };
 
       // Stelle sicher, dass das userProfile verfügbar ist
       if (event.state.template === "menu") {
-        console.log("Checking userProfile for menu:");
-        console.log("- From state data:", templateData.userProfile);
+        // console.log("Checking userProfile for menu:");
+        // console.log("- From state data:", templateData.userProfile);
         console.log(
           "- From localStorage:",
           localStorage.getItem("userProfile")
@@ -250,15 +250,15 @@ document.addEventListener("DOMContentLoaded", () => {
             templateData.userProfile = JSON.parse(storedProfile);
           }
         }
-        console.log("Final templateData:", templateData);
+        // console.log("Final templateData:", templateData);
       }
 
       showTemplate(event.state.template, templateData, true);
     } else {
-      console.log("No template state found");
+      // console.log("No template state found");
       if (window.location.hash === "#game") {
         // Auch hier: Verhindere Navigation zum Game-Template
-        console.log("Preventing direct navigation to game");
+        // console.log("Preventing direct navigation to game");
         const storedProfile = localStorage.getItem("userProfile");
         const data = storedProfile
           ? { userProfile: JSON.parse(storedProfile) }

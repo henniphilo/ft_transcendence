@@ -4,7 +4,7 @@ import logging.config
 
 class GameSettings:
     def __init__(self):
-        print("Initializing GameSettings")
+        #print("Initializing GameSettings")
         self._ball_speed = 3
         self._paddle_speed = 5
         self._winning_score = 2
@@ -19,12 +19,12 @@ class GameSettings:
 
     @property
     def ball_speed(self):
-        print(f"Getting ball_speed: {self._ball_speed}")
+        #print(f"Getting ball_speed: {self._ball_speed}")
         return self._ball_speed
 
     @ball_speed.setter
     def ball_speed(self, value: int):
-        print(f"Setting ball_speed to: {value}")
+        #print(f"Setting ball_speed to: {value}")
         if 1 <= value <= 10:
             self._ball_speed = value
         else:
@@ -32,12 +32,12 @@ class GameSettings:
 
     @property
     def paddle_speed(self):
-        print(f"Getting paddle_speed: {self._paddle_speed}")
+        #print(f"Getting paddle_speed: {self._paddle_speed}")
         return self._paddle_speed
 
     @paddle_speed.setter
     def paddle_speed(self, value: int):
-        print(f"Setting paddle_speed to: {value}")
+        #print(f"Setting paddle_speed to: {value}")
         if 1 <= value <= 10:
             self._paddle_speed = value
         else:
@@ -45,12 +45,12 @@ class GameSettings:
 
     @property
     def winning_score(self):
-        print(f"Getting winning_score: {self._winning_score}")
+        #print(f"Getting winning_score: {self._winning_score}")
         return self._winning_score
 
     @winning_score.setter
     def winning_score(self, value: int):
-        print(f"Setting winning_score to: {value}")
+        #print(f"Setting winning_score to: {value}")
         if 1 <= value <= 20:
             self._winning_score = value
         else:
@@ -58,12 +58,12 @@ class GameSettings:
 
     @property
     def paddle_size(self):
-        print(f"Getting paddle_size: {self._paddle_size}")
+        #print(f"Getting paddle_size: {self._paddle_size}")
         return self._paddle_size
 
     @paddle_size.setter
     def paddle_size(self, value: str):
-        print(f"Setting paddle_size to: {value}")
+        #print(f"Setting paddle_size to: {value}")
         if value in ["small", "middle", "big"]:
             self._paddle_size = value
             self.update_ubahn_size()  # U-Bahn-Größe automatisch aktualisieren
@@ -78,21 +78,21 @@ class GameSettings:
             "big": 1.2  # Größere Skalierung
         }
         self._ubahn_size = size_mapping[self._paddle_size]
-        print(f"U-Bahn size updated to: {self._ubahn_size}")
+        #print(f"U-Bahn size updated to: {self._ubahn_size}")
 
     @property
     def ubahn_size(self):
-        print(f"Getting ubahn_size: {self._ubahn_size}")
+        #print(f"Getting ubahn_size: {self._ubahn_size}")
         return self._ubahn_size
 
     @property
     def mode(self):
-        print(f"Getting mode: {self._mode}")
+        #print(f"Getting mode: {self._mode}")
         return self._mode
 
     @mode.setter
     def mode(self, value: str):
-        print(f"Setting mode to: {value}")
+        #print(f"Setting mode to: {value}")
         if value in ["online", "ai", "local"]:
             self._mode = value
         else:
@@ -100,12 +100,12 @@ class GameSettings:
 
     @property
     def difficulty(self):
-        print(f"Getting difficulty: {self._difficulty}")
+        #print(f"Getting difficulty: {self._difficulty}")
         return self._difficulty
 
     @difficulty.setter
     def difficulty(self, value: str):
-        print(f"Setting difficulty to: {value}")
+        #print(f"Setting difficulty to: {value}")
         if value in ["easy", "medium", "impossible"]:
             self._difficulty = value
         else:
@@ -113,26 +113,26 @@ class GameSettings:
 
     @property
     def player1_profile(self):
-        print(f"Getting player1_profile: {self._player1_profile}")
+        #print(f"Getting player1_profile: {self._player1_profile}")
         return self._player1_profile
 
     @player1_profile.setter
     def player1_profile(self, value):
-        print(f"Setting player1_profile to: {value}")
+        #print(f"Setting player1_profile to: {value}")
         self._player1_profile = value
 
     @property
     def player2_profile(self):
-        print(f"Getting player2_profile: {self._player2_profile}")
+        #print(f"Getting player2_profile: {self._player2_profile}")
         return self._player2_profile
 
     @player2_profile.setter
     def player2_profile(self, value):
-        print(f"Setting player2_profile to: {value}")
+        #print(f"Setting player2_profile to: {value}")
         self._player2_profile = value
 
     def get_settings(self):
-        print("Getting all settings")
+        #print("Getting all settings")
         settings = {
             "ball_speed": self._ball_speed,
             "paddle_speed": self._paddle_speed,
@@ -152,7 +152,7 @@ class GameSettings:
         return settings
 
 async def update_settings(self, settings_data):
-    print(f"Updating settings with data: {settings_data}")
+    #print(f"Updating settings with data: {settings_data}")
     try:
         if "ball_speed" in settings_data:
             self.ball_speed = int(settings_data["ball_speed"])
@@ -173,7 +173,7 @@ async def update_settings(self, settings_data):
             self.player2_profile = settings_data["player2_profile"]
 
         updated_settings = self.get_settings()
-        print(f"Settings successfully updated to: {updated_settings}")
+        #print(f"Settings successfully updated to: {updated_settings}")
         return {"action": "settings_updated", "settings": updated_settings}
 
     except (ValueError, TypeError) as e:

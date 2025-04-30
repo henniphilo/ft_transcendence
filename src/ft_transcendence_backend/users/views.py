@@ -194,7 +194,7 @@ def logout_view(request):
     # ❌ User aus Redis entfernen
     if redis_client.exists(redis_key):
         redis_client.delete(redis_key)
-        print(f"❌ User {user.username} (ID: {user.id}) wurde aus Redis entfernt!")
+        #print(f"❌ User {user.username} (ID: {user.id}) wurde aus Redis entfernt!")
 
     # 🗑️ Optional: JWT Refresh Token aus der Datenbank blacklisten
     try:

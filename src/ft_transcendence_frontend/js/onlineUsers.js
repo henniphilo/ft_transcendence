@@ -83,7 +83,7 @@ export class OnlineUsersHandler {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            console.log("👋 User aus Online-Liste entfernt");
+            // console.log("👋 User aus Online-Liste entfernt");
         } catch (error) {
             console.error("⚠️ Fehler beim Entfernen des Users:", error);
             throw error;

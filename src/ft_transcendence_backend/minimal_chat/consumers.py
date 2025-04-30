@@ -51,7 +51,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = data.get("message")
         receiver_id = data.get("receiver_id")
 
-        print(f"📩 Nachricht erhalten: {data}")
+        #print(f"📩 Nachricht erhalten: {data}")
 
         if message and receiver_id:
             # Prüfe, ob einer der Benutzer den anderen blockiert hat
@@ -72,7 +72,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "sender_id": self.user.id
                 }
             )
-            print(f"📤 Nachricht an {receiver_group}: {message}")
+            #print(f"📤 Nachricht an {receiver_group}: {message}")
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({

@@ -19,7 +19,7 @@ class TournamentManager:
         self.final_result = None
         self.third_place_result = None
 
-        print(f"📋 Turniermanager initialisiert mit {len(players)} Spielern")
+        #print(f"📋 Turniermanager initialisiert mit {len(players)} Spielern")
 
     def _calculate_total_rounds(self, num_players):
         return math.ceil(math.log2(num_players))
@@ -34,7 +34,7 @@ class TournamentManager:
             else:
                 name = self.players[i]["player"].name
                 self.results[name] = 1  # bye round
-                print(f"🛋️ {name} bekommt ein Freilos")
+                #print(f"🛋️ {name} bekommt ein Freilos")
 
         return self.active_matches
 
@@ -57,7 +57,7 @@ class TournamentManager:
                     break
 
         if not tournament_player:
-            print(f"⚠️ Kein passender Spieler im aktuellen Turnier gefunden für: {original_input_name}")
+            #print(f"⚠️ Kein passender Spieler im aktuellen Turnier gefunden für: {original_input_name}")
             # Überlege, ob hier die Suche in *allen* ursprünglichen Spielern sinnvoll wäre,
             # falls ein ausgeschiedener Spieler fälschlicherweise ein Ergebnis sendet.
             # Aktuell: Ignorieren, wenn Spieler nicht (mehr) aktiv ist.
@@ -75,7 +75,7 @@ class TournamentManager:
                 loser = p2 if winner_tournament_name == p1 else p1
                 self.final_result = {"winner": winner_tournament_name, "loser": loser}
                 self.finished = True # Turnier ist definitiv vorbei
-                print(f"🏁 Finalspiel beendet! Gewinner: {winner_tournament_name}")
+                #print(f"🏁 Finalspiel beendet! Gewinner: {winner_tournament_name}")
                 return # Frühzeitiger Ausstieg, da das Ergebnis speziell behandelt wurde
 
         if self.third_place_match:
@@ -84,7 +84,7 @@ class TournamentManager:
             if winner_tournament_name in [p1, p2]:
                 loser = p2 if winner_tournament_name == p1 else p1
                 self.third_place_result = {"winner": winner_tournament_name, "loser": loser}
-                print(f"🥉 Spiel um Platz 3 beendet! Gewinner: {winner_tournament_name}")
+                #print(f"🥉 Spiel um Platz 3 beendet! Gewinner: {winner_tournament_name}")
                 # Hier nicht unbedingt self.finished setzen, Finale könnte noch laufen
                 # und hier nicht return, da das Ergebnis auch für die normale Runde zählen könnte (falls Logik so gedacht)
                 # Besser: Klar trennen oder sicherstellen, dass diese Matches nicht in active_matches sind.
@@ -93,12 +93,12 @@ class TournamentManager:
 
         # Schritt 3: Prüfe auf doppelte Einträge für normale Rundenspiele
         if winner_tournament_name in self.results:
-            print(f"⚠️ Ergebnis für {winner_tournament_name} in dieser Runde bereits eingetragen – ignoriert.")
+            #print(f"⚠️ Ergebnis für {winner_tournament_name} in dieser Runde bereits eingetragen – ignoriert.")
             return
 
         # Schritt 4: Ergebnis für normale Runde eintragen
         self.results[winner_tournament_name] = 1
-        print(f"✅ Ergebnis für Runde {self.current_round} eingetragen: {winner_tournament_name}")
+        #print(f"✅ Ergebnis für Runde {self.current_round} eingetragen: {winner_tournament_name}")
 
         # Schritt 5: Match History aktualisieren (Verlierer finden)
         loser_name = None
@@ -127,11 +127,11 @@ class TournamentManager:
         # Sicherer ist oft, die Anzahl der erwarteten Matches pro Runde zu kennen.
         # Annahme: len(self.active_matches) repräsentiert die Spiele dieser Runde.
         if len(self.results) >= len(self.active_matches):
-            print(f"🎯 Alle {len(self.active_matches)} Spiele der Runde {self.current_round} abgeschlossen. Prüfe Turnierstatus...")
+            #print(f"🎯 Alle {len(self.active_matches)} Spiele der Runde {self.current_round} abgeschlossen. Prüfe Turnierstatus...")
 
             # Gewinner dieser Runde (alle Namen im results-Dictionary)
             current_round_winners = list(self.results.keys())
-            print(f"   Sieger dieser Runde: {current_round_winners}")
+            #print(f"   Sieger dieser Runde: {current_round_winners}")
 
             # Prüfen, ob nur noch EIN Sieger übrig ist
             if len(current_round_winners) == 1:
@@ -154,16 +154,16 @@ class TournamentManager:
                 # Fallback, falls Verlierer nicht gefunden wurde (sollte nicht sein)
                 if final_match_loser is None:
                      final_match_loser = "Unknown"
-                     print(f"⚠️ Konnte Verlierer des Finalspiels nicht aus Match-History ermitteln.")
+                     #print(f"⚠️ Konnte Verlierer des Finalspiels nicht aus Match-History ermitteln.")
 
 
                 self.final_result = {"winner": final_winner, "loser": final_match_loser}
-                print(f"🏁 Turnier ist jetzt beendet! Final Result wurde gesetzt. Gewinner: {final_winner}")
+                #print(f"🏁 Turnier ist jetzt beendet! Final Result wurde gesetzt. Gewinner: {final_winner}")
                 # --- Ende der wichtigen Änderung ---
 
             else:
                  # Turnier geht weiter, Vorschau für nächste Runde optional vorbereiten
-                 print(f"   Turnier geht weiter in Runde {self.current_round + 1} mit {len(current_round_winners)} Spielern.")
+                 #print(f"   Turnier geht weiter in Runde {self.current_round + 1} mit {len(current_round_winners)} Spielern.")
 
                  # Vorschau-Logik (optional, kann hier bleiben oder in eigene Methode)
                  next_players_entries = [
@@ -182,7 +182,7 @@ class TournamentManager:
                          # Vorschau auf Freilos in der nächsten Runde
                          print(f"🛋️ Vorschau: {players_copy[i]['player'].name} hätte in der nächsten Runde ein Freilos")
 
-                 print("🔮 Vorschau auf nächste Matchups (vor `next_round`):")
+                 #print("🔮 Vorschau auf nächste Matchups (vor `next_round`):")
                  for p1_entry, p2_entry in temp_matches_preview:
                      print(f"   ➤ {p1_entry['player'].name} vs {p2_entry['player'].name}")
                  self.preview_next_round = temp_matches_preview # Vorschau speichern
@@ -190,12 +190,12 @@ class TournamentManager:
 
     def next_round(self):
         if self.is_finished():
-            print("🏁 Turnier ist bereits beendet.")
+            #print("🏁 Turnier ist bereits beendet.")
             self.finished = True
             return []
 
         self.current_round += 1
-        print(f"🚀 Starte Runde {self.current_round}")
+        #print(f"🚀 Starte Runde {self.current_round}")
 
         advancing = [
             entry for entry in self.players
@@ -207,13 +207,13 @@ class TournamentManager:
         matchups = self.create_matchups()
 
         # 💡 Hier ist das neue Log:
-        print("🔮 Vorschau auf neue Matchups:")
+        #print("🔮 Vorschau auf neue Matchups:")
         for p1, p2 in matchups:
             print(f"   ➤ {p1['player'].name} vs {p2['player'].name}")
 
         if self.is_finished():
             self.finished = True
-            print(f"🏆 Turniergewinner: {self.get_winner()}")
+            #print(f"🏆 Turniergewinner: {self.get_winner()}")
 
         return matchups
 
@@ -227,23 +227,23 @@ class TournamentManager:
     
     def get_winner(self):
         # --- Überarbeitete get_winner Methode ---
-        print("--- DEBUG: Entering get_winner() ---")
-        print(f"  - Current self.finished: {self.finished}")
-        print(f"  - Current self.final_result: {self.final_result}")
-        print(f"  - Current len(self.players): {len(self.players)}") # Länge der *aktuell* aktiven Spielerliste
-        print(f"  - Current self.results: {self.results}") # Ergebnisse der *laufenden* Runde
+        # print("--- DEBUG: Entering get_winner() ---")
+        # print(f"  - Current self.finished: {self.finished}")
+        # print(f"  - Current self.final_result: {self.final_result}")
+        # print(f"  - Current len(self.players): {len(self.players)}") # Länge der *aktuell* aktiven Spielerliste
+        # print(f"  - Current self.results: {self.results}") # Ergebnisse der *laufenden* Runde
 
         winner = None # Standard
 
         # Check 1: Explizites Finalergebnis vorhanden? (Bevorzugt)
         if self.final_result:
-            print("  - Condition met: self.final_result exists.")
+            #print("  - Condition met: self.final_result exists.")
             winner = self.final_result["winner"]
 
         # Check 2: Turnier ist fertig markiert UND die Spielerliste wurde auf 1 reduziert?
         #          (Dieser Fall tritt ein, wenn next_round() nach dem letzten Ergebnis lief)
         elif self.finished and len(self.players) == 1:
-             print("  - Condition met: self.finished is True and len(self.players) == 1.")
+             #print("  - Condition met: self.finished is True and len(self.players) == 1.")
              winner = self.players[0]["player"].name
 
         # Check 3: Turnier ist fertig, aber final_result nicht gesetzt UND results hat nur einen Eintrag?
@@ -252,13 +252,13 @@ class TournamentManager:
         #          ist aber mit der Änderung in record_result (Setzen von final_result) eventuell nicht mehr nötig.
         #          Wir lassen sie mal drin als robusten Fallback.
         elif self.finished and len(self.results) == 1 and self.current_round == self.total_rounds:
-             print("  - Condition met: self.finished is True and len(self.results) == 1 (Ende in record_result).")
+             #print("  - Condition met: self.finished is True and len(self.results) == 1 (Ende in record_result).")
              winner = list(self.results.keys())[0]
 
         else:
              print("  - No condition met to determine winner inside get_winner.")
 
-        print(f"--- DEBUG: Exiting get_winner(). Returning: '{winner}' ---")
+        #print(f"--- DEBUG: Exiting get_winner(). Returning: '{winner}' ---")
         return winner
         # --- Ende überarbeitete get_winner Methode ---
 
