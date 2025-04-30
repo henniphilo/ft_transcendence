@@ -220,7 +220,7 @@ export class TournamentView {
           buttonHTML = `<button id="start-next-round-btn" class="btn btn-success mt-2">Start Next Round</button>`;
       } else if (isTournamentOver || (advancing.length > 0 && !isStillInTournament)) {
           // Spieler ausgeschieden oder Turnier vorbei (und er ist nicht Sieger)
-           buttonHTML = `<p class="text-center text-muted mt-3 mb-0 fst-italic">Tournament concluded or you are eliminated.</p>`;
+           buttonHTML = `<p class="text-center text-muted mt-3 mb-0">Tournament over for you.</p>`;
       } else {
            // Wartezustand
            buttonHTML = `<p class="text-center text-muted mt-3 mb-0 fst-italic">Waiting for results...</p>`;
