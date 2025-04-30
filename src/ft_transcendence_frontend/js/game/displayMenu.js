@@ -157,7 +157,7 @@ export class MenuDisplay {
         if (this.elements.avatar) {
             this.elements.avatar.src = profileData.avatar
                 ? profileData.avatar + '?t=' + new Date().getTime()
-                : '/assets/default-avatar.png';
+                : '/media/avatars/default.png';
         }
     }
 

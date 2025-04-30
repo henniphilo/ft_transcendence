@@ -80,7 +80,7 @@ export class UserProfileView {
 		// Profilbild
 		const avatarElement = document.getElementById('profile-view-avatar');
 		if (avatarElement) {
-			avatarElement.src = profileData.avatar || '/assets/default-avatar.png';
+			avatarElement.src = profileData.avatar || '/media/avatars/default.png';
 		}
 		
 		// Benutzername
