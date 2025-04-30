@@ -63,18 +63,18 @@ class GameServer:
         await websocket.accept()
     
         
-        print(f"\n=== Game Settings ===")
-        print(json.dumps(settings, indent=2))
-        print("====================\n")
+        #print(f"\n=== Game Settings ===")
+        #print(json.dumps(settings, indent=2))
+        #print("====================\n")
         
         is_ai_mode = settings.get("mode") == "ai"
         is_online_mode = settings.get("mode") == "online"
         player_role = settings.get("player_role")  # z.B. "player1", "player2" oder "both" bei lokal
         
-        print(f"\n=== New Game Connection ===")
-        print(f"Game ID: {game_id}")
-        print(f"Mode: {'Online' if is_online_mode else 'AI' if is_ai_mode else 'Local'}")
-        print(f"Player Role: {player_role}")
+        #print(f"\n=== New Game Connection ===")
+        #print(f"Game ID: {game_id}")
+        #print(f"Mode: {'Online' if is_online_mode else 'AI' if is_ai_mode else 'Local'}")
+        #print(f"Player Role: {player_role}")
         
         # Initialisiere Profile und Ready-States
         if game_id not in self.game_user_profiles:
@@ -84,16 +84,16 @@ class GameServer:
         
         if is_online_mode:
             if game_id in self.active_games:
-                print(f"Joining existing game {game_id}")
+                #print(f"Joining existing game {game_id}")
                 game = self.active_games[game_id]
                 if game_id not in self.game_websockets:
                     self.game_websockets[game_id] = []
                 self.game_websockets[game_id].append(websocket)
-                print(f"Players now connected: {len(self.game_websockets[game_id])}")
+                #print(f"Players now connected: {len(self.game_websockets[game_id])}")
                 # Im Online-Modus warten wir auf Ready-Signale von beiden Spielern
-                print(f"???????game_user_profiles: {self.game_user_profiles}")
+                #print(f"???????game_user_profiles: {self.game_user_profiles}")
             else:
-                print(f"Creating new online game {game_id}")
+                #print(f"Creating new online game {game_id}")
                 player1 = Player(id="p1", name=settings.get("player1_name", "Player 1"),
                                  player_type=PlayerType.HUMAN, controls=Controls.WASD)
                 player2 = Player(id="p2", name=settings.get("player2_name", "Player 2"),
@@ -102,22 +102,22 @@ class GameServer:
                 # Füge User-Profile aus den Settings hinzu
                 if "player1_profile" in settings:
                     player1.user_profile = settings["player1_profile"]
-                    print(f"Added user profile to player1 from settings: {player1.user_profile}")
+                    #print(f"Added user profile to player1 from settings: {player1.user_profile}")
                 if "player2_profile" in settings:
                     player2.user_profile = settings["player2_profile"]
-                    print(f"Added user profile to player2 from settings: {player2.user_profile}")
+                    #print(f"Added user profile to player2 from settings: {player2.user_profile}")
 
-                print(f"Player ;;;;;1: {player1}")
-                print(f"Player ;;;;;2: {player2}")
+                #print(f"Player ;;;;;1: {player1}")
+                #print(f"Player ;;;;;2: {player2}")
 
                 game = PongGame(settings, player1, player2)
                 self.active_games[game_id] = game
                 self.game_websockets[game_id] = [websocket]
-                print("Online game created – waiting for both players to send ready signals...")
+                #print("Online game created – waiting for both players to send ready signals...")
         else:
             # Für AI und Local Mode: Erstelle das Spiel
             if is_ai_mode:
-                print("Creating AI game...")
+                #print("Creating AI game...")
                 player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
                 player2 = Player(id="p2", name="AI Player", player_type=PlayerType.AI, controls=Controls.ARROWS)
                 self.ai_players[game_id] = AI(settings.get("difficulty", "medium"))
@@ -126,19 +126,19 @@ class GameServer:
                 self.game_websockets[game_id] = [websocket]
                 # Markiere den AI-Spieler automatisch als ready
                 self.game_ready[game_id]["player2"] = True
-                print("AI game created – Player2 (AI) is automatically ready.")
+                #print("AI game created – Player2 (AI) is automatically ready.")
             else:
                 # Local Mode: Ein einzelner Client steuert beide Spieler.
-                print("Creating local game...")
+                #print("Creating local game...")
                 player1 = Player(id="p1", name="Player 1", player_type=PlayerType.HUMAN, controls=Controls.WASD)
                 player2 = Player(id="p2", name="Player 2", player_type=PlayerType.HUMAN, controls=Controls.ARROWS)
                 game = PongGame(settings, player1, player2)
                 self.active_games[game_id] = game
                 self.game_websockets[game_id] = [websocket]
                 # Im Local Mode setzen wir KEINE Ready-Flags automatisch – der Spieler muss den Ready-Button klicken.
-                print("Local mode: Waiting for ready signal (click ready button) ...")
+                #print("Local mode: Waiting for ready signal (click ready button) ...")
         
-        self.print_active_games()  # Zeige Status nach jeder Änderung
+        #self.print_active_games()  # Zeige Status nach jeder Änderung
 
         try:
             while True:
@@ -150,7 +150,7 @@ class GameServer:
                     user_profile = data.get("user_profile")
                     if pr and user_profile:
                         self.game_user_profiles[game_id][pr] = user_profile
-                        print(f"Received user profile for {pr} in game {game_id}")
+                        #print(f"Received user profile for {pr} in game {game_id}")
                         if game_id in self.active_games:
                             game = self.active_games[game_id]
                             if pr == "player1" and hasattr(game, "player1"):
@@ -170,12 +170,12 @@ class GameServer:
                             self.game_ready[game_id]["player2"] = True
                         else:
                             self.game_ready[game_id][pr] = True
-                        print(f"{pr} is ready in game {game_id}")
+                        #print(f"{pr} is ready in game {game_id}")
                         ready = self.game_ready[game_id]
                         if ready.get("player1") and ready.get("player2"):
                             game = self.active_games[game_id]
                             if not game.game_active:
-                                print("Both players ready, starting game!")
+                                #print("Both players ready, starting game!")
                                 game.start_game()
                                 if game_id not in self.game_loops:
                                     self.game_loops[game_id] = asyncio.create_task(self.game_loop(game_id))
@@ -187,20 +187,20 @@ class GameServer:
                 # Weitere Aktionen können hier hinzugefügt werden
                 
         except Exception as e:
-            print(f"\nError in game {game_id}: {e}")
+            #print(f"\nError in game {game_id}: {e}")
             if game_id in self.game_websockets:
                 self.game_websockets[game_id].remove(websocket)
-                print(f"Player disconnected from game {game_id}")
+                #print(f"Player disconnected from game {game_id}")
                 if not self.game_websockets[game_id]:
                     if game_id in self.game_loops:
                         self.game_loops[game_id].cancel()
                         del self.game_loops[game_id]
                     del self.active_games[game_id]
                     del self.game_websockets[game_id]
-                    print(f"Game {game_id} cleaned up")
+                    #print(f"Game {game_id} cleaned up")
                     if game_id in self.ai_players:
                         del self.ai_players[game_id]
-            self.print_active_games()
+            #self.print_active_games()
 
     def handle_input(self, game: PongGame, keys: dict):
         movement_multiplier = game.paddle_speed  # Verwende die Geschwindigkeit aus den Settings
@@ -218,7 +218,7 @@ class GameServer:
             game.move_paddle(game.player2, 1 * movement_multiplier)
 
     async def game_loop(self, game_id: str):
-        print(f"Starting game loop for game {game_id}")
+        #print(f"Starting game loop for game {game_id}")
         logger.info(f"Starting game loop for game {game_id}")
         game = self.active_games[game_id]
         previous_winner = None
@@ -244,7 +244,7 @@ class GameServer:
                     try:
                         await ws.send_json(game_state)
                     except Exception as e:
-                        print(f"Error sending game state: {e}")
+                        #print(f"Error sending game state: {e}")
                         logger.error(f"Error sending game state: {e}")
                         if ws in self.game_websockets[game_id]:
                             self.game_websockets[game_id].remove(ws)
@@ -253,16 +253,16 @@ class GameServer:
     async def send_game_stats(self, game_id: str, game: PongGame):
         """Sendet die Spielstatistiken an die Django-API"""
         try:
-            print(f"Versuche Spielstatistiken zu senden für Spiel {game_id}")
+            #print(f"Versuche Spielstatistiken zu senden für Spiel {game_id}")
             
             user_profiles = self.game_user_profiles.get(game_id, {})
-            print(f"Gefundene Benutzerprofile: {user_profiles}")
+            #print(f"Gefundene Benutzerprofile: {user_profiles}")
             
             player1_profile = user_profiles.get("player1")
             player2_profile = user_profiles.get("player2")
             
             if not player1_profile or not player2_profile:
-                print(f"Fehlende Benutzerprofile für Spiel {game_id}, überspringe Statistiksendung")
+                #print(f"Fehlende Benutzerprofile für Spiel {game_id}, überspringe Statistiksendung")
                 return
                 
             winner_id = None
@@ -282,7 +282,7 @@ class GameServer:
                 "winner": winner_id
             }
             
-            print(f"Sende Daten an Django-API: {api_data}")
+            #print(f"Sende Daten an Django-API: {api_data}")
             
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, self._send_stats_http, api_data)
@@ -301,7 +301,7 @@ class GameServer:
             )
             with urllib.request.urlopen(req) as response:
                 response_data = response.read().decode('utf-8')
-                print(f"API-Antwort: {response.status} {response_data}")
+                #print(f"API-Antwort: {response.status} {response_data}")
         except urllib.error.HTTPError as e:
             print(f"HTTP-Fehler: {e.code} {e.reason}")
         except urllib.error.URLError as e:

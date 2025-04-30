@@ -109,9 +109,9 @@ class PongGame:
     def check_winner(self):
         if self.player1.score >= self.winning_score:
             self.winner = self.player1
-            print(f"aus Checkwinner Winner: {self.winner}")
-            if self.winner.user_profile:
-                print(f"winner.user_profile: {self.winner.user_profile}")
+            #print(f"aus Checkwinner Winner: {self.winner}")
+            #if self.winner.user_profile:
+                #print(f"winner.user_profile: {self.winner.user_profile}")
             self.game_active = False
             # Logger-Eintrag: Spieler 1 hat gewonnen
             # -------------------------------
@@ -119,9 +119,9 @@ class PongGame:
             # -------------------------------
         elif self.player2.score >= self.winning_score:
             self.winner = self.player2
-            print(f"aus Checkwinner Winner: {self.winner}")
-            if self.winner.user_profile:
-                print(f"winner.user_profile: {self.winner.user_profile}")
+            #print(f"aus Checkwinner Winner: {self.winner}")
+            #if self.winner.user_profile:
+                #print(f"winner.user_profile: {self.winner.user_profile}")
             self.game_active = False
             # Logger-Eintrag: Spieler 2 hat gewonnen
             # -------------------------------

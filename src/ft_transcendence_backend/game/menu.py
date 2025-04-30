@@ -61,16 +61,16 @@ class Menu:
         ]
 
     async def start_matchmaking_loop(self):
-        print("Starting matchmaking loop")
+        #print("Starting matchmaking loop")
         while True:
-            print(f"Current searching players: {[name for name in self.searching_players.values()]}")
+            #print(f"Current searching players: {[name for name in self.searching_players.values()]}")
             await self.match_players()
             await asyncio.sleep(1)
 
     async def handle_menu_selection(self, websocket: WebSocket, selection: str, userProfile=None):
-        print(f"\n=== Menu Selection ===")
-        print(f"Selection: {selection}")
-        print(f"Current Menu Stack: {self.current_menu_stack}")
+        #print(f"\n=== Menu Selection ===")
+        #print(f"Selection: {selection}")
+        #print(f"Current Menu Stack: {self.current_menu_stack}")
 
         if selection == "main":
             self.is_tournament = False
@@ -90,7 +90,7 @@ class Menu:
             if userProfile and "tournament_name" in userProfile:
                 tournament_name = userProfile["tournament_name"]
 
-            print(f"Adding tournament player: {tournament_name}")
+            #print(f"Adding tournament player: {tournament_name}")
 
             player = Player(
                 id=str(uuid.uuid4()),
@@ -218,7 +218,7 @@ class Menu:
 
 
     async def update_settings(self, settings_data):
-        print(f"Menu update_settings called with: {settings_data}")
+        #print(f"Menu update_settings called with: {settings_data}")
         return await self.game_settings.update_settings(settings_data)
 
     async def get_menu_items(self):
@@ -226,18 +226,18 @@ class Menu:
 
     def get_current_settings(self):
         if self.current_game_settings is not None:
-            print(f"Using current game settings: {self.current_game_settings}")
+            #print(f"Using current game settings: {self.current_game_settings}")
             return self.current_game_settings
         return self.game_settings.get_settings()
 
     async def match_players(self):
-        print(f"Checking for matches... Current players: {len(self.searching_players)}")
+        #print(f"Checking for matches... Current players: {len(self.searching_players)}")
 
         if len(self.searching_players) >= 2:
             player1_ws, player1_name = list(self.searching_players.items())[0]
             player2_ws, player2_name = list(self.searching_players.items())[1]
 
-            print(f"Found match: {player1_name} vs {player2_name}")
+            #print(f"Found match: {player1_name} vs {player2_name}")
 
             del self.searching_players[player1_ws]
             del self.searching_players[player2_ws]
@@ -266,9 +266,9 @@ class Menu:
                 await player1_ws.send_json({**match_data, "playerRole": "player1"})
                 await player2_ws.send_json({**match_data, "playerRole": "player2"})
 
-                print(f"Game {game_id} created and both players notified")
+                #print(f"Game {game_id} created and both players notified")
             except Exception as e:
-                print(f"Error notifying players: {e}")
+                #print(f"Error notifying players: {e}")
                 self.searching_players[player1_ws] = player1_name
                 self.searching_players[player2_ws] = player2_name
 
@@ -287,11 +287,11 @@ class Menu:
 
 
     async def start_tournament(self):
-        print("Starting tournament check loop")
+        #print("Starting tournament check loop")
         while True:
-            print(f"Tournament Queue: {len(self.tournament_queue)} Spieler")
+            #print(f"Tournament Queue: {len(self.tournament_queue)} Spieler")
             if len(self.tournament_queue) == 4:
-                print("Tournament is ready to show grid with 4 players")
+                #print("Tournament is ready to show grid with 4 players")
                 entries = [self.tournament_queue.pop(0) for _ in range(4)]
 
                 # Debug-Ausgabe der User-Profile
@@ -320,7 +320,7 @@ class Menu:
                             info["username"] = player.user_profile["username"]
                     
                     player_infos.append(info)
-                print(f"Player Infos:___________ {player_infos}")
+                #print(f"Player Infos:___________ {player_infos}")
 
 
                 for entry in entries:
@@ -341,14 +341,14 @@ class Menu:
 
     async def start_tournament_matches(self):
         if not self.tournament_manager:
-            print("❌ Kein TournamentManager vorhanden.")
+            #print("❌ Kein TournamentManager vorhanden.")
             return
 
-        print("⏯️ Starte Matches aus dem gespeicherten TournamentManager")
+        #print("⏯️ Starte Matches aus dem gespeicherten TournamentManager")
         matchups = self.tournament_manager.create_matchups()
         # how many matchups are created? please print the number
-        print(f"Anzahl der Matchups: {len(matchups)}")
-        print(f"WARNING THIS SHOULD SHOW")
+        #print(f"Anzahl der Matchups: {len(matchups)}")
+        #print(f"WARNING THIS SHOULD SHOW")
 
         for p1_entry, p2_entry in matchups:
             game_id = str(uuid.uuid4())
@@ -374,7 +374,7 @@ class Menu:
                 "player1_profile": p1_profile,
                 "player2_profile": p2_profile
             })
-            print(f"Settings in startmatches tournament: {settings}")
+            #print(f"Settings in startmatches tournament: {settings}")
 
             # Übergib die Profile an den GameServer
             self.game_server.game_user_profiles[game_id] = {
@@ -389,9 +389,9 @@ class Menu:
                     "user_profile": p2_profile
                 },
             }
-            print(f"Game Server User Profiles: {self.game_server.game_user_profiles}")
-            print(f"Player 1: user_profile: {p1_profile}")
-            print(f"Player 2: user_profile: {p2_profile}")
+            #print(f"Game Server User Profiles: {self.game_server.game_user_profiles}")
+            #print(f"Player 1: user_profile: {p1_profile}")
+            #print(f"Player 2: user_profile: {p2_profile}")
 
             # Verbinde TournamentManager mit dem GameServer
             self.game_server.tournament_manager = self.tournament_manager
@@ -413,6 +413,6 @@ class Menu:
                     "player2": p2_entry["player"].name,
                     "playerRole": "player2"
                 })
-                print(f"🎮 Match gestartet: {p1_entry['player'].name} vs {p2_entry['player'].name}")
+                #print(f"🎮 Match gestartet: {p1_entry['player'].name} vs {p2_entry['player'].name}")
             except Exception as e:
                 print(f"❌ Fehler beim Match-Start: {e}")
