@@ -1,63 +1,38 @@
-1. Die Datei befindet sich im certs Folder
+# Installing a Local Development Certificate
 
+## 📋 Prerequisites
+The certificate file is located in the `certs` folder.
 
-📌 2. Google Chrome-Zertifikatsverwaltung öffnen
+## 📝 Installation Steps
 
+### 📌 1. Access Certificate Files
+Locate and access the `root.crt` file in the `certs` folder.
 
-Öffne Google Chrome
+### 📌 2. Open Google Chrome Certificate Management
+1. Open Google Chrome.
+2. Go to the address bar and enter: `chrome://settings/certificates`  
+   Alternatively: Go to **Settings → Privacy and Security → Security → Manage certificates**.
 
-Gehe in die Adressleiste und gib ein:
+### 📌 3. Import the Certificate
+1. Switch to the **"Authorities"** tab.
+2. Click on **"Import"**.
+3. Select the `root.crt` file that you copied from the Caddy container.
+4. Check the box: ✅ **"Trust this certificate for identifying websites"**.
+5. Confirm with **OK** and save the settings.
 
+### 📌 4. Restart Chrome
+To apply the changes, completely close Chrome and restart it.
 
-chrome://settings/certificates
+### 📌 5. Test
+1. Open Chrome and go to:  
+   🔗 **https://localhost:8443**
+2. If no security warning appears, the certificate was successfully imported! 🎉
 
+**If a warning still appears:**
+- Check if the certificate was issued by **Caddy (localhost)**.
+- If necessary, repeat the import process and restart Chrome.
 
-(Alternativ: Gehe zu Einstellungen → Datenschutz und Sicherheit → Sicherheit → Zertifikate verwalten.)
-
-
-📌 3. Zertifikat importieren
-
-
-Wechsle zum Tab "Zertifizierungsstellen"
-
-Klicke auf "Importieren"
-
-Wähle die Datei root.crt, die du aus dem Caddy-Container kopiert hast
-
-Aktiviere das Kästchen: ✅ "Dieser Zertifizierungsstelle für die Identifizierung von Websites vertrauen"
-
-Bestätige mit OK und speichere die Einstellungen
-
-
-📌 4. Chrome neu starten
-
-
-Damit die Änderung übernommen wird, schließe Chrome komplett und starte ihn neu.
-
-📌 5. Testen
-
-
-Öffne Chrome und gehe zu:
-
-🔗 https://localhost:8443
-
-Falls keine Sicherheitswarnung mehr erscheint, wurde das Zertifikat erfolgreich importiert! 🎉
-
-
-Falls weiterhin eine Warnung erscheint:
-
-
-Prüfe, ob das Zertifikat von Caddy (localhost) ausgestellt wurde
-
-Falls nötig, wiederhole den Import und starte Chrome neu
-
-
-🚀 Fazit
-
-
-✅ Caddy-Zertifikat importiert
-
-✅ Keine Chrome-Warnung mehr bei https://localhost:8443
-
-✅ Sichere, lokale Entwicklung mit HTTPS möglich!
-
+## 🚀 Conclusion
+✅ Caddy certificate imported  
+✅ No more Chrome warnings at **https://localhost:8443**  
+✅ Secure local development with HTTPS possible!

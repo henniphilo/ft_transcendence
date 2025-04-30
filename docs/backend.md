@@ -1,10 +1,10 @@
-# ft\_transcendence\_backend - Dokumentation
+# ft_transcendence_backend - Documentation
 
-## 🚀 Projektübersicht
+## 🚀 Project Overview
 
-**ft\_transcendence\_backend** ist das Backend für ein Fullstack-Projekt, das eine 2FA-gesicherte Authentifizierung mit JWT verwendet. Es ist in **Django** mit **Django REST Framework (DRF)** gebaut und nutzt **PostgreSQL** als Datenbank. Die Kommunikation mit dem Frontend erfolgt über eine **REST API**.
+**ft_transcendence_backend** is the backend for a full-stack project that uses 2FA-secured authentication with JWT. It is built with **Django** and **Django REST Framework (DRF)** and uses **PostgreSQL** as the database. Communication with the frontend occurs via a **REST API**.
 
-### 🔧 Technologien & Frameworks
+### 🔧 Technologies & Frameworks
 
 - **Python 3.10**
 - **Django 5.1**
@@ -12,48 +12,48 @@
 - **djangorestframework-simplejwt** (JWT Authentication)
 - **PostgreSQL**
 - **Docker & Docker Compose**
-- **NGINX** (für das Frontend)
+- **NGINX** (for the frontend)
 
 ---
 
 ## ⚙️ Setup & Installation
 
-### 1️⃣ **Projekt klonen & Virtual Environment erstellen**
+### 1️⃣ **Clone Project & Create Virtual Environment**
 
 ```bash
-git clone https://github.com/dein-repo/ft_transcendence_backend.git
+git clone https://github.com/your-repo/ft_transcendence_backend.git
 cd ft_transcendence_backend
 python3 -m venv venv
 source venv/bin/activate  # (Windows: venv\Scripts\activate)
 ```
 
-### 2️⃣ **Abhängigkeiten installieren**
+### 2️⃣ **Install Dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3️⃣ **Umgebungsvariablen setzen (**``** Datei)**
+### 3️⃣ **Set Environment Variables (`.env` File)**
 
-Erstelle eine `.env` Datei im `backend/` Verzeichnis und füge die folgenden Werte hinzu:
+Create a `.env` file in the `backend/` directory and add the following values:
 
 ```ini
 POSTGRES_DB=transcendence
 POSTGRES_USER=user
 POSTGRES_PASSWORD=pass
-SECRET_KEY=dein-geheimer-key
+SECRET_KEY=your-secret-key
 DEBUG=True
 ALLOWED_HOSTS=*
 ```
 
-### 4️⃣ **Datenbankmigrationen ausführen**
+### 4️⃣ **Run Database Migrations**
 
 ```bash
 python manage.py migrate
-python manage.py createsuperuser  # Falls ein Admin-Login benötigt wird
+python manage.py createsuperuser  # If an admin login is needed
 ```
 
-### 5️⃣ **Server starten**
+### 5️⃣ **Start Server**
 
 ```bash
 python manage.py runserver 0.0.0.0:8000
@@ -61,11 +61,11 @@ python manage.py runserver 0.0.0.0:8000
 
 ---
 
-## 🌍 API-Dokumentation
+## 🌍 API Documentation
 
-Alle Endpunkte der API befinden sich unter `/api/users/`.
+All API endpoints are located under `/api/users/`.
 
-### **🔹 Registrierung eines neuen Benutzers**
+### **🔹 Register a New User**
 
 **POST** `/api/users/register/`
 
@@ -77,7 +77,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 }
 ```
 
-**Antwort:**
+**Response:**
 
 ```json
 {
@@ -98,7 +98,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 }
 ```
 
-**Antwort:**
+**Response:**
 
 ```json
 {
@@ -107,7 +107,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 }
 ```
 
-### **🔹 2FA-Code anfordern**
+### **🔹 Request 2FA Code**
 
 **POST** `/api/users/verify/send/`
 
@@ -117,7 +117,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 }
 ```
 
-**Antwort:**
+**Response:**
 
 ```json
 {
@@ -125,7 +125,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 }
 ```
 
-### **🔹 2FA-Code verifizieren**
+### **🔹 Verify 2FA Two Factor Authentication Code**
 
 **POST** `/api/users/verify/`
 
@@ -136,7 +136,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 }
 ```
 
-**Antwort:**
+**Response:**
 
 ```json
 {
@@ -146,7 +146,7 @@ Alle Endpunkte der API befinden sich unter `/api/users/`.
 
 ---
 
-## 🏗️ Architektur & Datenbankmodell
+## 🏗️ Architecture & Database Model
 
 ### **🔹 CustomUser Model** (`users.models.CustomUser`)
 
@@ -159,9 +159,9 @@ class CustomUser(AbstractUser):
     is_verified = models.BooleanField(default=False)
 ```
 
-### **🔹 Datenbank-Migrationen ausführen**
+### **🔹 Run Database Migrations**
 
-Falls Änderungen an den Modellen vorgenommen wurden:
+If changes are made to the models:
 
 ```bash
 python manage.py makemigrations
@@ -172,29 +172,29 @@ python manage.py migrate
 
 ## 🐳 Docker & Deployment
 
-### **1️⃣ Backend mit Docker starten**
+### **1️⃣ Start Backend with Docker**
 
-Falls du Docker nutzen möchtest, kannst du das Backend mit `docker-compose` starten.
+If you want to use Docker, you can start the backend with `docker-compose`.
 
 ```bash
 docker-compose up --build
 ```
 
-Falls du nur das Backend neustarten möchtest:
+To restart only the backend:
 
 ```bash
 docker-compose restart backend
 ```
 
-### **2️⃣ Wichtige Docker Befehle**
+### **2️⃣ Important Docker Commands**
 
-Container stoppen:
+Stop containers:
 
 ```bash
 docker-compose down
 ```
 
-Logs anzeigen:
+View logs:
 
 ```bash
 docker-compose logs -f
@@ -202,9 +202,9 @@ docker-compose logs -f
 
 ---
 
-## 📌 Testen mit cURL
+## 📌 Testing with cURL
 
-### **🔹 Beispiel: User registrieren**
+### **🔹 Example: Register User**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/users/register/ \
@@ -212,7 +212,7 @@ curl -X POST http://127.0.0.1:8000/api/users/register/ \
      -d '{"username": "testuser", "email": "test@example.com", "password": "securepassword"}'
 ```
 
-### **🔹 Beispiel: Login**
+### **🔹 Example: Login**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/users/login/ \
@@ -220,7 +220,7 @@ curl -X POST http://127.0.0.1:8000/api/users/login/ \
      -d '{"username": "testuser", "password": "securepassword"}'
 ```
 
-### **🔹 Beispiel: 2FA-Code senden**
+### **🔹 Example: Send 2FA Code**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/users/verify/send/ \
@@ -228,7 +228,7 @@ curl -X POST http://127.0.0.1:8000/api/users/verify/send/ \
      -d '{"email": "test@example.com"}'
 ```
 
-### **🔹 Beispiel: 2FA-Code verifizieren**
+### **🔹 Example: Verify 2FA Code**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/users/verify/ \
@@ -238,55 +238,64 @@ curl -X POST http://127.0.0.1:8000/api/users/verify/ \
 
 ---
 
-## 📝 Fazit
+## 📝 Conclusion
 
-Diese Dokumentation bietet eine Übersicht über: ✅ Installation & Setup ✅ API-Endpunkte ✅ Authentifizierung mit JWT & 2FA ✅ Datenbankmodelle & Migrationen ✅ Docker & Deployment ✅ Beispiel-Requests mit cURL
+This documentation provides an overview of:  
+✅ Installation & Setup  
+✅ API Endpoints  
+✅ Authentication with JWT & 2FA  
+✅ Database Models & Migrations  
+✅ Docker & Deployment  
+✅ Example Requests with cURL  
 
-Falls du noch Ergänzungen brauchst, sag Bescheid! 🚀
+If you need further additions, let me know! 🚀
 
+---
+
+## System Architecture Diagram
 
 ```mermaid
 graph TD;
     subgraph "🚀 Transcendence Backend System"
         
         subgraph "🟥 Redis (Cache & Message Broker)"
-            R1["✅ Schnelle Speicherung"]
-            R2["🔄 Kommunikation mit Django"]
-            R3["🗂 Speicherung von Sessions"]
+            R1["✅ Fast Storage"]
+            R2["🔄 Communication with Django"]
+            R3["🗂 Session Storage"]
         end
 
-        subgraph "🐘 PostgreSQL (Datenbank)"
-            DB1["📦 Speichert User & Spieldaten"]
-            DB2["🔍 Abfragen & Transaktionen"]
-            DB3["🛠 Nutzt Healthcheck zur Verfügbarkeit"]
+        subgraph "🐘 PostgreSQL (Database)"
+            DB1["📦 Stores User & Game Data"]
+            DB2["🔍 Queries & Transactions"]
+            DB3["🛠 Uses Healthcheck for Availability"]
         end
 
         subgraph "🐍 Django Backend (REST API)"
-            D1["📡 Stellt API für das Frontend bereit"]
-            D2["🔑 Authentifizierung (JWT & 2FA)"]
-            D3["📊 Interaktion mit der Datenbank"]
-            D4["🔄 Caching & Sessions über Redis"]
+            D1["📡 Provides API for Frontend"]
+            D2["🔑 Authentication (JWT & 2FA)"]
+            D3["📊 Database Interaction"]
+            D4["🔄 Caching & Sessions via Redis"]
         end
 
         subgraph "🌍 Nginx Reverse Proxy"
-            N1["🎭 Vermittelt Anfragen an Django"]
-            N2["🖥️ Liefert das statische Frontend"]
-            N3["🔒 Kann SSL-Terminierung übernehmen"]
+            N1["🎭 Forwards Requests to Django"]
+            N2["🖥️ Serves Static Frontend"]
+            N3["🔒 Can Handle SSL Termination"]
         end
 
     end
 
-    %% Verbindungen zwischen den Diensten
+    %% Connections between services
     R1 -.-> D4;
     R2 -.-> D4;
     DB1 --> D3;
     DB2 --> D3;
-    DB3 -->|Healthcheck: ist DB erreichbar?| D3;
+    DB3 -->|Healthcheck: Is DB reachable?| D3;
     D1 --> N1;
-    D2 -->|Authentifizierung über API| N1;
-    N1 -->|API-Zugriff & Statische Files| Browser["🖥️ Web-Browser"];
+    D2 -->|Authentication via API| N1;
+    N1 -->|API Access & Static Files| Browser["🖥️ Web Browser"];
 
-    %% Optische Anpassungen
+    %% Visual Styling
     classDef service fill:#f9f,stroke:#333,stroke-width:2px;
     classDef database fill:#ffd700,stroke:#333,stroke-width:2px;
     classDef cache fill:#ff6961,stroke:#333,stroke-width:2px;
@@ -298,16 +307,16 @@ graph TD;
     class Django service;
     class Nginx proxy;
     class Browser frontend;
+```
 
-## logging and gelf (using deepseek)
-
-I want to have both the standard stdout docker logs and the gelf logging for logstash. This is the logging conf I used
+## Logging and GELF
 
 For Django, you should configure logging to output to **both stdout (console) and GELF (Logstash)**. Here's how to set it up properly:
 
 ---
 
 ### **Updated Django `LOGGING` Configuration (stdout + GELF)**
+
 ```python
 LOGGING = {
     'version': 1,
@@ -363,17 +372,18 @@ LOGGING = {
 ---
 
 ### **Key Changes & Why**
+
 1. **Added `StreamHandler` (`console`)**  
-   - Logs to stdout (visible in `docker compose logs`).
+   - Logs to stdout (visible in `docker compose logs`).  
    - Uses a human-readable `verbose` format.
 
 2. **GELF Handler (`pygelf.GelfUdpHandler`)**  
-   - Sends logs to Logstash in **GELF (Graylog Extended Log Format)**.
-   - Uses **UDP** (faster & connectionless, better for logging).
+   - Sends logs to Logstash in **GELF (Graylog Extended Log Format)**.  
+   - Uses **UDP** (faster & connectionless, better for logging).  
    - Includes **JSON formatting** for structured logging.
 
 3. **Separate Loggers for Django & Custom Apps**  
-   - Avoids duplicate logs.
+   - Avoids duplicate logs.  
    - Allows different log levels per component.
 
 4. **`propagate=False`**  
@@ -382,13 +392,14 @@ LOGGING = {
 ---
 
 ### **Required Setup**
+
 1. **Install `pygelf` & `python-json-logger`**  
    ```bash
    pip install pygelf python-json-logger
    ```
 
 2. **Update Logstash Config (`logstash.conf`)**  
-   Ensure Logstash accepts GELF UDP input:
+   Ensure Logstash accepts GELF UDP input:  
    ```conf
    input {
      gelf {
@@ -409,23 +420,25 @@ LOGGING = {
 ---
 
 ### **Testing**
+
 1. **Check stdout logs**  
    ```bash
    docker compose logs backend
-   ```
+   ```  
    Should show human-readable logs.
 
 2. **Verify Logstash Receives GELF Logs**  
-   - Check Logstash container logs:
+   - Check Logstash container logs:  
      ```bash
      docker compose logs logstash
-     ```
+     ```  
    - Or query Elasticsearch/Kibana if configured.
 
 ---
 
 ### **Optional Enhancements**
-- **Add request metadata** (for HTTP logs):
+
+- **Add request metadata** (for HTTP logs):  
   ```python
   'gelf': {
       'class': 'pygelf.GelfUdpHandler',
@@ -434,11 +447,13 @@ LOGGING = {
       'include_extra_fields': True,  # Adds Django request info (user, IP, etc.)
   }
   ```
-- **Use TCP instead of UDP** (if reliability > speed):
+
+- **Use TCP instead of UDP** (if reliability > speed):  
   ```python
   'class': 'pygelf.GelfTcpHandler',
   ```
-- **Add log rotation** (for file logs):
+
+- **Add log rotation** (for file logs):  
   ```python
   'file': {
       'class': 'logging.handlers.RotatingFileHandler',
@@ -451,8 +466,9 @@ LOGGING = {
 ---
 
 ### **Final Notes**
-- ✅ **Works in Docker**: Uses service names (`logstash`) for networking.
-- ✅ **Structured + Human-Readable Logs**: JSON for machines, `verbose` for humans.
-- ✅ **No More Socket Errors**: GELF avoids Python pickling issues.
+
+- ✅ **Works in Docker**: Uses service names (`logstash`) for networking.  
+- ✅ **Structured + Human-Readable Logs**: JSON for machines, `verbose` for humans.  
+- ✅ **No More Socket Errors**: GELF avoids Python pickling issues.  
 
 This setup gives you **real-time stdout logs** (for debugging) **+ centralized GELF logs** (for analysis in Logstash/Elasticsearch/Kibana). 🚀
