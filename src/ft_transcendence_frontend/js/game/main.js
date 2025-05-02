@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isMuted = manager.isMuted;
             manager.toggleMute();
-            toggleButton.textContent = isMuted ? '🔊 Musik: On' : '🔇 Musik: Off';
+            toggleButton.textContent = isMuted ? '🔊 Music: On' : '🔇 Music: Off';
         });
     }
 });
