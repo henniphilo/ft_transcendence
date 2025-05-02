@@ -1,6 +1,6 @@
 # testing
 
-we have integration tests and unit tests in our backend. These are done with pytest.
+We have integration tests and unit tests in our backend. These are done with pytest.
 
 For example run it like this:
 ```pytest
@@ -43,7 +43,7 @@ To run tests locally:
 docker compose -f docker-compose.test.yml up --build
 ```
 
-## managing secrets on github
+## Managing secrets on github
 To add the necessary secrets to your GitHub repository, follow these steps:
 
 ### Steps to Add Secrets to GitHub Repository
