@@ -1,4 +1,4 @@
-DC=docker-compose
+DC=docker compose
 COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
 # COMPOSE_PROFILES=gameprofile
 

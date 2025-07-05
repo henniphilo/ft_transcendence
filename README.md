@@ -12,6 +12,8 @@
 
 > Time to shine!
 
+![Login Screenshot](docs/media/Login_2.png)
+
 ## Project Overview
 
 Version 15.1
