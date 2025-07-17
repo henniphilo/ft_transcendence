@@ -1,6 +1,6 @@
 DC=docker compose
-COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
-# COMPOSE_PROFILES=gameprofile
+# COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
+COMPOSE_PROFILES=gameprofile
 
 .PHONY: all build up down logs migrations migrate test fclean
 
@@ -19,6 +19,10 @@ kube-start:
 
 kube-status:
 	kubectl get pods,services,pvc
+
+# Docker Buildx Bake targets
+bake:
+	docker buildx bake gameprofile
 
 build:
 	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) build
