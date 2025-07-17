@@ -7,6 +7,9 @@ COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile
 # Default-Ziel: bei "make" wird alles gestartet und migrations und migrate ist im dockefile!
 all: build up
 
+kube:
+	kubectl apply -f '*.yaml'    
+
 build:
 	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) build
 
