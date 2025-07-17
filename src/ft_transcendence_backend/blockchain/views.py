@@ -2,13 +2,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .blockchain_utils import add_game, get_game, get_game_count
-from environ import Env
 import os
 import requests
 
-env = Env()
-env.read_env(os.path.join(os.path.dirname(__file__), '..', '.env'))  # Explicit .env path
+private_key = os.environ.get('ETH_PRIVATE_KEY')     
+if not private_key:
+    raise ValueError("ETH_PRIVATE_KEY not set in environment")
 
+                             
 @api_view(['POST'])
 def add_game_manual(request):
     try:
@@ -17,9 +18,6 @@ def add_game_manual(request):
         timestamp = data.get('timestamp', '')
         if not all([winner_tournament_name, timestamp]):
             return Response({'error': 'Missing or invalid parameters'}, status=status.HTTP_400_BAD_REQUEST)
-        private_key = env('ETH_PRIVATE_KEY')
-        if not private_key:
-            raise ValueError("ETH_PRIVATE_KEY not set in environment")
         result = add_game(winner_tournament_name, timestamp, private_key)
         return Response({
             'status': 'success',
@@ -36,10 +34,6 @@ def sync_games(request):
         response = requests.get('http://localhost:8000/api/gamestats/')
         response.raise_for_status()
         games = response.json()
-
-        private_key = env('ETH_PRIVATE_KEY')
-        if not private_key:
-            raise ValueError("ETH_PRIVATE_KEY not set in environment")
 
         # Process each game
         tx_hashes = []

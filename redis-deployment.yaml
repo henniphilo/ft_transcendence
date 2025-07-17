@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --build local --profile gameprofile
+    kompose.service.type: clusterip
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: redis
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --build local --profile gameprofile
+        kompose.service.type: clusterip
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: redis
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: env
+          image: redis
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: redis
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          stdin: true
+          tty: true
+          volumeMounts:
+            - mountPath: /data
+              name: redis-data
+      restartPolicy: Always
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data

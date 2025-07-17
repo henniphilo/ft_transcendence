@@ -1,7 +1,5 @@
 FROM caddy:latest
 
-# WORKDIR /etc/caddy
-
 # curl install
 RUN apk update && apk add --no-cache curl && \
 	rm -rf /var/cache/apk/*

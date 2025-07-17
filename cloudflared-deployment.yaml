@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --build local --profile gameprofile
+    kompose.controller.type: deployment
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: cloudflared
+  name: cloudflared
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: cloudflared
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --build local --profile gameprofile
+        kompose.controller.type: deployment
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: cloudflared
+    spec:
+      containers:
+        - args:
+            - tunnel
+            - --no-autoupdate
+            - run
+            - --token
+            - eyJhIjoiMjQ2NGNmY2QxOTc0YjZmYzc1YjVkMmFjYTA1ZjM0YmEiLCJ0IjoiYzVlYTgyOTItMmUwOS00YWMzLTg2NGUtNjY5MDdhNjhhNTM3IiwicyI6Ik56QXhaRFJoTldVdFl6RmxaaTAwTkRRMExXRTJOREl0WkRBd09UTmtNbUl6WkRaaiJ9
+          envFrom:
+            - configMapRef:
+                name: env
+          image: cloudflare/cloudflared:latest
+          name: cloudflared
+          stdin: true
+          tty: true
+      restartPolicy: Always

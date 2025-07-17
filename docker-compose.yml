@@ -21,6 +21,10 @@ services:
     image: "postgres:16"
     profiles: ["gameprofile"]
     container_name: postgres
+    labels:
+      kompose.service.type: clusterip
+    ports:
+      - "5432:5432" 
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - postgres_logs:/var/log/postgresql
@@ -32,32 +36,18 @@ services:
         gelf-address: "udp://${LOG_HOST}:12201"
         tag: "postgres"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5432"]
+      test: ["CMD-SHELL", "pg_isready -U user -d transcendence -p 5432"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  postgres-exporter:
-    <<: *common
-    image: bitnami/postgres-exporter:latest
-    profiles: ["grafanaprofile"]
-    container_name: postgres-exporter
-    environment:
-      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
-      DISABLE_DEFAULT_METRICS: "true"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      prometheus:
-        condition: service_started
-    ports:
-    - "9187:9187"
 
   redis:
     <<: *common
     build: src/redis
     profiles: ["gameprofile"]
     container_name: redis
+    labels:
+      kompose.service.type: clusterip
     ports:
       - "6380:6379"
     volumes:
@@ -73,11 +63,15 @@ services:
       timeout: 5s
       retries: 5
 
+
   backend:
     <<: *common
     build: src/ft_transcendence_backend
     profiles: ["gameprofile"]
     container_name: backend
+    labels:
+      kompose.service.type: clusterip
+      kompose.image-pull-policy: Never
     depends_on:
       postgres:
         condition: service_healthy
@@ -107,6 +101,12 @@ services:
     build: src/ft_transcendence_backend/game
     profiles: ["gameprofile"]
     container_name: game
+    labels:
+      kompose.service.type: clusterip
+      kompose.image-pull-policy: Never
+    depends_on:
+      backend:
+        condition: service_healthy
     command: python3 -m uvicorn pong_game:app --host 0.0.0.0 --port 8001 --reload
     ports:
       - "8001:8001"
@@ -128,6 +128,9 @@ services:
       dockerfile: caddy/Dockerfile
     profiles: ["gameprofile"]
     container_name: caddy
+    labels:
+      kompose.service.type: loadbalancer
+      kompose.image-pull-policy: Never
     ports:
       - "8080:80"  
       - "8444:443"  
@@ -149,12 +152,32 @@ services:
       timeout: 10s
       retries: 5
 
+  postgres-exporter:
+    <<: *common
+    image: bitnami/postgres-exporter:latest
+    profiles: ["grafanaprofile"]
+    container_name: postgres-exporter
+    labels:
+      kompose.service.type: clusterip
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      DISABLE_DEFAULT_METRICS: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
+    ports:
+    - "9187:9187"
+
   cloudflared:
     <<: *common
     image: cloudflare/cloudflared:latest
     profiles: ["gameprofile"]
     container_name: cloudflared
-    restart: unless-stopped
+    restart: always
+    labels:
+      kompose.controller.type: deployment 
     logging:
       driver: gelf
       options:
@@ -169,6 +192,8 @@ services:
       dockerfile: Dockerfile.grafana
     profiles: ["grafanaprofile"]
     container_name: grafana
+    labels:
+      kompose.service.type: nodeport
     ports:
       - "3000:3000"
     environment:
@@ -218,6 +243,8 @@ services:
       dockerfile: Dockerfile.prometheus
     profiles: ["grafanaprofile"]
     container_name: prometheus
+    labels:
+      kompose.service.type: clusterip
     ports:
       - "9090:9090"
     volumes:
@@ -238,6 +265,8 @@ services:
     image: prom/node-exporter:latest
     container_name: node-exporter
     profiles: ["grafanaprofile"]
+    labels:
+      kompose.service.type: clusterip
     ports:
       - "9101:9100"
     logging:
@@ -258,6 +287,8 @@ services:
       dockerfile: Dockerfile.alertmanager
     profiles: ["grafanaprofile"]
     container_name: alertmanager
+    labels:
+      kompose.service.type: clusterip
     environment:
       - EMAIL_FROM=${EMAIL_FROM}
       - EMAIL_TO=${EMAIL_TO}
@@ -300,7 +331,9 @@ services:
     image: kibana:8.17.0
     container_name: kibana
     profiles: ["elkprofile"]
-    restart: always       
+    restart: always
+    labels:
+      kompose.service.type: nodeport
     ports:
     - '5601:5601'
     environment:
@@ -323,6 +356,8 @@ services:
     profiles: ["elkprofile"]
     container_name: elasticsearch
     restart: always
+    labels:
+      kompose.service.type: clusterip
     volumes:
     - elastic_data:/usr/share/elasticsearch/data/
     environment:
@@ -345,6 +380,8 @@ services:
     build: ./src/elk/logstash
     profiles: ["elkprofile"]
     restart: always
+    labels:
+      kompose.service.type: clusterip
     command: logstash -f /logstash_dir/logstash.conf 
     ports:
       - "5000:5000/udp" 

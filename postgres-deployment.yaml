@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --build local --profile gameprofile
+    kompose.service.type: clusterip
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: postgres
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --build local --profile gameprofile
+        kompose.service.type: clusterip
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: postgres
+    spec:
+      containers:
+        - env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data
+          envFrom:
+            - configMapRef:
+                name: env
+          image: postgres:16
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready -U user -d transcendence -p 5432
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: postgres
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          stdin: true
+          tty: true
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+            - mountPath: /var/log/postgresql
+              name: postgres-logs
+      restartPolicy: Always
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+        - name: postgres-logs
+          persistentVolumeClaim:
+            claimName: postgres-logs

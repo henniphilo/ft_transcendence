@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --build local --profile gameprofile
+    kompose.image-pull-policy: Never
+    kompose.service.type: clusterip
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: game
+  name: game
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: game
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --build local --profile gameprofile
+        kompose.image-pull-policy: Never
+        kompose.service.type: clusterip
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: game
+    spec:
+      containers:
+        - args:
+            - python3
+            - -m
+            - uvicorn
+            - pong_game:app
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8001"
+            - --reload
+          envFrom:
+            - configMapRef:
+                name: env
+          image: game
+          imagePullPolicy: Never
+          livenessProbe:
+            exec:
+              command:
+                - curl -f http://localhost:8001 || exit 1
+            failureThreshold: 5
+            periodSeconds: 30
+            timeoutSeconds: 10
+          name: game
+          ports:
+            - containerPort: 8001
+              protocol: TCP
+          stdin: true
+          tty: true
+      restartPolicy: Always

@@ -1,10 +1,7 @@
 from web3 import Web3
 import json
 import os
-from environ import Env
 
-env = Env()
-Env.read_env()  # Reads .env file if present
 
 # Web3 setup for Sepolia testnet
 w3 = Web3(Web3.HTTPProvider('https://sepolia.infura.io/v3/a23119c5438f41edb641c7d780467ed9'))

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --build local --profile gameprofile
+    kompose.image-pull-policy: Never
+    kompose.service.type: clusterip
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --build local --profile gameprofile
+        kompose.image-pull-policy: Never
+        kompose.service.type: clusterip
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: backend
+    spec:
+      containers:
+        - args:
+            - sh
+            - -c
+            - |-
+              python manage.py makemigrations &&
+                     python manage.py migrate &&
+                     daphne -b 0.0.0.0 -p 8000 backend.asgi:application
+          envFrom:
+            - configMapRef:
+                name: env
+          image: backend
+          imagePullPolicy: Never
+          livenessProbe:
+            exec:
+              command:
+                - curl -f http://localhost:8000/metrics || exit 1
+            failureThreshold: 10
+            periodSeconds: 10
+            timeoutSeconds: 10
+          name: backend
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          stdin: true
+          tty: true
+          volumeMounts:
+            - mountPath: /app/logs
+              name: django-logs
+      restartPolicy: Always
+      volumes:
+        - name: django-logs
+          persistentVolumeClaim:
+            claimName: django-logs

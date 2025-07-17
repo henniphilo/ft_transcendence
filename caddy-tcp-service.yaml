@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --build local --profile gameprofile
+    kompose.image-pull-policy: Never
+    kompose.service.type: loadbalancer
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: caddy-tcp
+  name: caddy-tcp
+spec:
+  ports:
+    - name: "8080"
+      port: 8080
+      targetPort: 80
+    - name: "8444"
+      port: 8444
+      targetPort: 443
+  selector:
+    io.kompose.service: caddy
+  type: LoadBalancer
