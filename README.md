@@ -48,34 +48,34 @@ Beneath is a table outlining all possible modules for the ft_transcendence proje
 
 | Module Category | Module Description | Type | Points | Completed |
 |-----------------|--------------------|------|--------|-----------|
-| **Web** | Use a [Framework](django.md) as backend | Major | 10 | ✅ |
-| Web | Use a front-end framework or [toolkit](bootstrap.md) | Minor | 5 | ✅ |
-| Web | Use a [database](postgres_logs.md) for the backend | Minor | 5 | ✅ |
-| Web | Store the score of a tournament in the [blockchain](blockchain.md) | Major | 10 | ✅ |
-| **User Management** | Standard user management, [authentication](registering_and_login.md), users across tournaments | Major | 10 | ✅ |
+| **Web** | Use a [Framework](docs/django.md) as backend | Major | 10 | ✅ |
+| Web | Use a front-end framework or [toolkit](docs/bootstrap.md) | Minor | 5 | ✅ |
+| Web | Use a [database](docs/postgres_logs.md) for the backend | Minor | 5 | ✅ |
+| Web | Store the score of a tournament in the [blockchain](docs/blockchain.md) | Major | 10 | ✅ |
+| **User Management** | Standard user management, [authentication](docs/registering_and_login.md), users across tournaments | Major | 10 | ✅ |
 | User Management | Implementing a remote authentication | Major | 10 | [ ] |
-| **Gameplay and User Experience** | [Remote](backend.md) players | Major | 10 | ✅ |
+| **Gameplay and User Experience** | [Remote](docs/backend.md) players | Major | 10 | ✅ |
 | Gameplay and User Experience | Multiplayers (more than 2 in the same game) | Major | 10 | [ ] |
 | Gameplay and User Experience | Add Another Game with User History and Matchmaking | Major | 10 | [ ] |
 | Gameplay and User Experience | Game Customization Options | Minor | 5 | [ ] |
-| Gameplay and User Experience | Live [chat](redis.md) | Major | 10 | ✅ |
+| Gameplay and User Experience | Live [chat](docs/redis.md) | Major | 10 | ✅ |
 | **AI-Algo** | Introduce an AI Opponent | Major | 10 | ✅ |
 | AI-Algo | User and Game Stats Dashboards | Minor | 5 | ✅ |
 | **Cybersecurity** | Implement WAF/ModSecurity with Hardened Configuration and HashiCorp Vault for Secrets Management | Major | 10 | [ ] |
 | Cybersecurity | GDPR Compliance Options with User Anonymization, Local Data Management, and Account Deletion | Minor | 5 | [ ] |
-| Cybersecurity | Implement [Two-Factor Authentication](authlib.md)(2FA) and JWT | Major | 10 | ✅ |
-| **Devops** | Infrastructure Setup for log Management with [ELK](ELK.md): [Elasticsearch](elastic_search.md), [Kibana](kibana.md), [Logstash](logstash.md) | Major | 10 | ✅ |
-| Devops | Monitoring system with [Prometheus](prometheus.md) and [Grafana](grafana.md)| Minor | 5 | ✅ |
-| Devops | Designing the [Backend](backend.md) as Microservices | Major | 10 | ✅ |
-| **Graphics** | Use of advanced [3D techniques](threejs.md) | Major | 10 | ✅ |
+| Cybersecurity | Implement [Two-Factor Authentication](docs/authlib.md)(2FA) and JWT | Major | 10 | ✅ |
+| **Devops** | Infrastructure Setup for log Management with [ELK](docs/ELK.md): [Elasticsearch](docs/elastic_search.md), [Kibana](docs/kibana.md), [Logstash](docs/logstash.md) | Major | 10 | ✅ |
+| Devops | Monitoring system with [Prometheus](docs/prometheus.md) and [Grafana](docs/grafana.md)| Minor | 5 | ✅ |
+| Devops | Designing the [Backend](docs/backend.md) as Microservices | Major | 10 | ✅ |
+| **Graphics** | Use of advanced [3D techniques](docs/threejs.md) | Major | 10 | ✅ |
 | **Accessibility** | Support on all devices | Minor | 5 | [ ] |
 | Accessibility | Expanding Browser Compatibility | Minor | 5 | [ ] |
 | Accessibility | Multiple language support | Minor | 5 | [ ] |
 | Accessibility | Add accessibility for Visually Impaired Users | Minor | 5 | [ ] |
 | Accessibility | Server-Side Rendering (SSR) Integration | Minor | 5 | [ ] |
-| **Server-Side Pong** | Replacing Basic Pong with Server-Side Pong and Implementing an [API](how_to_gamestats.md) | Major | 10 | ✅ |
+| **Server-Side Pong** | Replacing Basic Pong with Server-Side Pong and Implementing an [API](docs/how_to_gamestats.md) | Major | 10 | ✅ |
 | Server-Side Pong | Enabling Pong Gameplay via CLI against Web Users with API Integration | Major | 10 | [ ] |
-| Testing | Implementing a [CI/CD](testing.md) testing protocol | Extra | x | ✅ |
+| Testing | Implementing a [CI/CD](docs/testing.md) testing protocol | Extra | x | ✅ |
 
 ## Points Summary
 (7 major modules are required to pass the project, 2 major and one minor extra to achieve full bonus points).
