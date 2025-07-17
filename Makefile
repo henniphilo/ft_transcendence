@@ -7,8 +7,18 @@ COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile
 # Default-Ziel: bei "make" wird alles gestartet und migrations und migrate ist im dockefile!
 all: build up
 
+# the next three are for Kubernetes management
 kube:
 	kubectl apply -f '*.yaml'    
+
+kube-stop:
+	kubectl scale deployment --all --replicas=0
+
+kube-start:
+	kubectl scale deployment --all --replicas=1
+
+kube-status:
+	kubectl get pods,services,pvc
 
 build:
 	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) build
