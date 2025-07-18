@@ -55,3 +55,5 @@ target "postgres" {
   tags = ["${REGISTRY}postgres:${TAG}"]
   platforms = ["linux/amd64", "linux/arm64"]
 }
+
+

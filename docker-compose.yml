@@ -6,6 +6,7 @@ x-common: &common
     - gameprofile
     - grafanaprofile
     - elkprofile
+    - tunnelprofile
   networks:
     - appnetwork
   env_file:
@@ -16,6 +17,21 @@ x-common: &common
   stdin_open: true
 
 services:
+  cloudflared:
+    <<: *common
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnelprofile"]
+    container_name: cloudflared
+    labels:
+      kompose.ignore: "true"  
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://${LOG_HOST}:12201"
+        tag: "cloudflared"
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+  
   postgres:
     <<: *common
     image: "postgres:16"
@@ -170,21 +186,6 @@ services:
     ports:
     - "9187:9187"
 
-  cloudflared:
-    <<: *common
-    image: cloudflare/cloudflared:latest
-    profiles: ["gameprofile"]
-    container_name: cloudflared
-    restart: always
-    labels:
-      kompose.controller.type: deployment 
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://${LOG_HOST}:12201"
-        tag: "cloudflared"
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-  
   grafana:
     <<: *common
     build: 

@@ -1,15 +1,23 @@
+.PHONY: all build up down logs migrations migrate test fclean bake tunnel kube kube-down kube-stop kube-start kube-status help testuser test15 test16 rebuild start stop clean logs-backend logs-grafana logs-nginx animate-game bake-all
+
 DC=docker compose
-# COMPOSE_PROFILES=gameprofile,grafanaprofile,elkprofile 
-COMPOSE_PROFILES=gameprofile
+# COMPOSE_PROFILES=gameprofile, tunnelprofile, grafanaprofile,elkprofile, tunnelprofile
+COMPOSE_PROFILES=gameprofile,tunnelprofile
 
-.PHONY: all build up down logs migrations migrate test fclean
+#######################################
+# these are for Kubernetes   		  #
+#######################################
 
-# Default-Ziel: bei "make" wird alles gestartet und migrations und migrate ist im dockefile!
-all: build up
+# Generate Kubernetes manifests from docker-compose
+kube-convert:
+	kompose convert --build local --profile gameprofile
 
-# the next three are for Kubernetes management
-kube:
+kube: bake tunnel
 	kubectl apply -f '*.yaml'    
+
+# This deletes the Kubernetes resources, not the files
+kube-clean:
+	kubectl delete -f '*.yaml'  
 
 kube-stop:
 	kubectl scale deployment --all --replicas=0
@@ -20,9 +28,28 @@ kube-start:
 kube-status:
 	kubectl get pods,services,pvc
 
-# Docker Buildx Bake targets
+kube-logs:
+	kubectl logs -f deployment/backend
+
+#######################################
+# Docker Buildx Bake targets          #
+# Since I use it for the kubernetes   #
+# deployment I split into just the    #
+# gameprofile and the just tunnel     #
+#######################################
+bake-all: bake tunnel
+
 bake:
-	docker buildx bake gameprofile
+	docker buildx bake gameprofile --load
+
+tunnel:
+	COMPOSE_PROFILES=tunnelprofile $(DC) up -d --build cloudflared
+
+#######################################
+# Traditional Docker Compose commands #
+#######################################
+
+all: build up
 
 build:
 	COMPOSE_PROFILES=$(COMPOSE_PROFILES) $(DC) build
@@ -85,3 +112,9 @@ logs-nginx:
 animate-game:
 	docker cp game:/app/game.log ./game.log
 	python3 utils/animate_game.py
+
+help:
+	@echo "Docker Compose commands:"
+	@echo "  make up         - Start all services"
+	@echo "  make down       - Stop all services"
+	@echo "  make logs       - Show logs"
